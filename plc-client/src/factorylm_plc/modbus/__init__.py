@@ -1,3 +1,5 @@
 """Modbus TCP client and register definitions."""
 
-__all__ = []
+from .client import ModbusTCPClient
+
+__all__ = ["ModbusTCPClient"]
