@@ -1,0 +1,119 @@
+{
+  "project": "FactoryLM PLC Client",
+  "branchName": "ralph/prd-003-plc-client",
+  "description": "Modbus TCP client for Micro820 PLC - Industrial I/O Layer",
+  "userStories": [
+    {
+      "id": "PLC-001",
+      "title": "Create plc-client directory structure",
+      "description": "Set up the full directory structure as specified in PRD-003",
+      "acceptanceCriteria": [
+        "Create plc-client/ with src/factorylm_plc/ structure",
+        "All __init__.py files present",
+        "requirements.txt with pymodbus==3.6.1",
+        "pytest.ini configured"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "PLC-002",
+      "title": "Implement BasePLCClient abstract class",
+      "description": "Create abstract base class for all PLC providers",
+      "acceptanceCriteria": [
+        "Abstract methods: connect, read_state, write_register, write_coil, is_connected",
+        "Type hints on all methods",
+        "Docstrings complete"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "PLC-003",
+      "title": "Implement MachineState dataclass",
+      "description": "Standardized machine state from any PLC",
+      "acceptanceCriteria": [
+        "Fields: motor_speed, motor_current, temperature, pressure, motor_running, motor_stopped, fault_alarm, timestamp, raw_registers",
+        "to_dict() method for JSON serialization",
+        "Type hints complete"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "PLC-004",
+      "title": "Implement ModbusTCPClient wrapper",
+      "description": "pymodbus wrapper with retry logic",
+      "acceptanceCriteria": [
+        "Uses pymodbus library",
+        "read_registers() and read_coils() methods",
+        "Retry logic (3 attempts)",
+        "Timeout handling (5s default)",
+        "Logging of all reads/writes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "PLC-005",
+      "title": "Implement Micro820PLC",
+      "description": "Micro820 PLC with hardcoded register mapping",
+      "acceptanceCriteria": [
+        "Extends BasePLCClient",
+        "Register mapping: 100=speed, 101=current, 102=temp, 103=pressure",
+        "Coil mapping: 0=running, 1=stopped, 2=fault",
+        "Temperature parsed (divide by 10)",
+        "Timestamps all reads"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "PLC-006",
+      "title": "Implement MockPLC for testing",
+      "description": "In-memory PLC simulator",
+      "acceptanceCriteria": [
+        "Implements BasePLCClient",
+        "Simulates realistic behavior",
+        "Temperature increases when motor running",
+        "No network calls"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "PLC-007",
+      "title": "Add unit tests",
+      "description": "Test all components with MockPLC",
+      "acceptanceCriteria": [
+        "test_modbus_client.py - mock responses",
+        "test_micro820.py - MachineState parsing",
+        "test_mock_plc.py - simulated behavior",
+        "All tests pass without real hardware"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "PLC-008",
+      "title": "Add factory function and integration test",
+      "description": "create_plc_client() factory and end-to-end test",
+      "acceptanceCriteria": [
+        "Factory function in __init__.py",
+        "Integration test with MockPLC",
+        "80%+ code coverage",
+        "README with usage examples"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

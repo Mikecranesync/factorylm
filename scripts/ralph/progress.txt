@@ -1,0 +1,16 @@
+# FactoryLM PLC Client - Ralph Progress Log
+
+## Codebase Patterns
+- Use pymodbus for Modbus TCP communication
+- All PLC clients must implement BasePLCClient abstract class
+- MachineState is the standardized response format for all PLC reads
+- MockPLC enables testing without real hardware
+- Follow patterns from core/ for abstractions and factory functions
+- Temperature values from Micro820 are scaled 10x (divide by 10)
+
+---
+
+## Progress
+
+(Ralph will append entries here as stories are completed)
+
