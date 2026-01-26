@@ -7,8 +7,13 @@ Supports Micro820 out-of-box with extensible interface for other PLCs.
 
 __version__ = "0.3.0"
 
-from .models import MachineState
 from .plc.base import BasePLCClient
+
+# MachineState imported when available (PLC-003)
+try:
+    from .models import MachineState
+except ImportError:
+    MachineState = None  # type: ignore
 
 __all__ = [
     "MachineState",
@@ -17,13 +22,13 @@ __all__ = [
 ]
 
 
-def create_plc_client(plc_type: str, host: str, port: int = 502) -> BasePLCClient:
+def create_plc_client(plc_type: str, host: str = "", port: int = 502) -> BasePLCClient:
     """
     Factory function to create appropriate PLC client.
 
     Args:
         plc_type: Type of PLC ("micro820", "mock")
-        host: IP address of the PLC
+        host: IP address of the PLC (not needed for mock)
         port: Modbus TCP port (default 502)
 
     Returns:
