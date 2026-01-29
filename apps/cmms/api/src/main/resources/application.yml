@@ -1,0 +1,135 @@
+spring:
+  datasource:
+    # url: jdbc:h2:mem:test_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:postgresql://${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PWD}
+    driver-class-name: org.postgresql.Driver
+  #    init:
+  #      data-locations: classpath:data-preprod.sql
+  #    tomcat:
+  #      max-wait: 20000
+  #      max-active: 50
+  #      max-idle: 20
+  #      min-idle: 15
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+  liquibase:
+    change-log: classpath:/db/master.xml
+    enabled: true
+  messages:
+    encoding: UTF-8
+  servlet:
+    multipart:
+      max-request-size: 7MB
+      max-file-size: 7MB
+  profiles:
+    active: dev
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+        hibernate.default_batch_fetch_size: 64
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        id:
+          new_generator_mappings: false
+    defer-datasource-initialization: false
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
+      ssl.trust: smtp.gmail.com
+  sql:
+    init:
+      mode: always
+
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PWD:}
+    protocol: smtp
+    tls: true
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
+      ssl.trust: ${SMTP_HOST:smtp.gmail.com}
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=20m
+server:
+  port: 8080 # This is the default port anyway, but you can change it here
+
+security:
+  jwt:
+    token:
+      secret-key: ${JWT_SECRET_KEY}
+      expire-length: 1209600000 # 1000*60*60*24*14
+  invitation-via-email: ${INVITATION_VIA_EMAIL}
+  cors:
+    enabled: ${ENABLE_CORS:true}
+frontend:
+  url: ${PUBLIC_FRONT_URL}
+mail:
+  recipients: ${MAIL_RECIPIENTS}
+  enable: ${ENABLE_EMAIL_NOTIFICATIONS}
+superAdmin:
+  role:
+    name: SuperAdministratorGrash@p;l
+fast-spring:
+  username: ${FASTSPRING_USER}
+  password: ${FASTSPRING_PWD}
+management:
+  health:
+    mail:
+      enabled: ${ENABLE_MAIL_HEALTH_CHECK:true}
+api:
+  host: ${PUBLIC_API_URL}
+storage:
+  type: ${STORAGE_TYPE}
+  minio:
+    endpoint: ${MINIO_ENDPOINT:}
+    bucket: ${MINIO_BUCKET:}
+    access-key: ${MINIO_ACCESS_KEY:}
+    secret-key: ${MINIO_SECRET_KEY:}
+    public-endpoint: ${PUBLIC_MINIO_ENDPOINT:}
+  gcp:
+    project-id: ${GCP_PROJECT_ID:}
+    bucket-name: ${GCP_BUCKET_NAME:}
+    value: ${GCP_JSON:}
+    json-path: ${GCP_JSON_PATH:}
+
+allowed-organization-admins: ${ALLOWED_ORGANIZATION_ADMINS:}
+cloud-version: ${CLOUD_VERSION:false}
+enable-sso: ${ENABLE_SSO:false}
+oauth2:
+  success-redirect-url: ${PUBLIC_FRONT_URL}/oauth2/success
+  failure-redirect-url: ${PUBLIC_FRONT_URL}/oauth2/failure
+  provider: ${OAUTH2_PROVIDER}
+license-key: ${LICENSE_KEY:}
+license-fingerprint-required: ${LICENSE_FINGERPRINT_REQUIRED:true}
+white-labeling:
+  logo-paths: ${LOGO_PATHS:}
+  custom-colors: ${CUSTOM_COLORS:}
+  brand-config: ${BRAND_CONFIG:}
+
+paddle:
+  api-key: ${PADDLE_API_KEY:}
+  environment: ${PADDLE_ENVIRONMENT:sandbox}
+  webhook-secret-key: ${PADDLE_WEBHOOK_SECRET_KEY:}
+keygen:
+  product-token: ${KEYGEN_PRODUCT_TOKEN}
+  account-id: 1ca3e517-f3d8-473f-a45c-81069900acb7

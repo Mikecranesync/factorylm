@@ -1,0 +1,19 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="rename_columns_to_snake_case" author="Ibrahima">
+        <renameColumn tableName="work_order_aud" oldColumnName="completedOn" newColumnName="completed_on"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="primaryUser_id" newColumnName="primary_user_id"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="completedBy_id" newColumnName="completed_by_id"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="parentRequest_id" newColumnName="parent_request_id"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="parentPreventiveMaintenance_id" newColumnName="parent_preventive_maintenance_id"/>
+
+        <renameColumn tableName="work_order_aud" oldColumnName="completedOn_mod" newColumnName="completed_on_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="primaryUser_id_mod" newColumnName="primary_user_id_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="completedBy_id_mod" newColumnName="completed_by_id_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="parentRequest_id_mod" newColumnName="parent_request_id_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="parentPreventiveMaintenance_id_mod" newColumnName="parent_preventive_maintenance_id_mod"/>
+
+    </changeSet>
+</databaseChangeLog>

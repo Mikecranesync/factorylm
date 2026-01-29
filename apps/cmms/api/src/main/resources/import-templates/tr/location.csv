@@ -1,0 +1,6 @@
+ID,İsim,Adres,Üst Konum,Atanan,Ekipler,Satıcılar,Yükleniciler
+,Ana Tesis 1,Ana Tesis 1 Adresi,,"abc@gmail.com, abcd@gmail.com",Takım1,Tedarikçi1,Taşeron1
+,Kuluçka Evi 1,Ana Tesis 1 Adresi,Ana Tesis 1,,"Takım2,Takım3",,
+,Bölge 1-Kuluçka Evi 1,Ana Tesis 1 Adresi,Kuluçka Evi 1,,,,
+,Bölge 2-Kuluçka Evi 1,Ana Tesis 1 Adresi,Kuluçka Evi 1,,,,
+,Tavuk Evi 1,Ana Tesis 1 Adresi,Ana Tesis 1,,,,

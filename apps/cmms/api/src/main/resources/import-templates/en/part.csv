@@ -1,0 +1,5 @@
+ID,Name,Cost,Category,Non Stock,Barcode,Description,Quantity,Additional Information,Area,Minimum Quantity,Assigned To,Contractors,Vendors,Teams
+2456,Cables,20,Electrical Parts,No,1586568,Transmits electrical power or signals.,20,see datasheet,"Shelf 1, Bin B",19,abc@gmail.com,"Contractor1,Contractor2",Vendor1,Team1
+2476,Display Units,200,Electronic Components,No,77061229,Shows measurements or operational statuses.,17,see datasheet,"Shelf 1, Bin C",10,,,,
+2505, O-rings ,5,Hydraulic Components,No,82168288, Provide seals in various applications to prevent leaks. ,3,see datasheet,"Ground Floor, Section C",3,,,,
+2462,Circuit Board,200,Electronic Components,No,30817468,Provides connections for electronic components within a system.,11,see datasheet,"Shelf 1, Bin C",9,,,,

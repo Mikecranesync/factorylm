@@ -1,0 +1,14 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+# API
+api/target/
+api/*.jar
+api/.env
+
+# IDE
+.idea/
+*.iml
+.vscode/

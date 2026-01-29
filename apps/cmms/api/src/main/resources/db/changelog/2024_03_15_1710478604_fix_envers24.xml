@@ -1,0 +1,13 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="fixenvers" author="Ibrahima">
+        <renameColumn tableName="work_order_aud" oldColumnName="primary_user_mod" newColumnName="primaryUser_MOD"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="completed_by_mod" newColumnName="completedBy_MOD"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="completed_on_mod" newColumnName="completedOn_MOD"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="parent_request_mod" newColumnName="parentRequest_MOD"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="parent_preventive_maintenance_mod" newColumnName="parentPreventiveMaintenance_MOD"/>
+    </changeSet>
+
+</databaseChangeLog>

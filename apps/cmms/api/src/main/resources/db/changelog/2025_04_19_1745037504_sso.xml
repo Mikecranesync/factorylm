@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="1745037535350-1" author="Ibrahima G. Coulibaly">
+        <addColumn tableName="own_user">
+            <column name="created_via_sso" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sso_provider" type="varchar(255)"/>
+            <column name="sso_provider_id" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

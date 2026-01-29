@@ -1,0 +1,18 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="2024_05_09_1715209567_subscription_plans_pricing.xml-1" author="Ibrahima">
+        <sql>
+            update subscription_plan
+            set monthly_cost_per_user =15,
+                yearly_cost_per_user=150
+            where code = 'STARTER';
+
+            update subscription_plan
+            set monthly_cost_per_user =20,
+                yearly_cost_per_user=200
+            where code = 'PROFESSIONAL';
+        </sql>
+    </changeSet>
+</databaseChangeLog>

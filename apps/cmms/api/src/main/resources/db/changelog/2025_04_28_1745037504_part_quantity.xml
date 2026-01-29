@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="1745877831299-1" author="Ibrahima G. Coulibaly">
+        <modifyDataType tableName="part" columnName="quantity" newDataType="double"/>
+        <modifyDataType tableName="part" columnName="min_quantity" newDataType="double"/>
+        <addColumn tableName="part">
+            <column name="unit" type="varchar"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1745879013106-1" author="Ibrahima G. Coulibaly">
+        <modifyDataType tableName="part_quantity" columnName="quantity" newDataType="double"/>
+        <modifyDataType tableName="part_consumption" columnName="quantity" newDataType="double"/>
+        <modifyDataType tableName="asset" columnName="acquisition_cost" newDataType="double"/>
+        <modifyDataType tableName="part" columnName="cost" newDataType="double"/>
+        <modifyDataType tableName="subscription_plan" columnName="monthly_cost_per_user" newDataType="double"/>
+        <modifyDataType tableName="subscription_plan" columnName="yearly_cost_per_user" newDataType="double"/>
+    </changeSet>
+    <changeSet id="1745880652225-1" author="Ibrahima G. Coulibaly">
+        <modifyDataType tableName="additional_cost" columnName="cost" newDataType="double"/>
+    </changeSet>
+</databaseChangeLog>

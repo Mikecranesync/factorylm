@@ -1,0 +1,14 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="audio_description" author="Ibrahima">
+        <addColumn tableName="request">
+            <column name="audio_description_id" type="BIGINT"/>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="request" baseColumnNames="audio_description_id"
+                                 constraintName="fk_request_audio_description"
+                                 referencedTableName="file"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

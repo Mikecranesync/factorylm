@@ -1,0 +1,4 @@
+ID,Nom,Unit�,Fr�quence de mise � jour,Cat�gorie,Nom de l'�quipement,Nom de l'emplacement,Utilisateurs
+,Surveillance de la temp�rature,�C,1,�tat,Moteur du g�n�rateur-Groupe �lectrog�ne de secours-Zone utilitaire,Site principal 1,"technicien1testcmms@gmail.com,abc@gmail.com"
+,D�clencheur de v�rin hydraulique,cycles,1,Utilisation,Extracteurs d'air-Syst�me de ventilation-Poulailler,Site principal 1,limitedtechnicien1testcmms@gmail.com
+,Lecture de la consommation d'�nergie quotidienne de l'installation 1,KWh,1,Utilisation,Moteur du g�n�rateur-Groupe �lectrog�ne de secours-Zone utilitaire,Site principal 1,limitedtechnicien1testcmms@gmail.com

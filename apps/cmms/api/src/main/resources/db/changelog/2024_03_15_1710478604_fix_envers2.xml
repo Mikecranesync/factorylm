@@ -1,0 +1,17 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="fixEnvers2" author="Ibrahima">
+        <renameColumn tableName="revinfo" oldColumnName="revision_id" newColumnName="rev"/>
+        <renameColumn tableName="revinfo" oldColumnName="rev_timestamp" newColumnName="REVTSTMP"/>
+        <dropColumn tableName="work_order_AUD" columnName="revision_id"/>
+        <addColumn tableName="work_order_AUD">
+            <column name="revision_id" type="INTEGER">
+                <constraints nullable="false" foreignKeyName="fk_wo_aud_revision_id" references="revinfo(rev)"
+                />
+            </column>
+        </addColumn>
+
+    </changeSet>
+</databaseChangeLog>

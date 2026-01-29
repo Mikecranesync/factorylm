@@ -1,0 +1,16 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="rollbackFixEnvers" author="Ibrahima">
+        <renameColumn tableName="work_order_aud" oldColumnName="dueDate_MOD" newColumnName="due_date_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="requiredSignature_MOD" newColumnName="required_signature_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="estimatedDuration_MOD" newColumnName="estimated_duration_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="primaryUser_MOD" newColumnName="primary_user_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="completedBy_MOD" newColumnName="completed_by_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="completedOn_MOD" newColumnName="completed_on_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="parentRequest_MOD" newColumnName="parent_request_mod"/>
+        <renameColumn tableName="work_order_aud" oldColumnName="parentPreventiveMaintenance_MOD" newColumnName="parent_preventive_maintenance_mod"/>
+    </changeSet>
+
+</databaseChangeLog>

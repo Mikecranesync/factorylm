@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="2025_05_02_populate_custom_id" author="Ibrahima G. Coulibaly">
+        <!-- Create a custom sequence for each company -->
+        <sql>
+            INSERT INTO custom_sequence (company_id, work_order_sequence, asset_sequence,
+                                         preventive_maintenance_sequence, location_sequence, request_sequence)
+            SELECT id, 1, 1, 1, 1, 1
+            FROM company;
+        </sql>
+
+        <!-- Update Work Orders customId -->
+        <sql>
+            WITH numbered_work_orders AS (SELECT w.id,
+                                                 w.company_id,
+                                                 ROW_NUMBER() OVER (PARTITION BY w.company_id ORDER BY w.created_at) AS row_num
+                                          FROM work_order w)
+            UPDATE work_order w
+            SET custom_id = CONCAT('WO', LPAD(n.row_num::text, 6, '0')) FROM numbered_work_orders n
+            WHERE w.id = n.id;
+
+            UPDATE custom_sequence cs
+            SET work_order_sequence = sub.max_seq + 1 FROM (
+    SELECT company_id, COUNT(*) AS max_seq
+    FROM work_order
+    GROUP BY company_id
+) sub
+            WHERE cs.company_id = sub.company_id;
+
+        </sql>
+
+        <!-- Update Assets customId -->
+        <sql>
+            WITH numbered_assets AS (SELECT a.id,
+                                            a.company_id,
+                                            ROW_NUMBER() OVER (PARTITION BY a.company_id ORDER BY a.created_at) AS row_num
+                                     FROM asset a)
+            UPDATE asset a
+            SET custom_id = CONCAT('A', LPAD(n.row_num::text, 6, '0')) FROM numbered_assets n
+            WHERE a.id = n.id;
+
+            UPDATE custom_sequence cs
+            SET asset_sequence = sub.max_seq + 1 FROM (
+    SELECT company_id, COUNT(*) AS max_seq
+    FROM asset
+    GROUP BY company_id
+) sub
+            WHERE cs.company_id = sub.company_id;
+
+        </sql>
+
+        <!-- Update Preventive Maintenances customId -->
+        <sql>
+            WITH numbered_preventive_maintenances AS (SELECT pm.id,
+                                                             pm.company_id,
+                                                             ROW_NUMBER() OVER (PARTITION BY pm.company_id ORDER BY pm.created_at) AS row_num
+                                                      FROM preventive_maintenance pm)
+            UPDATE preventive_maintenance pm
+            SET custom_id = CONCAT('PM', LPAD(n.row_num::text, 6, '0')) FROM numbered_preventive_maintenances n
+            WHERE pm.id = n.id;
+
+            UPDATE custom_sequence cs
+            SET preventive_maintenance_sequence = sub.max_seq + 1 FROM (
+    SELECT company_id, COUNT(*) AS max_seq
+    FROM preventive_maintenance
+    GROUP BY company_id
+) sub
+            WHERE cs.company_id = sub.company_id;
+
+        </sql>
+
+        <!-- Update Locations customId -->
+        <sql>
+            WITH numbered_locations AS (SELECT l.id,
+                                               l.company_id,
+                                               ROW_NUMBER() OVER (PARTITION BY l.company_id ORDER BY l.created_at) AS row_num
+                                        FROM location l)
+            UPDATE location l
+            SET custom_id = CONCAT('L', LPAD(n.row_num::text, 6, '0')) FROM numbered_locations n
+            WHERE l.id = n.id;
+
+            UPDATE custom_sequence cs
+            SET location_sequence = sub.max_seq + 1 FROM (
+    SELECT company_id, COUNT(*) AS max_seq
+    FROM location
+    GROUP BY company_id
+) sub
+            WHERE cs.company_id = sub.company_id;
+
+        </sql>
+
+        <!-- Update Requests customId -->
+        <sql>
+            WITH numbered_requests AS (SELECT r.id,
+                                              r.company_id,
+                                              ROW_NUMBER() OVER (PARTITION BY r.company_id ORDER BY r.created_at) AS row_num
+                                       FROM request r)
+            UPDATE request r
+            SET custom_id = CONCAT('R', LPAD(n.row_num::text, 6, '0')) FROM numbered_requests n
+            WHERE r.id = n.id;
+
+            UPDATE custom_sequence cs
+            SET request_sequence = sub.max_seq + 1 FROM (
+    SELECT company_id, COUNT(*) AS max_seq
+    FROM request
+    GROUP BY company_id
+) sub
+            WHERE cs.company_id = sub.company_id;
+
+        </sql>
+
+        <!-- Update WorkOrder audit data -->
+        <sql>
+            UPDATE work_order_aud wa
+            SET custom_id = w.custom_id FROM work_order w
+            WHERE wa.id = w.id;
+        </sql>
+    </changeSet>
+    <changeSet id="1744428898611-1" author="Ibrahima G. Coulibaly">
+        <renameColumn tableName="work_order_aud" oldColumnName="custom_id_MOD" newColumnName="custom_id_mod"/>
+    </changeSet>
+</databaseChangeLog>

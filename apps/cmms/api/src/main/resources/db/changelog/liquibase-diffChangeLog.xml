@@ -1,0 +1,164 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="Ibrahima (generated)" id="1687125787399-1">
+        <dropNotNullConstraint columnDataType="bigint" columnName="action_id" tableName="workflow"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-2">
+        <modifyDataType columnName="description" newDataType="varchar(255)" tableName="preventive_maintenance"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-3">
+        <modifyDataType columnName="description" newDataType="varchar(255)" tableName="request"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-4">
+        <modifyDataType columnName="description" newDataType="varchar(255)" tableName="work_order"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-5">
+        <modifyDataType columnName="description" newDataType="varchar(255)" tableName="work_order_meter_trigger"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-6">
+        <dropNotNullConstraint columnDataType="boolean" columnName="downgrade_needed" tableName="subscription"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-7">
+        <dropNotNullConstraint columnDataType="boolean" columnName="enabled_in_subscription" tableName="own_user"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-8">
+        <addDefaultValue columnDataType="boolean" columnName="hidden" defaultValueBoolean="false" tableName="file"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-9">
+        <dropNotNullConstraint columnDataType="int" columnName="main_condition" tableName="workflow"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-10">
+        <modifyDataType columnName="preventive_maintenance_id" newDataType="number" tableName="task"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-11">
+        <dropNotNullConstraint columnDataType="boolean" columnName="stats_for_assigned_work_orders"
+                               tableName="user_settings"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687125787399-12">
+        <dropNotNullConstraint columnDataType="boolean" columnName="upgrade_needed" tableName="subscription"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-13">
+        <addUniqueConstraint columnNames="bar_code" constraintName="uk_2dk2hi5mhsgjg2o9ial3peuqe" tableName="asset"/>
+    </changeSet>
+    <changeSet id="1687126069343-14" author="Ibrahima">
+        <modifyDataType tableName="task" columnName="preventive_maintenance_id" newDataType="BIGINT"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-14">
+        <addForeignKeyConstraint baseColumnNames="preventive_maintenance_id" baseTableName="task"
+                                 constraintName="fkqdyjp9iw7kxtukq2vlqrgtj16" deferrable="false"
+                                 initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="preventive_maintenance"
+                                 validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-15">
+        <dropForeignKeyConstraint baseTableName="workflow_action" constraintName="fk65m0g1wolxboqe8yqq18ehysu"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-16">
+        <dropForeignKeyConstraint baseTableName="company" constraintName="fkbsm5cfeu1upv2si83iye7nehs"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-17">
+        <dropForeignKeyConstraint baseTableName="workflow_action" constraintName="fkbxotj0ge7bcd66u0j46hscm0o"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-18">
+        <dropForeignKeyConstraint baseTableName="workflow_condition" constraintName="fkfmbloqmc60bpasgbnps5qvtps"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-19">
+        <dropForeignKeyConstraint baseTableName="workflow_condition" constraintName="fktlup5sh0tdowr2n5cfxfamr6o"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-20">
+        <dropTable tableName="bank_card"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-21">
+        <dropColumn columnName="action" tableName="workflow"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-22">
+        <dropColumn columnName="bank_card_id" tableName="company"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-23">
+        <dropColumn columnName="bar_code_type" tableName="asset"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-24">
+        <dropColumn columnName="category_id" tableName="workflow_action"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-25">
+        <dropColumn columnName="category_id" tableName="workflow_condition"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-26">
+        <dropColumn columnName="created_time_end" tableName="workflow_action"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-27">
+        <dropColumn columnName="created_time_start" tableName="workflow_action"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-28">
+        <dropColumn columnName="due_date_end" tableName="workflow_action"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-29">
+        <dropColumn columnName="due_date_end" tableName="workflow_condition"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-30">
+        <dropColumn columnName="due_date_start" tableName="workflow_action"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-31">
+        <dropColumn columnName="due_date_start" tableName="workflow_condition"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-32">
+        <dropColumn columnName="email" tableName="workflow_action"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-33">
+        <dropColumn columnName="start" tableName="workflow_condition"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-34">
+        <dropColumn columnName="wf_secondary_condition" tableName="workflow_condition"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-35">
+        <dropColumn columnName="workflow_action_enum" tableName="workflow_action"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-36">
+        <dropColumn columnName="workflow_id" tableName="workflow_action"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-37">
+        <dropColumn columnName="workflow_id" tableName="workflow_condition"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-1">
+        <addNotNullConstraint columnDataType="bigint" columnName="action_id" tableName="workflow" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-2">
+        <modifyDataType columnName="description" newDataType="varchar(10000)" tableName="preventive_maintenance"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-3">
+        <modifyDataType columnName="description" newDataType="varchar(10000)" tableName="request"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-4">
+        <modifyDataType columnName="description" newDataType="varchar(10000)" tableName="work_order"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-5">
+        <modifyDataType columnName="description" newDataType="varchar(10000)" tableName="work_order_meter_trigger"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-6">
+        <addNotNullConstraint columnDataType="boolean" columnName="downgrade_needed" tableName="subscription"
+                              validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-7">
+        <addNotNullConstraint columnDataType="boolean" columnName="enabled_in_subscription" tableName="own_user"
+                              validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-8">
+        <dropDefaultValue columnDataType="boolean" columnName="hidden" tableName="file"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-9">
+        <addNotNullConstraint columnDataType="int" columnName="main_condition" tableName="workflow" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-10">
+        <modifyDataType columnName="preventive_maintenance_id" newDataType="bigint" tableName="task"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-11">
+        <addNotNullConstraint columnDataType="boolean" columnName="stats_for_assigned_work_orders"
+                              tableName="user_settings" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (generated)" id="1687126069342-12">
+        <addNotNullConstraint columnDataType="boolean" columnName="upgrade_needed" tableName="subscription"
+                              validate="true"/>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="1745945109013-1" author="Ibrahima G. Coulibaly">
+        <sql>
+            CREATE TABLE currencies_temp
+            (
+                country    VARCHAR(100),
+                currency   VARCHAR(100),
+                code       VARCHAR(4),
+                minor_unit SMALLINT,
+                symbol     VARCHAR(100)
+            );
+            INSERT INTO currencies_temp
+            VALUES ('Afghanistan', 'Afghani', 'AFN', 2, '؋'),
+                   ('Åland Islands', 'Euro', 'EUR', 2, '€'),
+                   ('Albania', 'Lek', 'ALL', 2, 'Lek'),
+                   ('Algeria', 'Algerian Dinar', 'DZD', 2, NULL),
+                   ('American Samoa', 'US Dollar', 'USD', 2, '$'),
+                   ('Andorra', 'Euro', 'EUR', 2, '€'),
+                   ('Angola', 'Kwanza', 'AOA', 2, NULL),
+                   ('Anguilla', 'East Caribbean Dollar', 'XCD', 2, NULL),
+                   ('Antigua And Barbuda', 'East Caribbean Dollar', 'XCD', 2, NULL),
+                   ('Argentina', 'Argentine Peso', 'ARS', 2, '$'),
+                   ('Armenia', 'Armenian Dram', 'AMD', 2, NULL),
+                   ('Aruba', 'Aruban Florin', 'AWG', 2, NULL),
+                   ('Australia', 'Australian Dollar', 'AUD', 2, '$'),
+                   ('Austria', 'Euro', 'EUR', 2, '€'),
+                   ('Azerbaijan', 'Azerbaijan Manat', 'AZN', 2, NULL),
+                   ('Bahamas', 'Bahamian Dollar', 'BSD', 2, '$'),
+                   ('Bahrain', 'Bahraini Dinar', 'BHD', 3, NULL),
+                   ('Bangladesh', 'Taka', 'BDT', 2, '৳'),
+                   ('Barbados', 'Barbados Dollar', 'BBD', 2, '$'),
+                   ('Belarus', 'Belarusian Ruble', 'BYN', 2, NULL),
+                   ('Belgium', 'Euro', 'EUR', 2, '€'),
+                   ('Belize', 'Belize Dollar', 'BZD', 2, 'BZ$'),
+                   ('Benin', 'CFA Franc BCEAO', 'XOF', 0, NULL),
+                   ('Bermuda', 'Bermudian Dollar', 'BMD', 2, NULL),
+                   ('Bhutan', 'Indian Rupee', 'INR', 2, '₹'),
+                   ('Bhutan', 'Ngultrum', 'BTN', 2, NULL),
+                   ('Bolivia', 'Boliviano', 'BOB', 2, NULL),
+                   ('Bolivia', 'Mvdol', 'BOV', 2, NULL),
+                   ('Bonaire, Sint Eustatius And Saba', 'US Dollar', 'USD', 2, '$'),
+                   ('Bosnia And Herzegovina', 'Convertible Mark', 'BAM', 2, NULL),
+                   ('Botswana', 'Pula', 'BWP', 2, NULL),
+                   ('Bouvet Island', 'Norwegian Krone', 'NOK', 2, NULL),
+                   ('Brazil', 'Brazilian Real', 'BRL', 2, 'R$'),
+                   ('British Indian Ocean Territory', 'US Dollar', 'USD', 2, '$'),
+                   ('Brunei Darussalam', 'Brunei Dollar', 'BND', 2, NULL),
+                   ('Bulgaria', 'Bulgarian Lev', 'BGN', 2, 'лв'),
+                   ('Burkina Faso', 'CFA Franc BCEAO', 'XOF', 0, NULL),
+                   ('Burundi', 'Burundi Franc', 'BIF', 0, NULL),
+                   ('Cabo Verde', 'Cabo Verde Escudo', 'CVE', 2, NULL),
+                   ('Cambodia', 'Riel', 'KHR', 2, '៛'),
+                   ('Cameroon', 'CFA Franc BEAC', 'XAF', 0, NULL),
+                   ('Canada', 'Canadian Dollar', 'CAD', 2, '$'),
+                   ('Cayman Islands', 'Cayman Islands Dollar', 'KYD', 2, NULL),
+                   ('Central African Republic', 'CFA Franc BEAC', 'XAF', 0, NULL),
+                   ('Chad', 'CFA Franc BEAC', 'XAF', 0, NULL),
+                   ('Chile', 'Chilean Peso', 'CLP', 0, '$'),
+                   ('Chile', 'Unidad de Fomento', 'CLF', 4, NULL),
+                   ('China', 'Yuan Renminbi', 'CNY', 2, '¥'),
+                   ('Christmas Island', 'Australian Dollar', 'AUD', 2, NULL),
+                   ('Cocos (keeling) Islands', 'Australian Dollar', 'AUD', 2, NULL),
+                   ('Colombia', 'Colombian Peso', 'COP', 2, '$'),
+                   ('Colombia', 'Unidad de Valor Real', 'COU', 2, NULL),
+                   ('Comoros', 'Comorian Franc ', 'KMF', 0, NULL),
+                   ('Congo (the Democratic Republic Of The)', 'Congolese Franc', 'CDF', 2, NULL),
+                   ('Congo', 'CFA Franc BEAC', 'XAF', 0, NULL),
+                   ('Cook Islands', 'New Zealand Dollar', 'NZD', 2, '$'),
+                   ('Costa Rica', 'Costa Rican Colon', 'CRC', 2, NULL),
+                   ('Côte D''ivoire', 'CFA Franc BCEAO', 'XOF', 0, NULL),
+                   ('Croatia', 'Kuna', 'HRK', 2, 'kn'),
+                   ('Cuba', 'Cuban Peso', 'CUP', 2, NULL),
+                   ('Cuba', 'Peso Convertible', 'CUC', 2, NULL),
+                   ('Curaçao', 'Netherlands Antillean Guilder', 'ANG', 2, NULL),
+                   ('Cyprus', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Czechia', 'Czech Koruna', 'CZK', 2, 'Kč'),
+                   ('Denmark', 'Danish Krone', 'DKK', 2, 'kr'),
+                   ('Djibouti', 'Djibouti Franc', 'DJF', 0, NULL),
+                   ('Dominica', 'East Caribbean Dollar', 'XCD', 2, NULL),
+                   ('Dominican Republic', 'Dominican Peso', 'DOP', 2, NULL),
+                   ('Ecuador', 'US Dollar', 'USD', 2, '$'),
+                   ('Egypt', 'Egyptian Pound', 'EGP', 2, NULL),
+                   ('El Salvador', 'El Salvador Colon', 'SVC', 2, NULL),
+                   ('El Salvador', 'US Dollar', 'USD', 2, '$'),
+                   ('Equatorial Guinea', 'CFA Franc BEAC', 'XAF', 0, NULL),
+                   ('Eritrea', 'Nakfa', 'ERN', 2, NULL),
+                   ('Estonia', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Eswatini', 'Lilangeni', 'SZL', 2, NULL),
+                   ('Ethiopia', 'Ethiopian Birr', 'ETB', 2, NULL),
+                   ('European Union', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Falkland Islands [Malvinas]', 'Falkland Islands Pound', 'FKP', 2, NULL),
+                   ('Faroe Islands', 'Danish Krone', 'DKK', 2, NULL),
+                   ('Fiji', 'Fiji Dollar', 'FJD', 2, NULL),
+                   ('Finland', 'Euro', 'EUR', 2, '
+            €'),
+                   ('France', 'Euro', 'EUR', 2, '
+            €'),
+                   ('French Guiana', 'Euro', 'EUR', 2, '
+            €'),
+                   ('French Polynesia', 'CFP Franc', 'XPF', 0, NULL),
+                   ('French Southern Territories', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Gabon', 'CFA Franc BEAC', 'XAF', 0, NULL),
+                   ('Gambia', 'Dalasi', 'GMD', 2, NULL),
+                   ('Georgia', 'Lari', 'GEL', 2, '
+            ₾'),
+                   ('Germany', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Ghana', 'Ghana Cedi', 'GHS', 2, NULL),
+                   ('Gibraltar', 'Gibraltar Pound', 'GIP', 2, NULL),
+                   ('Greece', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Greenland', 'Danish Krone', 'DKK', 2, NULL),
+                   ('Grenada', 'East Caribbean Dollar', 'XCD', 2, NULL),
+                   ('Guadeloupe', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Guam', 'US Dollar', 'USD', 2, '$'),
+                   ('Guatemala', 'Quetzal', 'GTQ', 2, NULL),
+                   ('Guernsey', 'Pound Sterling', 'GBP', 2, '
+            £'),
+                   ('Guinea', 'Guinean Franc', 'GNF', 0, NULL),
+                   ('Guinea-bissau', 'CFA Franc BCEAO', 'XOF', 0, NULL),
+                   ('Guyana', 'Guyana Dollar', 'GYD', 2, NULL),
+                   ('Haiti', 'Gourde', 'HTG', 2, NULL),
+                   ('Haiti', 'US Dollar', 'USD', 2, '$'),
+                   ('Heard Island And Mcdonald Islands', 'Australian Dollar', 'AUD', 2, NULL),
+                   ('Holy See (Vatican)', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Honduras', 'Lempira', 'HNL', 2, NULL),
+                   ('Hong Kong', 'Hong Kong Dollar', 'HKD', 2, '$'),
+                   ('Hungary', 'Forint', 'HUF', 2, 'ft'),
+                   ('Iceland', 'Iceland Krona', 'ISK', 0, NULL),
+                   ('India', 'Indian Rupee', 'INR', 2, '
+            ₹'),
+                   ('Indonesia', 'Rupiah', 'IDR', 2, 'Rp'),
+                   ('International Monetary Fund (IMF)', 'SDR (Special Drawing Right)', 'XDR', 0, NULL),
+                   ('Iran', 'Iranian Rial', 'IRR', 2, NULL),
+                   ('Iraq', 'Iraqi Dinar', 'IQD', 3, NULL),
+                   ('Ireland', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Isle Of Man', 'Pound Sterling', 'GBP', 2, '
+            £'),
+                   ('Israel', 'New Israeli Sheqel', 'ILS', 2, '
+            ₪'),
+                   ('Italy', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Jamaica', 'Jamaican Dollar', 'JMD', 2, NULL),
+                   ('Japan', 'Yen', 'JPY', 0, '
+            ¥'),
+                   ('Jersey', 'Pound Sterling', 'GBP', 2, '
+            £'),
+                   ('Jordan', 'Jordanian Dinar', 'JOD', 3, NULL),
+                   ('Kazakhstan', 'Tenge', 'KZT', 2, NULL),
+                   ('Kenya', 'Kenyan Shilling', 'KES', 2, 'Ksh'),
+                   ('Kiribati', 'Australian Dollar', 'AUD', 2, NULL),
+                   ('Korea (the Democratic People
+            ’s Republic Of)', 'North Korean Won', 'KPW', 2, NULL),
+                   ('Korea (the Republic Of)', 'Won', 'KRW', 0, '
+            ₩'),
+                   ('Kuwait', 'Kuwaiti Dinar', 'KWD', 3, NULL),
+                   ('Kyrgyzstan', 'Som', 'KGS', 2, NULL),
+                   ('Lao People
+            ’s Democratic Republic', 'Lao Kip', 'LAK', 2, NULL),
+                   ('Latvia', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Lebanon', 'Lebanese Pound', 'LBP', 2, NULL),
+                   ('Lesotho', 'Loti', 'LSL', 2, NULL),
+                   ('Lesotho', 'Rand', 'ZAR', 2, NULL),
+                   ('Liberia', 'Liberian Dollar', 'LRD', 2, NULL),
+                   ('Libya', 'Libyan Dinar', 'LYD', 3, NULL),
+                   ('Liechtenstein', 'Swiss Franc', 'CHF', 2, NULL),
+                   ('Lithuania', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Luxembourg', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Macao', 'Pataca', 'MOP', 2, NULL),
+                   ('North Macedonia', 'Denar', 'MKD', 2, NULL),
+                   ('Madagascar', 'Malagasy Ariary', 'MGA', 2, NULL),
+                   ('Malawi', 'Malawi Kwacha', 'MWK', 2, NULL),
+                   ('Malaysia', 'Malaysian Ringgit', 'MYR', 2, 'RM'),
+                   ('Maldives', 'Rufiyaa', 'MVR', 2, NULL),
+                   ('Mali', 'CFA Franc BCEAO', 'XOF', 0, NULL),
+                   ('Malta', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Marshall Islands', 'US Dollar', 'USD', 2, '$'),
+                   ('Martinique', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Mauritania', 'Ouguiya', 'MRU', 2, NULL),
+                   ('Mauritius', 'Mauritius Rupee', 'MUR', 2, NULL),
+                   ('Mayotte', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Member Countries Of The African Development Bank Group', 'ADB Unit of Account', 'XUA', 0, NULL),
+                   ('Mexico', 'Mexican Peso', 'MXN', 2, '$'),
+                   ('Mexico', 'Mexican Unidad de Inversion (UDI)', 'MXV', 2, NULL),
+                   ('Micronesia', 'US Dollar', 'USD', 2, '$'),
+                   ('Moldova', 'Moldovan Leu', 'MDL', 2, NULL),
+                   ('Monaco', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Mongolia', 'Tugrik', 'MNT', 2, NULL),
+                   ('Montenegro', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Montserrat', 'East Caribbean Dollar', 'XCD', 2, NULL),
+                   ('Morocco', 'Moroccan Dirham', 'MAD', 2, ' .د.م '),
+                   ('Mozambique', 'Mozambique Metical', 'MZN', 2, NULL),
+                   ('Myanmar', 'Kyat', 'MMK', 2, NULL),
+                   ('Namibia', 'Namibia Dollar', 'NAD', 2, NULL),
+                   ('Namibia', 'Rand', 'ZAR', 2, NULL),
+                   ('Nauru', 'Australian Dollar', 'AUD', 2, NULL),
+                   ('Nepal', 'Nepalese Rupee', 'NPR', 2, NULL),
+                   ('Netherlands', 'Euro', 'EUR', 2, '
+            €'),
+                   ('New Caledonia', 'CFP Franc', 'XPF', 0, NULL),
+                   ('New Zealand', 'New Zealand Dollar', 'NZD', 2, '$'),
+                   ('Nicaragua', 'Cordoba Oro', 'NIO', 2, NULL),
+                   ('Niger', 'CFA Franc BCEAO', 'XOF', 0, NULL),
+                   ('Nigeria', 'Naira', 'NGN', 2, '
+            ₦'),
+                   ('Niue', 'New Zealand Dollar', 'NZD', 2, '$'),
+                   ('Norfolk Island', 'Australian Dollar', 'AUD', 2, NULL),
+                   ('Northern Mariana Islands', 'US Dollar', 'USD', 2, '$'),
+                   ('Norway', 'Norwegian Krone', 'NOK', 2, 'kr'),
+                   ('Oman', 'Rial Omani', 'OMR', 3, NULL),
+                   ('Pakistan', 'Pakistan Rupee', 'PKR', 2, 'Rs'),
+                   ('Palau', 'US Dollar', 'USD', 2, '$'),
+                   ('Panama', 'Balboa', 'PAB', 2, NULL),
+                   ('Panama', 'US Dollar', 'USD', 2, '$'),
+                   ('Papua New Guinea', 'Kina', 'PGK', 2, NULL),
+                   ('Paraguay', 'Guarani', 'PYG', 0, NULL),
+                   ('Peru', 'Sol', 'PEN', 2, 'S'),
+                   ('Philippines', 'Philippine Peso', 'PHP', 2, '
+            ₱'),
+                   ('Pitcairn', 'New Zealand Dollar', 'NZD', 2, '$'),
+                   ('Poland', 'Zloty', 'PLN', 2, 'zł'),
+                   ('Portugal', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Puerto Rico', 'US Dollar', 'USD', 2, '$'),
+                   ('Qatar', 'Qatari Rial', 'QAR', 2, NULL),
+                   ('Réunion', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Romania', 'Romanian Leu', 'RON', 2, 'lei'),
+                   ('Russian Federation', 'Russian Ruble', 'RUB', 2, '
+            ₽'),
+                   ('Rwanda', 'Rwanda Franc', 'RWF', 0, NULL),
+                   ('Saint Barthélemy', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Saint Helena, Ascension And Tristan Da Cunha', 'Saint Helena Pound', 'SHP', 2, NULL),
+                   ('Saint Kitts And Nevis', 'East Caribbean Dollar', 'XCD', 2, NULL),
+                   ('Saint Lucia', 'East Caribbean Dollar', 'XCD', 2, NULL),
+                   ('Saint Martin (French Part)', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Saint Pierre And Miquelon', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Saint Vincent And The Grenadines', 'East Caribbean Dollar', 'XCD', 2, NULL),
+                   ('Samoa', 'Tala', 'WST', 2, NULL),
+                   ('San Marino', 'Euro', 'EUR', 2, '
+            €'),
+                   ('Sao Tome And Principe', 'Dobra', 'STN', 2, NULL),
+                   ('Saudi Arabia', 'Saudi Riyal', 'SAR', 2, NULL),
+                   ('Senegal', 'CFA Franc BCEAO', 'XOF', 0, NULL),
+                   ('Serbia', 'Serbian Dinar', 'RSD', 2, NULL),
+                   ('Seychelles', 'Seychelles Rupee', 'SCR', 2, NULL),
+                   ('Sierra Leone', 'Leone', 'SLL', 2, NULL),
+                   ('Singapore', 'Singapore Dollar', 'SGD', 2, '$'),
+                   ('Sint Maarten (Dutch Part)', 'Netherlands Antillean Guilder', 'ANG', 2, NULL),
+                   ('Sistema Unitario De Compensacion Regional De Pagos
+            \"sucre\"\"\"', 'Sucre', 'XSU', 0, NULL),
+                   ('Slovakia', 'Euro', 'EUR', 2, '€'),
+                   ('Slovenia', 'Euro', 'EUR', 2, '€'),
+                   ('Solomon Islands', 'Solomon Islands Dollar', 'SBD', 2, NULL),
+                   ('Somalia', 'Somali Shilling', 'SOS', 2, NULL),
+                   ('South Africa', 'Rand', 'ZAR', 2, 'R'),
+                   ('South Sudan', 'South Sudanese Pound', 'SSP', 2, NULL),
+                   ('Spain', 'Euro', 'EUR', 2, '€'),
+                   ('Sri Lanka', 'Sri Lanka Rupee', 'LKR', 2, 'Rs'),
+                   ('Sudan (the)', 'Sudanese Pound', 'SDG', 2, NULL),
+                   ('Suriname', 'Surinam Dollar', 'SRD', 2, NULL),
+                   ('Svalbard And Jan Mayen', 'Norwegian Krone', 'NOK', 2, NULL),
+                   ('Sweden', 'Swedish Krona', 'SEK', 2, 'kr'),
+                   ('Switzerland', 'Swiss Franc', 'CHF', 2, NULL),
+                   ('Switzerland', 'WIR Euro', 'CHE', 2, NULL),
+                   ('Switzerland', 'WIR Franc', 'CHW', 2, NULL),
+                   ('Syrian Arab Republic', 'Syrian Pound', 'SYP', 2, NULL),
+                   ('Taiwan', 'New Taiwan Dollar', 'TWD', 2, NULL),
+                   ('Tajikistan', 'Somoni', 'TJS', 2, NULL),
+                   ('Tanzania, United Republic Of', 'Tanzanian Shilling', 'TZS', 2, NULL),
+                   ('Thailand', 'Baht', 'THB', 2, '฿'),
+                   ('Timor-leste', 'US Dollar', 'USD', 2, '$'),
+                   ('Togo', 'CFA Franc BCEAO', 'XOF', 0, NULL),
+                   ('Tokelau', 'New Zealand Dollar', 'NZD', 2, '$'),
+                   ('Tonga', 'Pa’anga', 'TOP', 2, NULL),
+                   ('Trinidad And Tobago', 'Trinidad and Tobago Dollar', 'TTD', 2, NULL),
+                   ('Tunisia', 'Tunisian Dinar', 'TND', 3, NULL),
+                   ('Turkey', 'Turkish Lira', 'TRY', 2, '₺'),
+                   ('Turkmenistan', 'Turkmenistan New Manat', 'TMT', 2, NULL),
+                   ('Turks And Caicos Islands', 'US Dollar', 'USD', 2, '$'),
+                   ('Tuvalu', 'Australian Dollar', 'AUD', 2, NULL),
+                   ('Uganda', 'Uganda Shilling', 'UGX', 0, NULL),
+                   ('Ukraine', 'Hryvnia', 'UAH', 2, '₴'),
+                   ('United Arab Emirates', 'UAE Dirham', 'AED', 2, 'د.إ'),
+                   ('United Kingdom Of Great Britain And Northern Ireland', 'Pound Sterling', 'GBP', 2, '£'),
+                   ('United States Minor Outlying Islands', 'US Dollar', 'USD', 2, '$'),
+                   ('United States Of America', 'US Dollar', 'USD', 2, '$'),
+                   ('United States Of America', 'US Dollar (Next day)', 'USN', 2, NULL),
+                   ('Uruguay', 'Peso Uruguayo', 'UYU', 2, NULL),
+                   ('Uruguay', 'Uruguay Peso en Unidades Indexadas (UI)', 'UYI', 0, NULL),
+                   ('Uruguay', 'Unidad Previsional', 'UYW', 4, NULL),
+                   ('Uzbekistan', 'Uzbekistan Sum', 'UZS', 2, NULL),
+                   ('Vanuatu', 'Vatu', 'VUV', 0, NULL),
+                   ('Venezuela', 'Bolívar Soberano', 'VES', 2, NULL),
+                   ('Vietnam', 'Dong', 'VND', 0, '₫'),
+                   ('Virgin Islands (British)', 'US Dollar', 'USD', 2, '$'),
+                   ('Virgin Islands (U.S.)', 'US Dollar', 'USD', 2, '$'),
+                   ('Wallis And Futuna', 'CFP Franc', 'XPF', 0, NULL),
+                   ('Western Sahara', 'Moroccan Dirham', 'MAD', 2, NULL),
+                   ('Yemen', 'Yemeni Rial', 'YER', 2, NULL),
+                   ('Zambia', 'Zambian Kwacha', 'ZMW', 2, NULL),
+                   ('Zimbabwe', 'Zimbabwe Dollar', 'ZWL', 2, NULL);
+
+            -- Step 1: Remove duplicates based on `code`
+            WITH ranked_code AS (SELECT ctid, -- Unique row identifier for deletion
+                                        ROW_NUMBER() OVER (PARTITION BY code ORDER BY country) AS rn
+                                 FROM currencies_temp)
+            DELETE
+            FROM currencies_temp
+            WHERE ctid IN (SELECT ctid
+                           FROM ranked_code
+                           WHERE rn > 1);
+
+-- Step 2: Remove duplicates based on `currency name`
+            WITH ranked_name AS (SELECT ctid, -- Unique row identifier for deletion
+                                        ROW_NUMBER() OVER (PARTITION BY currency ORDER BY country) AS rn
+                                 FROM currencies_temp)
+            DELETE
+            FROM currencies_temp
+            WHERE ctid IN (SELECT ctid
+                           FROM ranked_name
+                           WHERE rn > 1);
+
+            WITH numbered AS (SELECT DISTINCT
+            ON (code)
+                code, cu, ROW_NUMBER() OVER () AS rn
+            FROM (
+                SELECT currency AS cu, COALESCE (symbol, code) AS code
+                FROM currencies_temp
+                ) t
+            WHERE code NOT IN (SELECT code FROM currency)
+              AND cu NOT IN (SELECT name FROM currency)
+                )
+                , max_id AS (
+            SELECT COALESCE (MAX (id), 0) AS max_id
+            FROM currency
+                )
+            INSERT
+            INTO currency(id, code, name)
+            SELECT max_id + rn, code, cu
+            FROM numbered,
+                 max_id;
+            drop table currencies_temp;
+        </sql>
+    </changeSet>
+    <changeSet id="1745948725179-1" author="Ibrahima G. Coulibaly">
+        <sql>
+            update currency
+            set code=trim(code),
+                name=trim(name);
+        </sql>
+    </changeSet>
+    <changeSet id="1745950051352-1" author="Ibrahima G. Coulibaly">
+        <sql>
+            update currency
+            set code= TRIM(BOTH CHR(10) FROM code),
+                name= TRIM(BOTH CHR(10) FROM name);
+
+        </sql>
+    </changeSet>
+    <changeSet id="1745950206601-1" author="Ibrahima G. Coulibaly">
+        <sql>
+            update currency
+            set code='JP¥'
+            where name = 'Yen';
+            update currency
+            set code=trim(code),
+                name=trim(name);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

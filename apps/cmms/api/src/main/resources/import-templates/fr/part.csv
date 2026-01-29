@@ -1,0 +1,5 @@
+ID,Nom,Cout,Catégorie,Non Stock,Code-barres,Description,Quantité,Informations supplémentaires,Zone,Quantité minimale,Assigné à,Prestataires,Fournisseurs,Équipes
+2456,Câbles,20,Pièces électriques,Non,1586568,Transmet l'énergie électrique ou les signaux.,20,Voir la fiche technique,"Étagère 1, Bac B",19,abc@gmail.com,"Entrepreneur1,Entrepreneur2",Fournisseur1,Équipe1
+2476,Unités d'affichage,200,Composants électroniques,Non,77061229,Affiche les mesures ou les états opérationnels.,17,Voir la fiche technique,"Étagère 1, Bac C",10,,,,
+2505, Joints toriques ,5,Composants hydrauliques,Non,82168288, Assurent l'étanchéité dans diverses applications pour éviter les fuites. ,3,Voir la fiche technique,"Rez-de-chaussée, Section C",3,,,,
+2462,Carte de circuit imprimé,200,Composants électroniques,Non,30817468,Assure les connexions pour les composants électroniques dans un système.,11,Voir la fiche technique,"Étagère 1, Bac C",9,,,,

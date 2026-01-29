@@ -1,0 +1,85 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="create_work_order_audit_table" author="Ibrahima">
+        <createTable tableName="work_order_AUD">
+            <column name="REV" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="PK_work_order_AUD_REV"/>
+            </column>
+            <column name="REVTYPE" type="tinyint"/>
+
+            <!-- Columns from WorkOrderBase -->
+            <column name="dueDate" type="datetime"/>
+            <column name="priority" type="varchar(255)"/>
+            <column name="estimatedDuration" type="integer"/>
+            <column name="description" type="text"/>
+            <column name="title" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="requiredSignature" type="boolean"/>
+            <column name="image_id" type="bigint"/>
+            <column name="category_id" type="bigint"/>
+            <column name="location_id" type="bigint"/>
+            <column name="team_id" type="bigint"/>
+            <column name="primaryUser_id" type="bigint"/>
+
+            <!-- Columns specific to WorkOrder -->
+            <column name="completedBy_id" type="bigint"/>
+            <column name="completedOn" type="datetime"/>
+            <column name="status" type="varchar(255)"/>
+            <column name="signature_id" type="bigint"/>
+            <column name="archived" type="boolean"/>
+            <column name="parentRequest_id" type="bigint"/>
+            <column name="feedback" type="varchar(255)"/>
+            <column name="parentPreventiveMaintenance_id" type="bigint"/>
+            <!-- Add _mod columns-->
+            <column name="dueDate_mod" type="boolean"/>
+            <column name="priority_mod" type="boolean"/>
+            <column name="estimatedDuration_mod" type="boolean"/>
+            <column name="description_mod" type="boolean"/>
+            <column name="title_mod" type="boolean"/>
+            <column name="requiredSignature_mod" type="boolean"/>
+            <column name="image_id_mod" type="boolean"/>
+            <column name="category_id_mod" type="boolean"/>
+            <column name="location_id_mod" type="boolean"/>
+            <column name="team_id_mod" type="boolean"/>
+            <column name="primaryUser_id_mod" type="boolean"/>
+            <column name="completedBy_id_mod" type="boolean"/>
+            <column name="completedOn_mod" type="boolean"/>
+            <column name="status_mod" type="boolean"/>
+            <column name="signature_id_mod" type="boolean"/>
+            <column name="archived_mod" type="boolean"/>
+            <column name="parentRequest_id_mod" type="boolean"/>
+            <column name="feedback_mod" type="boolean"/>
+            <column name="parentPreventiveMaintenance_id_mod" type="boolean"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="work_order_AUD" baseColumnNames="image_id"
+                                 constraintName="FK_work_order_AUD_image_id"
+                                 referencedTableName="file" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="work_order_AUD" baseColumnNames="category_id"
+                                 constraintName="FK_work_order_AUD_category_id"
+                                 referencedTableName="work_order_category" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="work_order_AUD" baseColumnNames="location_id"
+                                 constraintName="FK_work_order_AUD_location_id"
+                                 referencedTableName="location" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="work_order_AUD" baseColumnNames="team_id"
+                                 constraintName="FK_work_order_AUD_team_id"
+                                 referencedTableName="team" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="work_order_AUD" baseColumnNames="primaryUser_id"
+                                 constraintName="FK_work_order_AUD_primaryUser_id"
+                                 referencedTableName="own_user" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="work_order_AUD" baseColumnNames="completedBy_id"
+                                 constraintName="FK_work_order_AUD_completedBy_id"
+                                 referencedTableName="own_user" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="work_order_AUD" baseColumnNames="signature_id"
+                                 constraintName="FK_work_order_AUD_signature_id"
+                                 referencedTableName="file" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="work_order_AUD" baseColumnNames="parentRequest_id"
+                                 constraintName="FK_work_order_AUD_parentRequest_id"
+                                 referencedTableName="request" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="work_order_AUD" baseColumnNames="parentPreventiveMaintenance_id"
+                                 constraintName="FK_work_order_AUD_parentPreventiveMaintenance_id"
+                                 referencedTableName="preventive_maintenance" referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

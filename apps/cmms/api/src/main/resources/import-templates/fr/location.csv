@@ -1,0 +1,6 @@
+ID,Nom,Adresse,Emplacement parent,Assigné à,Équipes,Fournisseurs,Prestataires
+,Site principal 1,Adresse du site principal 1,,"abc@gmail.com, abcd@gmail.com",Équipe1,Fournisseur1,Entrepreneur1
+,Poulailler 1,Adresse du site principal 1,Site principal 1,,"Équipe2,Équipe3",,
+,Zone 1-Poulailler 1,Adresse du site principal 1,Poulailler 1,,,,
+,Zone 2-Poulailler 1,Adresse du site principal 1,Poulailler 1,,,,
+,Poulailler de ponte 1,Adresse du site principal 1,Site principal 1,,,,
