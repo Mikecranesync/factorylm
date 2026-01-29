@@ -112,7 +112,7 @@ function Pricing() {
   return (
     <PricingWrapper>
       <Helmet>
-        <title>Pricing - Atlas CMMS</title>
+        <title>Pricing - FactoryLM</title>
       </Helmet>
       <NavBar />
 

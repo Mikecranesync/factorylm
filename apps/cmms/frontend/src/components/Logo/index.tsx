@@ -1,6 +1,5 @@
-import { Box, styled, Tooltip } from '@mui/material';
+import { Box, styled } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
 const LogoWrapper = styled(Link)(
   ({ theme }) => `
@@ -9,116 +8,61 @@ const LogoWrapper = styled(Link)(
         display: flex;
         text-decoration: none;
         font-weight: ${theme.typography.fontWeightBold};
+        align-items: center;
 `
 );
 
-const LogoSignWrapper = styled(Box)(
-  () => `
-        width: 52px;
-        height: 38px;
-        margin-top: 4px;
-        transform: scale(.8);
-`
-);
-
-const LogoSign = styled(Box)(
+const LogoIcon = styled(Box)(
   ({ theme }) => `
-        background: ${theme.general.reactFrameworkColor};
-        width: 18px;
-        height: 18px;
-        border-radius: ${theme.general.borderRadiusSm};
-        position: relative;
-        transform: rotate(45deg);
-        top: 3px;
-        left: 17px;
-
-        &:after, 
-        &:before {
-            content: "";
-            display: block;
-            width: 18px;
-            height: 18px;
-            position: absolute;
-            top: -1px;
-            right: -20px;
-            transform: rotate(0deg);
-            border-radius: ${theme.general.borderRadiusSm};
-        }
-
-        &:before {
-            background: ${theme.palette.primary.main};
-            right: auto;
-            left: 0;
-            top: 20px;
-        }
-
-        &:after {
-            background: ${theme.palette.secondary.main};
-        }
-`
-);
-
-const LogoSignInner = styled(Box)(
-  ({ theme }) => `
-        width: 16px;
-        height: 16px;
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        z-index: 5;
-        border-radius: ${theme.general.borderRadiusSm};
-        background: ${theme.header.background};
-`
-);
-
-const LogoTextWrapper = styled(Box)(
-  ({ theme }) => `
-        padding-left: ${theme.spacing(1)};
-`
-);
-
-const VersionBadge = styled(Box)(
-  ({ theme }) => `
-        background: ${theme.palette.success.main};
-        color: ${theme.palette.success.contrastText};
-        padding: ${theme.spacing(0.4, 1)};
-        border-radius: ${theme.general.borderRadiusSm};
-        text-align: center;
-        display: inline-block;
-        line-height: 1;
-        font-size: ${theme.typography.pxToRem(11)};
+        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
 `
 );
 
 const LogoText = styled(Box)(
   ({ theme }) => `
-        font-size: ${theme.typography.pxToRem(15)};
-        font-weight: ${theme.typography.fontWeightBold};
+        font-size: ${theme.typography.pxToRem(18)};
+        font-weight: 700;
+        color: ${theme.palette.text.primary};
+        display: flex;
+        align-items: center;
+`
+);
+
+const LogoAccent = styled('span')(
+  () => `
+        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
 `
 );
 
 function Logo() {
-  const { t }: { t: any } = useTranslation();
-
   return (
-    <LogoWrapper to="/overview">
-      <LogoSignWrapper>
-        <LogoSign>
-          <LogoSignInner />
-        </LogoSign>
-      </LogoSignWrapper>
+    <LogoWrapper to="/app/work-orders">
+      <LogoIcon>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M4 20V10L10 13V7L16 10V20H4Z" fill="white"/>
+          <rect x="7" y="14" width="3" height="4" fill="#6366f1"/>
+          <rect x="12" y="13" width="2" height="5" fill="#6366f1"/>
+        </svg>
+      </LogoIcon>
       <Box
         component="span"
         sx={{
           display: { xs: 'none', sm: 'inline-block' }
         }}
       >
-        <LogoTextWrapper>
-          <Tooltip title={t('Version') + ' 3.1'} arrow placement="right">
-            <VersionBadge>3.1</VersionBadge>
-          </Tooltip>
-          <LogoText>Tokyo</LogoText>
-        </LogoTextWrapper>
+        <LogoText>
+          Factory<LogoAccent>LM</LogoAccent>
+        </LogoText>
       </Box>
     </LogoWrapper>
   );

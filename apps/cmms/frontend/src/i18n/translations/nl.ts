@@ -14,8 +14,8 @@ const locale = {
   COMPLETE: 'Voltooid',
   'home.built': 'Ontworpen om onderhoud eenvoudiger te beheren',
   home_description:
-    'Wanneer whiteboards en plakbriefjes chaos veroorzaken, en je een CMMS-software nodig hebt die eenvoudig genoeg is voor je team om daadwerkelijk te gebruiken - probeer Atlas',
-  try_grash: 'Probeer Atlas',
+    'Wanneer whiteboards en plakbriefjes chaos veroorzaken, en je een CMMS-software nodig hebt die eenvoudig genoeg is voor je team om daadwerkelijk te gebruiken - probeer FactoryLM',
+  try_grash: 'Probeer FactoryLM',
   login: 'Inloggen',
   start_trial: 'Start een gratis proefperiode',
   'home.what': 'Wat',
@@ -24,7 +24,7 @@ const locale = {
     'Bouw efficiënte, betrouwbare workflows die jou de controle geven over onderhoud. Genereer, wijs toe en volg werkorders. Beheer voorraad. En ontvang betrouwbare geautomatiseerde rapporten die de zichtbaarheid verbeteren en verantwoordelijkheid creëren.',
   key_features: 'Belangrijkste functies',
   key_features_description:
-    'Enkele van de functies die Atlas tot een van de beste CMMS van vandaag maken',
+    'Enkele van de functies die FactoryLM tot een van de beste CMMS van vandaag maken',
   contribute: 'Bijdragen',
   work_orders: 'Werkorders',
   request_system: 'Werkverzoekensysteem',
@@ -38,7 +38,7 @@ const locale = {
   'work-orders.descriptions.0':
     'Genoeg van stapels papierwerk en verloren werkorders? Al die verloren items beïnvloeden direct de winst en je reputatie.',
   'work-orders.descriptions.1':
-    'Met Atlas kun je eenvoudig en snel al je werkorders, preventief onderhoud en andere taken binnen je team organiseren in een gecentraliseerde database die overal en op elk apparaat toegankelijk is.',
+    'Met FactoryLM kun je eenvoudig en snel al je werkorders, preventief onderhoud en andere taken binnen je team organiseren in een gecentraliseerde database die overal en op elk apparaat toegankelijk is.',
   'work-orders.checks.0':
     'Bekijk al je taken inclusief werkorders, preventief onderhoud en werkverzoeken',
   'work-orders.checks.1':
@@ -53,7 +53,7 @@ const locale = {
   'work-requests.descriptions.0':
     'Genoeg van het oude telefoon- en emailsysteem dat leidt tot VERLOREN tickets, constante dagelijkse onderbrekingen en dubbel werk?',
   'work-requests.descriptions.1':
-    'De onderhoudsbeheersoplossing van Atlas stelt iedereen die je autoriseert in staat een probleem in te dienen bij je onderhoudsafdeling door simpelweg een QR-code (streepjescode) te scannen of een URL te bezoeken en hun verzoek via hun mobiele apparaten in te typen.',
+    'De onderhoudsbeheersoplossing van FactoryLM stelt iedereen die je autoriseert in staat een probleem in te dienen bij je onderhoudsafdeling door simpelweg een QR-code (streepjescode) te scannen of een URL te bezoeken en hun verzoek via hun mobiele apparaten in te typen.',
   'work-requests.checks.0': 'Verlies nooit meer werk.',
   'work-requests.checks.1':
     'Verminder de tijd besteed aan het afhandelen van werkverzoeken met tot wel 34%.',
@@ -80,7 +80,7 @@ const locale = {
   'eam.descriptions.0':
     'Gefrustreerd door het proberen te organiseren van de chaotische rommel van de apparatuur van het bedrijf, je afvragend of de apparatuur goed is onderhouden, niet wetend wat de onderhoudskosten zijn en alle andere hoofdpijn die komt kijken bij assetbeheer?',
   'eam.descriptions.1':
-    'De Enterprise Asset Management-module van Atlas CMMS kan worden gebruikt voor tussen de 10 en 1.000.000 Assets, waardoor u precies kunt bijhouden wat u wilt, op de manier die u wilt, in een gebruiksvriendelijke en doorzoekbare boomstructuur.',
+    'De Enterprise Asset Management-module van FactoryLM kan worden gebruikt voor tussen de 10 en 1.000.000 Assets, waardoor u precies kunt bijhouden wat u wilt, op de manier die u wilt, in een gebruiksvriendelijke en doorzoekbare boomstructuur.',
   'eam.checks.0':
     'Ken de status van uw assets op elk moment en wat ze u kosten',
   'eam.checks.1': 'Bekijk volledige en gedetailleerde onderhoudslogboeken.',
@@ -95,7 +95,7 @@ const locale = {
   'pm.descriptions.0':
     'Stop met het verspillen van kostbare uren aan het handmatig verspreiden van PM-checklists en het opvolgen bij uw team om ervoor te zorgen dat het werk wordt gedaan.',
   'pm.descriptions.1':
-    'Atlas stelt u in staat om PM-planning eenvoudig te automatiseren, zodat het juiste werk automatisch op het juiste moment aan de juiste technicus voor de juiste Asset wordt geleverd.',
+    'FactoryLM stelt u in staat om PM-planning eenvoudig te automatiseren, zodat het juiste werk automatisch op het juiste moment aan de juiste technicus voor de juiste Asset wordt geleverd.',
   'pm.checks.0':
     'Automatiseer PM-planning op dagelijkse, wekelijkse, maandelijkse, jaarlijkse basis of op basis van gebeurtenissen of meterstanden.',
   'pm.checks.1':
@@ -112,7 +112,7 @@ const locale = {
   'part.descriptions.0':
     'Weet u niet welke onderdelen u op voorraad heeft of waar ze worden gebruikt? Weet u niet wanneer uw onderdelen opraken of of uw technici de benodigde onderdelen hebben om hun werk te doen?',
   'part.descriptions.1':
-    'We hebben het onderdelenbeheer van Atlas ontworpen om die problemen en meer op te lossen:',
+    'We hebben het onderdelenbeheer van FactoryLM ontworpen om die problemen en meer op te lossen:',
   'part.checks.0':
     'Ontvang direct push- en e-mailmeldingen wanneer de hoeveelheid van een onderdeel laag is. Houd het juiste aantal onderdelen op voorraad door direct en automatisch push-/e-mailmeldingen te ontvangen wanneer de hoeveelheid van een onderdeel onder een aangepaste drempelwaarde komt.',
   'part.checks.1':
@@ -134,20 +134,20 @@ const locale = {
   'dashboard.descriptions.0':
     'Laten we eerlijk zijn, de eerste stap om uw operaties te verbeteren is het kennen van het goede, het slechte en het lelijke.',
   'dashboard.descriptions.1':
-    'Met de aangepaste dashboards van Atlas kunt u eindelijk dat duistere “zwarte gat van onderhoud” begrijpen en beginnen met het uitvoeren van op data gebaseerde plannen, wat resulteert in lagere arbeidskosten, minder stilstand en meer.',
-  'dashboard.descriptions.2': 'Met de aangepaste dashboards van Atlas kunt u …',
+    'Met de aangepaste dashboards van FactoryLM kunt u eindelijk dat duistere “zwarte gat van onderhoud” begrijpen en beginnen met het uitvoeren van op data gebaseerde plannen, wat resulteert in lagere arbeidskosten, minder stilstand en meer.',
+  'dashboard.descriptions.2': 'Met de aangepaste dashboards van FactoryLM kunt u …',
   'dashboard.checks.0': 'Weten waar uw geld aan wordt uitgegeven en waarom',
   'dashboard.checks.1': 'Weten welk asset het meeste kost en waarom',
   'dashboard.checks.2': "Maak uw eigen aangepaste KPI's.",
   'dashboard.checks.3':
     'Bekijk rapporten die automatisch worden gegenereerd en bijgewerkt op basis van uw metriek',
   'dashboard.checks.4':
-    "Bekijk rapporten die gemakkelijk gedeeld kunnen worden via Excel-bestanden, PDF's of binnen Atlas",
+    "Bekijk rapporten die gemakkelijk gedeeld kunnen worden via Excel-bestanden, PDF's of binnen FactoryLM",
   'dashboard.checks.5': 'En nog veel meer ...',
   'home.smarter': 'Slimmer',
   'home.work': 'Werk',
   'home.smarter_description':
-    'Atlas maakt het technici ongelooflijk gemakkelijk om efficiënt te werken door hen toegang te geven tot de tools en gegevens die ze nodig hebben om het werk gedaan te krijgen — allemaal vanuit de palm van hun hand.',
+    'FactoryLM maakt het technici ongelooflijk gemakkelijk om efficiënt te werken door hen toegang te geven tot de tools en gegevens die ze nodig hebben om het werk gedaan te krijgen — allemaal vanuit de palm van hun hand.',
   leading_maintenance:
     'De weg wijzen naar een betere toekomst voor onderhoud en betrouwbaarheid',
   //register
@@ -286,7 +286,7 @@ const locale = {
   save: 'Opslaan',
   customers: 'Aannemers',
   no_labor:
-    'Er zijn nog geen arbeidskosten toegevoegd. Deze verschijnen hier zodra een gebruiker tijd registreert en een uurtarief in Atlas heeft opgeslagen.',
+    'Er zijn nog geen arbeidskosten toegevoegd. Deze verschijnen hier zodra een gebruiker tijd registreert en een uurtarief in FactoryLM heeft opgeslagen.',
   not_assigned: 'Niet toegewezen',
   no_additional_cost: 'Er zijn nog geen extra kosten toegevoegd',
   parts: 'Onderdelen',
@@ -854,7 +854,7 @@ const locale = {
   external_id: 'Externe ID',
   permissions: 'Rechten',
   create_role_description:
-    'Deze rol kan alles wat een Administrator in Atlas kan, maar u kunt hieronder enkele belangrijke rechten aanpassen.',
+    'Deze rol kan alles wat een Administrator in FactoryLM kan, maar u kunt hieronder enkele belangrijke rechten aanpassen.',
   create_and_edit: 'Aanmaken/Bewerken',
   to_access: 'Toegang',
   role_delete_success: 'De rol is succesvol verwijderd',
@@ -1071,7 +1071,7 @@ const locale = {
   plan: 'Plan',
   current_plan: 'Huidig plan',
   number_users_who_will_use_grash:
-    'Aantal gebruikers die Atlas zullen gebruiken',
+    'Aantal gebruikers die FactoryLM zullen gebruiken',
   admin_role: 'Beheerder',
   technical_role: 'Technisch',
   limited_technical_role: 'Beperkt technisch',
@@ -1233,7 +1233,7 @@ const locale = {
   and_optional: 'En (optioneel)',
   then: 'Dan',
   workflow_description:
-    'Maak aangepaste workflows net zo eenvoudig als Als, En, Dan. Bespaar tijd en wijs uw werkorders automatisch toe via workflows om Atlas aan te passen aan de manier waarop uw team werkt.Alle abonnementen kunnen tot 1 aangepaste workflow aanmaken. Voor extra workflows upgrade naar ons Business-abonnement',
+    'Maak aangepaste workflows net zo eenvoudig als Als, En, Dan. Bespaar tijd en wijs uw werkorders automatisch toe via workflows om FactoryLM aan te passen aan de manier waarop uw team werkt.Alle abonnementen kunnen tot 1 aangepaste workflow aanmaken. Voor extra workflows upgrade naar ons Business-abonnement',
   CREATE_PURCHASE_ORDER: 'Maak een inkooporder aan',
   PART_IS: 'Het onderdeel is',
   QUANTITY_INFERIOR: 'De hoeveelheid is minder dan',
@@ -1296,7 +1296,7 @@ const locale = {
   upgrade: 'Upgrade',
   downgrade: 'Downgrade',
   upgrade_description:
-    'U heeft zojuist uw abonnementsplan geüpgraded. U moet de uitgeschakelde gebruikers inschakelen die mogelijk Atlas gebruiken. Dit kunt u slechts één keer doen voor het huidige abonnement. Kies zorgvuldig',
+    'U heeft zojuist uw abonnementsplan geüpgraded. U moet de uitgeschakelde gebruikers inschakelen die mogelijk FactoryLM gebruiken. Dit kunt u slechts één keer doen voor het huidige abonnement. Kies zorgvuldig',
   enable_users: 'Gebruikers inschakelen',
   max_users_description: 'U kunt maximaal {{maxUsers}} gebruikers inschakelen',
   downgrade_description:

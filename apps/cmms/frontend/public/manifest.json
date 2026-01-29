@@ -1,10 +1,10 @@
 {
-  "theme_color": "#1975ff",
-  "background_color": "#f2f5f9",
+  "theme_color": "#7c3aed",
+  "background_color": "#0a0a0f",
   "display": "standalone",
   "start_url": ".",
-  "short_name": "Atlas",
-  "name": "Atlas CMMS",
+  "short_name": "FactoryLM",
+  "name": "FactoryLM - Industrial AI",
   "icons": [
     {
       "src": "/icon-192x192.png",

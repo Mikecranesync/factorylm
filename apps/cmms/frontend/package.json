@@ -1,7 +1,7 @@
 {
-  "name": "grash",
+  "name": "factorylm-cmms",
   "version": "0.1.0",
-  "title": "Atlas CMMS",
+  "title": "FactoryLM",
   "description": "High performance CMMS.",
   "private": true,
   "dependencies": {
