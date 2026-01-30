@@ -1,0 +1,1 @@
+"""FactoryLM internationalization (Spanish translations)."""
