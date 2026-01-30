@@ -5,15 +5,16 @@
 > **Rule:** We COPY files to FactoryLM, never move or delete. Old repos stay live until everything is verified. Archive only after sign-off.
 
 ```
-OLD REPOS (keep live)         FACTORYLM (new home)
-─────────────────────         ────────────────────
-Rivet-PRO ──────copy────────► services/plc-copilot/
-grash-cmms ─────copy────────► apps/cmms/
-jarvis-workspace ──copy─────► (selective pieces)
-second-brain ───copy────────► apps/portal/
-                │
-                ▼
-        [ARCHIVE after verified]
+OLD REPOS (keep live)              FACTORYLM (new home)
+─────────────────────              ────────────────────
+Rivet-PRO ──────────copy─────────► services/plc-copilot/
+factorylm-plc-client ──copy──────► services/plc-modbus/  ← NEW (2026-01-30)
+grash-cmms ─────────copy─────────► apps/cmms/
+jarvis-workspace ───copy─────────► (selective pieces)
+second-brain ───────copy─────────► apps/portal/
+                    │
+                    ▼
+            [ARCHIVE after verified]
 ```
 
 ## Phase 1: Foundation (Week 1)
@@ -28,13 +29,32 @@ second-brain ───copy────────► apps/portal/
 **Source:** `/opt/plc-copilot/`, Rivet-PRO repo
 **Target:** `factorylm/services/plc-copilot/`
 
-- [ ] Copy photo_to_cmms_bot.py
-- [ ] Copy Telegram bot integration
-- [ ] Copy Gemini vision logic
+- [x] Copy photo_to_cmms_bot.py
+- [x] Copy Telegram bot integration
+- [x] Copy Gemini vision logic
 - [ ] Update imports/paths
 - [ ] Add tests
 - [ ] Verify functionality
 - [ ] ✅ Sign-off before archiving source
+
+## Phase 2b: PLC Modbus Adapter (2026-01-30)
+**Source:** `factorylm-plc-client` repo (developed independently)
+**Target:** `factorylm/services/plc-modbus/`
+
+> **Note:** A second "PLC" implementation was discovered in a separate repo.
+> See [services/ADAPTER_COMPARISON.md](./services/ADAPTER_COMPARISON.md) for full analysis.
+
+**plc-copilot** = Photo→CMMS workflow (Telegram + Gemini Vision)
+**plc-modbus** = Direct hardware control (Modbus TCP + Allen-Bradley PLC)
+
+These serve different purposes and may be complementary rather than competing.
+
+- [x] Discovered parallel implementation
+- [x] Copied to services/plc-modbus/
+- [x] Created ADAPTER_COMPARISON.md
+- [ ] Evaluate production usage of both
+- [ ] Decide: merge, keep separate, or deprecate one
+- [ ] ✅ Sign-off on final adapter strategy
 
 ## Phase 3: CMMS Migration (Weeks 3-4)
 **Source:** grash-cmms fork, `/root/jarvis-workspace/projects/cmms/`
