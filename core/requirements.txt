@@ -1,0 +1,27 @@
+# FactoryLM Core Dependencies
+# Python 3.11+
+
+# Data validation
+pydantic>=2.0
+pydantic-settings>=2.0
+
+# Async HTTP
+httpx>=0.25.0
+
+# Database
+asyncpg>=0.29.0
+
+# AI/LLM
+anthropic>=0.18.0
+openai>=1.10.0
+groq>=0.4.0
+
+# Twilio (WhatsApp)
+twilio>=8.10.0
+
+# Utilities
+python-dotenv>=1.0.0
+
+# Optional: OCR/Vision
+# pillow>=10.0.0
+# sentence-transformers>=2.2.0
