@@ -1,0 +1,35 @@
+{
+  "name": "@factorylm/slack-adapter",
+  "version": "1.0.0",
+  "description": "Slack adapter for FactoryLM industrial maintenance platform",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "slack",
+    "industrial",
+    "maintenance",
+    "factorylm",
+    "enterprise",
+    "spanish"
+  ],
+  "author": "FactoryLM Team",
+  "license": "MIT",
+  "dependencies": {
+    "@slack/bolt": "^3.17.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mikecranesync/factorylm.git",
+    "directory": "adapters/slack"
+  }
+}
