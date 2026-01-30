@@ -1,0 +1,25 @@
+# FactoryLM Edge Device Dependencies
+# For Raspberry Pi with Python 3.9+
+
+# Modbus TCP/RTU communication
+pymodbus>=3.6.0
+
+# GPIO control (Raspberry Pi only)
+RPi.GPIO>=0.7.0; platform_system == "Linux"
+
+# Alternative GPIO library (easier to use)
+# gpiozero>=2.0.0; platform_system == "Linux"
+
+# Web server (optional, for API access)
+fastapi>=0.100.0
+uvicorn>=0.23.0
+
+# HTTP client for testing
+httpx>=0.24.0
+
+# Settings management
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Multipart form support
+python-multipart>=0.0.6
