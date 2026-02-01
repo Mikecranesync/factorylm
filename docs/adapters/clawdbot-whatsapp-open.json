@@ -1,0 +1,23 @@
+{
+  "channels": {
+    "whatsapp": {
+      "dmPolicy": "open",
+      "allowFrom": ["*"],
+      "groupPolicy": "open",
+      "groups": ["*"],
+      "sendReadReceipts": true,
+      "ackReaction": {
+        "emoji": "👀",
+        "direct": true,
+        "group": "always"
+      },
+      "textChunkLimit": 4000,
+      "mediaMaxMb": 50
+    }
+  },
+  "agents": {
+    "defaults": {
+      "mediaMaxMb": 5
+    }
+  }
+}
