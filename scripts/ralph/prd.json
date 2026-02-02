@@ -14,8 +14,8 @@
         "pytest.ini configured"
       ],
       "priority": 1,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Commit d76a77f"
     },
     {
       "id": "PLC-002",
@@ -27,8 +27,8 @@
         "Docstrings complete"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Commit 1ab0d1a"
     },
     {
       "id": "PLC-003",
@@ -40,8 +40,8 @@
         "Type hints complete"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Commit b443d3e"
     },
     {
       "id": "PLC-004",
@@ -55,8 +55,8 @@
         "Logging of all reads/writes"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Commit 4a05d56"
     },
     {
       "id": "PLC-005",
@@ -70,8 +70,8 @@
         "Timestamps all reads"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Commit aa18172"
     },
     {
       "id": "PLC-006",
@@ -84,8 +84,8 @@
         "No network calls"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Commit 6ec12f8"
     },
     {
       "id": "PLC-007",
@@ -98,8 +98,8 @@
         "All tests pass without real hardware"
       ],
       "priority": 7,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Commit 6e71cc8 - 68 tests passing"
     },
     {
       "id": "PLC-008",
@@ -112,8 +112,8 @@
         "README with usage examples"
       ],
       "priority": 8,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Commit e88b32e - 79 tests, 87% coverage"
     }
   ]
 }
