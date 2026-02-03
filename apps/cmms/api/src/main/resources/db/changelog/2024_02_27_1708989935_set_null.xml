@@ -1,0 +1,32 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="assetForeignKeysSetNull" author="Ibrahima">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance" constraintName="fk2r1291umxjxrddelq96v3pl4n"/>
+        <addForeignKeyConstraint baseColumnNames="asset_id" baseTableName="preventive_maintenance"
+                                 constraintName="fk2r1291umxjxrddelq96v3pl4n" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger" constraintName="fkdkxi8xmqmo48y8xtml1860nbc"/>
+        <addForeignKeyConstraint baseColumnNames="asset_id" baseTableName="work_order_meter_trigger"
+                                 constraintName="fkdkxi8xmqmo48y8xtml1860nbc" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+
+
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fkml2rlcjiurmq5rjyw1gmsstf6"/>
+        <addForeignKeyConstraint baseColumnNames="asset_id" baseTableName="request"
+                                 constraintName="fkml2rlcjiurmq5rjyw1gmsstf6" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fkp4hbmaa9hcp6myymsfyxg6fo2"/>
+        <addForeignKeyConstraint baseColumnNames="asset_id" baseTableName="work_order"
+                                 constraintName="fkp4hbmaa9hcp6myymsfyxg6fo2" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+
+    </changeSet>
+</databaseChangeLog>

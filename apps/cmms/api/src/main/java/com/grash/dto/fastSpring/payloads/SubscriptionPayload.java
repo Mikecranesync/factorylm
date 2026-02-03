@@ -1,0 +1,110 @@
+package com.grash.dto.fastSpring.payloads;
+
+import com.grash.dto.fastSpring.*;
+import lombok.Data;
+
+import java.util.ArrayList;
+
+@Data
+public class SubscriptionPayload {
+    @Data
+    public static class Product {
+        public String product;
+        public Object parent;
+        public String productAppReference;
+        public Fulfillments fulfillments;
+        public String format;
+        public String taxcode;
+        public String taxcodeDescription;
+    }
+
+    public String id;
+    public Object quote;
+    public String subscription;
+    public boolean active;
+    public String state;
+    public long changed;
+    public long changedValue;
+    public int changedInSeconds;
+    public String changedDisplay;
+    public String changedDisplayISO8601;
+    public boolean live;
+    public String currency;
+    public Account account;
+    public Object sku;
+    public String display;
+    public int quantity;
+    public boolean adhoc;
+    public boolean autoRenew;
+    public int price;
+    public String priceDisplay;
+    public int priceInPayoutCurrency;
+    public String priceInPayoutCurrencyDisplay;
+    public int discount;
+    public String discountDisplay;
+    public int discountInPayoutCurrency;
+    public String discountInPayoutCurrencyDisplay;
+    public int subtotal;
+    public String subtotalDisplay;
+    public int subtotalInPayoutCurrency;
+    public String subtotalInPayoutCurrencyDisplay;
+    public Tags tags;
+    public long next;
+    public long nextValue;
+    public int nextInSeconds;
+    public String nextDisplay;
+    public String nextDisplayISO8601;
+    public Object end;
+    public Object endValue;
+    public Object endInSeconds;
+    public Object endDisplay;
+    public Object endDisplayISO8601;
+    public Object canceledDate;
+    public Object canceledDateValue;
+    public Object canceledDateInSeconds;
+    public Object canceledDateDisplay;
+    public Object canceledDateDisplayISO8601;
+    public Object deactivationDate;
+    public Object deactivationDateValue;
+    public Object deactivationDateInSeconds;
+    public Object deactivationDateDisplay;
+    public Object deactivationDateDisplayISO8601;
+    public int sequence;
+    public Object periods;
+    public Object remainingPeriods;
+    public long begin;
+    public long beginValue;
+    public int beginInSeconds;
+    public String beginDisplay;
+    public String beginDisplayISO8601;
+    public String intervalUnit;
+    public int intervalLength;
+    public String nextChargeCurrency;
+    private Product product;
+    public long nextChargeDate;
+    public long nextChargeDateValue;
+    public int nextChargeDateInSeconds;
+    public String nextChargeDateDisplay;
+    public String nextChargeDateDisplayISO8601;
+    public int nextChargePreTax;
+    public String nextChargePreTaxDisplay;
+    public int nextChargePreTaxInPayoutCurrency;
+    public String nextChargePreTaxInPayoutCurrencyDisplay;
+    public int nextChargeTotal;
+    public String nextChargeTotalDisplay;
+    public int nextChargeTotalInPayoutCurrency;
+    public String nextChargeTotalInPayoutCurrencyDisplay;
+    public String nextNotificationType;
+    public long nextNotificationDate;
+    public long nextNotificationDateValue;
+    public int nextNotificationDateInSeconds;
+    public String nextNotificationDateDisplay;
+    public String nextNotificationDateDisplayISO8601;
+    public PaymentReminder paymentReminder;
+    public PaymentOverdue paymentOverdue;
+    public CancellationSetting cancellationSetting;
+    public Fulfillments fulfillments;
+    public ArrayList<Instruction> instructions;
+    public String initialOrderId;
+    public String initialOrderReference;
+}

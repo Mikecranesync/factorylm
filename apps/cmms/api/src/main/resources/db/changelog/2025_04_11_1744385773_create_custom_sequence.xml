@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="2025_05_01_create_custom_sequence" author="Ibrahima G. Coulibaly">
+        <!-- Create the custom_sequence table -->
+        <createTable tableName="custom_sequence">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="company_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_custom_sequence_company" references="company(id)"/>
+            </column>
+            <column name="work_order_sequence" type="BIGINT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="asset_sequence" type="BIGINT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="preventive_maintenance_sequence" type="BIGINT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="location_sequence" type="BIGINT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="request_sequence" type="BIGINT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Add index for company_id -->
+        <createIndex tableName="custom_sequence" indexName="idx_custom_sequence_company_id">
+            <column name="company_id"/>
+        </createIndex>
+
+        <!-- Add customId columns to entities -->
+        <addColumn tableName="work_order">
+            <column name="custom_id" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="asset">
+            <column name="custom_id" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="preventive_maintenance">
+            <column name="custom_id" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="location">
+            <column name="custom_id" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="request">
+            <column name="custom_id" type="VARCHAR(255)"/>
+        </addColumn>
+
+        <!-- Add column to work_order_aud table for auditing -->
+        <addColumn tableName="work_order_aud">
+            <column name="custom_id" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="work_order_aud">
+            <column name="custom_id_MOD" type="boolean" defaultValueBoolean="false"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

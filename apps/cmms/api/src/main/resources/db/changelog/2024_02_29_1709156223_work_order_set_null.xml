@@ -1,0 +1,13 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="work_order_set_null" author="Ibrahima">
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fkoo6uxlauwwyxfohx3lver2t0x"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_id" baseTableName="request"
+                                 constraintName="fkoo6uxlauwwyxfohx3lver2t0x" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="work_order" validate="true"/>
+
+    </changeSet>
+</databaseChangeLog>

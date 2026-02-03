@@ -1,0 +1,14 @@
+package com.grash.model.enums.workflow;
+
+public enum WFMainCondition {
+    WORK_ORDER_CREATED,
+    WORK_ORDER_CLOSED,
+    WORK_ORDER_ARCHIVED,
+    REQUEST_CREATED,
+    REQUEST_APPROVED,
+    REQUEST_REJECTED,
+    PURCHASE_ORDER_CREATED,
+    PURCHASE_ORDER_UPDATED,
+    TASK_UPDATED,
+    PART_UPDATED
+}

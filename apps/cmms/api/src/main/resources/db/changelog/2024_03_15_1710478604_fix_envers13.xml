@@ -1,0 +1,9 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="dropNotNull_wo_aud" author="Ibrahima">
+        <dropPrimaryKey tableName="work_order_aud"/>
+        <addPrimaryKey tableName="work_order_aud" columnNames="id, rev" constraintName="PK_work_order_aud"/>
+    </changeSet>
+</databaseChangeLog>

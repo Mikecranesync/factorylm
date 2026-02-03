@@ -1,0 +1,54 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="locationsForeignKeysSetNull" author="Ibrahima">
+
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fkdbtdl51i4yup1hs6ek3ecqros"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="work_order"
+                                 constraintName="fkdbtdl51i4yup1hs6ek3ecqros" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="location" validate="true"/>
+
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance" constraintName="fk53hdmxmgd3fjb2fjsh43d1irf"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="preventive_maintenance"
+                                 constraintName="fk53hdmxmgd3fjb2fjsh43d1irf" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="location" validate="true"/>
+
+
+        <dropForeignKeyConstraint baseTableName="meter" constraintName="fk8jgoj4oi6b9sjqeuh9v592a6q"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="meter"
+                                 constraintName="fk8jgoj4oi6b9sjqeuh9v592a6q" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="location" validate="true"/>
+
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fkj7y0rwrqngdydkkdcohwisqq6"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="request"
+                                 constraintName="fkj7y0rwrqngdydkkdcohwisqq6" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="location" validate="true"/>
+
+
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger" constraintName="fkmdb3avajahyo8mc6wi38ls8xi"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="work_order_meter_trigger"
+                                 constraintName="fkmdb3avajahyo8mc6wi38ls8xi" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="location" validate="true"/>
+
+
+        <dropForeignKeyConstraint baseTableName="asset" constraintName="fkoo11h2f4j12wv0axk6d8u1wy0"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="asset"
+                                 constraintName="fkoo11h2f4j12wv0axk6d8u1wy0" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="location" validate="true"/>
+
+
+        <dropForeignKeyConstraint baseTableName="own_user" constraintName="fktmprdfwe8axkp8cobywe2gc1d"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="own_user"
+                                 constraintName="fktmprdfwe8axkp8cobywe2gc1d" deferrable="false"
+                                 initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION"
+                                 referencedColumnNames="id" referencedTableName="location" validate="true"/>
+
+    </changeSet>
+</databaseChangeLog>

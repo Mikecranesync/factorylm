@@ -1,0 +1,12 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="1744385817950-1" author="Ibrahima G. Coulibaly">
+        <modifyDataType tableName="work_order" columnName="estimated_duration" newDataType="double"/>
+        <modifyDataType tableName="preventive_maintenance" columnName="estimated_duration" newDataType="double"/>
+        <modifyDataType tableName="request" columnName="estimated_duration" newDataType="double"/>
+        <modifyDataType tableName="work_order_meter_trigger" columnName="estimated_duration" newDataType="double"/>
+        <modifyDataType tableName="work_order_aud" columnName="estimated_duration" newDataType="double"/>
+    </changeSet>
+</databaseChangeLog>

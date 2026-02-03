@@ -1,0 +1,25 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="fixEnvers1" author="Ibrahima">
+
+        <createTable tableName="revinfo">
+            <column name="revision_id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="PK_revinfo"/>
+            </column>
+            <column name="rev_timestamp" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addColumn tableName="work_order_AUD">
+            <column name="revision_id" type="INTEGER">
+                <constraints nullable="false" foreignKeyName="fk_wo_aud_revision_id" references="revinfo(revision_id)"
+                />
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

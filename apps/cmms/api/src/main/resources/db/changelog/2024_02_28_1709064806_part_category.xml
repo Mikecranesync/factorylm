@@ -1,0 +1,35 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="create_table_part_category" author="Ibrahima">
+        <createTable tableName="part_category">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="part_category_pkey"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="BIGINT"/>
+            <column name="updated_by" type="BIGINT"/>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="company_settings_id" type="BIGINT">
+                <constraints nullable="false" references="company_settings(id)" foreignKeyName="fk_part_category_company_settings"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="alter_column_type_part_category" author="Ibrahima">
+        <modifyDataType tableName="part" columnName="category" newDataType="BIGINT"/>
+    </changeSet>
+
+    <changeSet id="add_foreign_key_part_category" author="Ibrahima">
+        <addForeignKeyConstraint baseTableName="part" baseColumnNames="category"
+                                 constraintName="fk_part_category" referencedTableName="part_category"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

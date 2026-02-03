@@ -1,0 +1,11 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="drop_id_wo_aud" author="Ibrahima">
+        <dropColumn tableName="work_order_aud" columnName="work_order_id"/>
+        <addForeignKeyConstraint baseTableName="work_order_aud" baseColumnNames="id" constraintName="fk_wo_aud_id"
+                                 referencedTableName="work_order"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

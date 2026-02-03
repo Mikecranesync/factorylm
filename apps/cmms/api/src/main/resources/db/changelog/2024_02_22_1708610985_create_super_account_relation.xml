@@ -1,0 +1,18 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="createSuperAccountRelation" author="Ibrahima">
+        <createTable tableName="super_account_relation">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="super_account_relation_pkey"/>
+            </column>
+            <column name="super_user_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_super_account_relation_super_user" references="own_user(id)"/>
+            </column>
+            <column name="child_user_id" type="bigint">
+                <constraints nullable="false"  foreignKeyName="fk_super_account_relation_child_user" references="own_user(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

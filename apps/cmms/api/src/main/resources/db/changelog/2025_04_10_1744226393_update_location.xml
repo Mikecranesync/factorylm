@@ -1,0 +1,13 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="1744226483564-1" author="Ibrahima G. Coulibaly">
+        <modifyDataType tableName="location" columnName="latitude" newDataType="numeric"/>
+        <modifyDataType tableName="location" columnName="longitude" newDataType="numeric"/>
+    </changeSet>
+    <changeSet id="1744226708344-1" author="Ibrahima G. Coulibaly">
+        <modifyDataType tableName="location" columnName="latitude" newDataType="float"/>
+        <modifyDataType tableName="location" columnName="longitude" newDataType="float"/>
+    </changeSet>
+</databaseChangeLog>

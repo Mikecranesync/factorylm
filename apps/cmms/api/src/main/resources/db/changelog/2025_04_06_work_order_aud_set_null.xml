@@ -1,0 +1,95 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="work_order_aud_set_null" author="Ibrahima G. Coulibaly">
+        <!-- Update FK_work_order_AUD_image_id -->
+        <dropForeignKeyConstraint baseTableName="work_order_aud"
+                                  constraintName="FK_work_order_AUD_image_id"/>
+        <addForeignKeyConstraint baseTableName="work_order_aud"
+                                 baseColumnNames="image_id"
+                                 constraintName="FK_work_order_AUD_image_id"
+                                 referencedTableName="file"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+
+        <!-- Update FK_work_order_AUD_category_id -->
+        <dropForeignKeyConstraint baseTableName="work_order_aud"
+                                  constraintName="FK_work_order_AUD_category_id"/>
+        <addForeignKeyConstraint baseTableName="work_order_aud"
+                                 baseColumnNames="category_id"
+                                 constraintName="FK_work_order_AUD_category_id"
+                                 referencedTableName="work_order_category"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+
+        <!-- Update FK_work_order_AUD_location_id -->
+        <dropForeignKeyConstraint baseTableName="work_order_aud"
+                                  constraintName="FK_work_order_AUD_location_id"/>
+        <addForeignKeyConstraint baseTableName="work_order_aud"
+                                 baseColumnNames="location_id"
+                                 constraintName="FK_work_order_AUD_location_id"
+                                 referencedTableName="location"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+
+        <!-- Update FK_work_order_AUD_team_id -->
+        <dropForeignKeyConstraint baseTableName="work_order_aud"
+                                  constraintName="FK_work_order_AUD_team_id"/>
+        <addForeignKeyConstraint baseTableName="work_order_aud"
+                                 baseColumnNames="team_id"
+                                 constraintName="FK_work_order_AUD_team_id"
+                                 referencedTableName="team"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+
+        <!-- Update FK_work_order_AUD_primaryUser_id -->
+        <dropForeignKeyConstraint baseTableName="work_order_aud"
+                                  constraintName="FK_work_order_AUD_primaryUser_id"/>
+        <addForeignKeyConstraint baseTableName="work_order_aud"
+                                 baseColumnNames="primary_user_id"
+                                 constraintName="FK_work_order_AUD_primaryUser_id"
+                                 referencedTableName="own_user"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+
+        <!-- Update FK_work_order_AUD_completedBy_id -->
+        <dropForeignKeyConstraint baseTableName="work_order_aud"
+                                  constraintName="FK_work_order_AUD_completedBy_id"/>
+        <addForeignKeyConstraint baseTableName="work_order_aud"
+                                 baseColumnNames="completed_by_id"
+                                 constraintName="FK_work_order_AUD_completedBy_id"
+                                 referencedTableName="own_user"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+
+        <!-- Update FK_work_order_AUD_signature_id -->
+        <dropForeignKeyConstraint baseTableName="work_order_aud"
+                                  constraintName="FK_work_order_AUD_signature_id"/>
+        <addForeignKeyConstraint baseTableName="work_order_aud"
+                                 baseColumnNames="signature_id"
+                                 constraintName="FK_work_order_AUD_signature_id"
+                                 referencedTableName="file"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+
+        <!-- Update FK_work_order_AUD_parentRequest_id -->
+        <dropForeignKeyConstraint baseTableName="work_order_aud"
+                                  constraintName="FK_work_order_AUD_parentRequest_id"/>
+        <addForeignKeyConstraint baseTableName="work_order_aud"
+                                 baseColumnNames="parent_request_id"
+                                 constraintName="FK_work_order_AUD_parentRequest_id"
+                                 referencedTableName="request"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+        <dropForeignKeyConstraint baseTableName="work_order_aud"
+                                  constraintName="FK_work_order_AUD_parentPreventiveMaintenance_id"/>
+
+        <addForeignKeyConstraint baseTableName="work_order_aud"
+                                 baseColumnNames="parent_preventive_maintenance_id"
+                                 constraintName="FK_work_order_AUD_parentPreventiveMaintenance_id"
+                                 referencedTableName="preventive_maintenance"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+    </changeSet>
+</databaseChangeLog>

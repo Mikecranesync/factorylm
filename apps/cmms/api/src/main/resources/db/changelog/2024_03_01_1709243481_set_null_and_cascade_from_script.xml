@@ -1,0 +1,619 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="Ibrahima (script)" id="a2a3c688-6375-4124-82a4-5893f2f7f5f1">
+        <dropForeignKeyConstraint baseTableName="t_team_user_associations" constraintName="fk18sbate5bpyyxby399j40x7re"/>
+        <addForeignKeyConstraint baseColumnNames="id_user" baseTableName="t_team_user_associations" constraintName="fk18sbate5bpyyxby399j40x7re" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="7643264f-5a52-4128-a09d-f3f66cf313b4">
+        <dropForeignKeyConstraint baseTableName="t_part_customer_associations" constraintName="fk1lqox0hm74ii88ptyp0ks4hx6"/>
+        <addForeignKeyConstraint baseColumnNames="id_part" baseTableName="t_part_customer_associations" constraintName="fk1lqox0hm74ii88ptyp0ks4hx6" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="part" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="6feadfb4-80e2-4e48-9787-45073cf4afd8">
+        <dropForeignKeyConstraint baseTableName="t_part_customer_associations" constraintName="fk1uem77bfgvi2e1a5bd2c9juoc"/>
+        <addForeignKeyConstraint baseColumnNames="id_customer" baseTableName="t_part_customer_associations" constraintName="fk1uem77bfgvi2e1a5bd2c9juoc" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="customer" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="afd0633b-c8a5-4905-bfbf-f61f943d2729">
+        <dropForeignKeyConstraint baseTableName="t_asset_team_associations" constraintName="fk1wctjv9n7v7os67th2j241t0s"/>
+        <addForeignKeyConstraint baseColumnNames="id_team" baseTableName="t_asset_team_associations" constraintName="fk1wctjv9n7v7os67th2j241t0s" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="team" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="526d4ab1-8790-4870-82d3-da7fdffb4d94">
+        <dropForeignKeyConstraint baseTableName="t_asset_file_associations" constraintName="fk20hrlr3c09srq7yt5ibdal2pv"/>
+        <addForeignKeyConstraint baseColumnNames="id_asset" baseTableName="t_asset_file_associations" constraintName="fk20hrlr3c09srq7yt5ibdal2pv" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="f019c6d3-404c-4b7a-ba8f-c3b23a57f8d4">
+        <dropForeignKeyConstraint baseTableName="purchase_order" constraintName="fk20jcn7pw6hvx0uo0sh4y1d9xv"/>
+        <addForeignKeyConstraint baseColumnNames="vendor_id" baseTableName="purchase_order" constraintName="fk20jcn7pw6hvx0uo0sh4y1d9xv" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vendor" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="6b265c90-683d-4648-a9a2-4f8488d810d8">
+        <dropForeignKeyConstraint baseTableName="t_location_customer_associations" constraintName="fk26ljyp1uaoiw65qxqxtfr8i44"/>
+        <addForeignKeyConstraint baseColumnNames="id_customer" baseTableName="t_location_customer_associations" constraintName="fk26ljyp1uaoiw65qxqxtfr8i44" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="customer" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="fa9088b2-7ed4-4349-bf39-57efe9dcf5be">
+        <dropForeignKeyConstraint baseTableName="purchase_order" constraintName="fk29o4jh7n4ttmsfh50ulu11hjg"/>
+        <addForeignKeyConstraint baseColumnNames="category_id" baseTableName="purchase_order" constraintName="fk29o4jh7n4ttmsfh50ulu11hjg" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="purchase_order_category" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="92bc2834-13e0-46d2-8a05-156172f7b75b">
+        <dropForeignKeyConstraint baseTableName="role_view_other_permissions" constraintName="fk2o0cjn2xwd4jkb5bsukxlnod8"/>
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="role_view_other_permissions" constraintName="fk2o0cjn2xwd4jkb5bsukxlnod8" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="8ae3b1e5-ded4-494d-9903-d47b1d99b10b">
+        <dropForeignKeyConstraint baseTableName="t_team_user_associations" constraintName="fk2p1ho57toyn0pe8vq0cgtd10o"/>
+        <addForeignKeyConstraint baseColumnNames="id_team" baseTableName="t_team_user_associations" constraintName="fk2p1ho57toyn0pe8vq0cgtd10o" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="team" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="e4322031-7358-429e-b096-58f5855a685f">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance" constraintName="fk2r1291umxjxrddelq96v3pl4n"/>
+        <addForeignKeyConstraint baseColumnNames="asset_id" baseTableName="preventive_maintenance" constraintName="fk2r1291umxjxrddelq96v3pl4n" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="4f7ba234-5d7a-4bd4-b8b6-df389101ebed">
+        <dropForeignKeyConstraint baseTableName="t_location_user_associations" constraintName="fk2vp8mot9fhshwsh8flivg2e61"/>
+        <addForeignKeyConstraint baseColumnNames="id_location" baseTableName="t_location_user_associations" constraintName="fk2vp8mot9fhshwsh8flivg2e61" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="e43d3293-b59a-4948-91c0-e5d5749d33f2">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance" constraintName="fk3a3u3u7kqwtapl3lskjayyyrl"/>
+        <addForeignKeyConstraint baseColumnNames="schedule_id" baseTableName="preventive_maintenance" constraintName="fk3a3u3u7kqwtapl3lskjayyyrl" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="schedule" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="8cc402b4-ba93-4dae-8023-26bcee6ec83e">
+        <dropForeignKeyConstraint baseTableName="role_delete_other_permissions" constraintName="fk3cjdng98d8kdkyhqniaatb1nq"/>
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="role_delete_other_permissions" constraintName="fk3cjdng98d8kdkyhqniaatb1nq" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="2c3a1e92-d6d0-4bd5-ad99-85d5f2981d7e">
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fk3j1uj2uh9af66u9jmfjtvraar"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="request" constraintName="fk3j1uj2uh9af66u9jmfjtvraar" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="1838a9fd-eeed-4737-8e6e-e8ba16c3fa98">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fk3rui6pnm8in4f41ck17h595kg"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="work_order" constraintName="fk3rui6pnm8in4f41ck17h595kg" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a51cfe21-bafd-4bb9-94b5-ddf8bca58e08">
+        <dropForeignKeyConstraint baseTableName="task" constraintName="fk40yui5s4d1qatg5yv31py6fr2"/>
+        <addForeignKeyConstraint baseColumnNames="task_base_id" baseTableName="task" constraintName="fk40yui5s4d1qatg5yv31py6fr2" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="task_base" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="0d410f79-f907-469e-b035-9bba0f48f972">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger_assigned_to" constraintName="fk42orqs7y05ghgkis54tathjv"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_meter_trigger_id" baseTableName="work_order_meter_trigger_assigned_to" constraintName="fk42orqs7y05ghgkis54tathjv" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_meter_trigger" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="22b8c52c-784f-4575-a492-a66aa020d1e1">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger_files" constraintName="fk48ipt6j68d2prhkoeo6tv7toc"/>
+        <addForeignKeyConstraint baseColumnNames="files_id" baseTableName="work_order_meter_trigger_files" constraintName="fk48ipt6j68d2prhkoeo6tv7toc" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a22245bf-e1c3-4cd9-a965-6dcb2216cf76">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fk4b1ej5p5dfnnqb68te2pd9hx4"/>
+        <addForeignKeyConstraint baseColumnNames="category_id" baseTableName="work_order" constraintName="fk4b1ej5p5dfnnqb68te2pd9hx4" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_category" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="ea40a033-ea21-462f-bbd5-83f336f5dce4">
+        <dropForeignKeyConstraint baseTableName="labor" constraintName="fk4p8pded3s0v3w690dfbv829im"/>
+        <addForeignKeyConstraint baseColumnNames="time_category_id" baseTableName="labor" constraintName="fk4p8pded3s0v3w690dfbv829im" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="time_category" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a1d444bb-84db-4b0f-88aa-35ecfc30c253">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance" constraintName="fk53hdmxmgd3fjb2fjsh43d1irf"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="preventive_maintenance" constraintName="fk53hdmxmgd3fjb2fjsh43d1irf" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="6f80bc3d-f082-415a-a328-ff1bb242f413">
+        <dropForeignKeyConstraint baseTableName="company_settings" constraintName="fk5bl8j09pkd2jw3tpg4nlx8x9g"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_request_configuration_id" baseTableName="company_settings" constraintName="fk5bl8j09pkd2jw3tpg4nlx8x9g" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_request_configuration" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="f4585f6f-a4ef-4a05-822f-c5fa5a480865">
+        <dropForeignKeyConstraint baseTableName="workflow" constraintName="fk5bqe81hkk7jfmavn55a8yvca7"/>
+        <addForeignKeyConstraint baseColumnNames="action_id" baseTableName="workflow" constraintName="fk5bqe81hkk7jfmavn55a8yvca7" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="workflow_action" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a414db3e-3363-485b-8740-0f8211c2b4ca">
+        <dropForeignKeyConstraint baseTableName="work_order_customers" constraintName="fk5c0105hu4penp7v2u9tmjg50w"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_id" baseTableName="work_order_customers" constraintName="fk5c0105hu4penp7v2u9tmjg50w" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="d0a77049-d9ca-486c-865e-d33e224fbf62">
+        <dropForeignKeyConstraint baseTableName="part_preventive_maintenances" constraintName="fk5cmcx8pexxynebufh9lh49vl6"/>
+        <addForeignKeyConstraint baseColumnNames="preventive_maintenances_id" baseTableName="part_preventive_maintenances" constraintName="fk5cmcx8pexxynebufh9lh49vl6" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="preventive_maintenance" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="912b8ed9-0617-4744-bde4-9b2d9e9634b8">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance" constraintName="fk5uad3bfd5192xkt6u5lx1lhjw"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="preventive_maintenance" constraintName="fk5uad3bfd5192xkt6u5lx1lhjw" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="7be0550e-b103-488f-a72f-8453cdf0be4e">
+        <dropForeignKeyConstraint baseTableName="request_customers" constraintName="fk676vq0swlk6qsrpecgud7rdww"/>
+        <addForeignKeyConstraint baseColumnNames="customers_id" baseTableName="request_customers" constraintName="fk676vq0swlk6qsrpecgud7rdww" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="customer" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="5d771eea-b3fa-4ec6-bd38-97ff2e104d9b">
+        <dropForeignKeyConstraint baseTableName="t_multi_parts_part_associations" constraintName="fk68kd07kt2lpb0oach23f1spmm"/>
+        <addForeignKeyConstraint baseColumnNames="id_multi_parts" baseTableName="t_multi_parts_part_associations" constraintName="fk68kd07kt2lpb0oach23f1spmm" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="multi_parts" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="2b54bea1-d7a8-4ec8-b484-879582975fc2">
+        <dropForeignKeyConstraint baseTableName="t_part_user_associations" constraintName="fk690l6jljarx0xx5mq51qhgq64"/>
+        <addForeignKeyConstraint baseColumnNames="id_part" baseTableName="t_part_user_associations" constraintName="fk690l6jljarx0xx5mq51qhgq64" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="part" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="9a0d2276-c0bd-4b89-8381-5f7aec8e5b01">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger_customers" constraintName="fk6tm1ncq9jkxakgv2imdbwnntj"/>
+        <addForeignKeyConstraint baseColumnNames="customers_id" baseTableName="work_order_meter_trigger_customers" constraintName="fk6tm1ncq9jkxakgv2imdbwnntj" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="customer" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="7b99e59c-7477-4c6c-bab8-3098a4b53fb6">
+        <dropForeignKeyConstraint baseTableName="t_part_vendor_associations" constraintName="fk7d9ha6pxi5gajdqeds5ekdcw5"/>
+        <addForeignKeyConstraint baseColumnNames="id_part" baseTableName="t_part_vendor_associations" constraintName="fk7d9ha6pxi5gajdqeds5ekdcw5" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="part" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="f87e7ffd-396a-4dcd-8ab9-e1fbf5a11036">
+        <dropForeignKeyConstraint baseTableName="role_edit_other_permissions" constraintName="fk7rf93e2irl5320ogujwr8wcgt"/>
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="role_edit_other_permissions" constraintName="fk7rf93e2irl5320ogujwr8wcgt" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="fb346efa-2ddc-4fc0-8265-f43db00a1297">
+        <dropForeignKeyConstraint baseTableName="meter" constraintName="fk7sr43v36jpwvqhwvuk0o8ob0w"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="meter" constraintName="fk7sr43v36jpwvqhwvuk0o8ob0w" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="fef246b2-d2b1-4712-9aaa-6e9a59fc0615">
+        <dropForeignKeyConstraint baseTableName="t_part_user_associations" constraintName="fk82khjnm7mtmukbbuwnm5okidn"/>
+        <addForeignKeyConstraint baseColumnNames="id_user" baseTableName="t_part_user_associations" constraintName="fk82khjnm7mtmukbbuwnm5okidn" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="fa2e3f01-e8ae-4f9e-bcfb-226eb9a4f950">
+        <dropForeignKeyConstraint baseTableName="customer" constraintName="fk86m32arbbnl01mtk7qjeqi0mu"/>
+        <addForeignKeyConstraint baseColumnNames="billing_currency_id" baseTableName="customer" constraintName="fk86m32arbbnl01mtk7qjeqi0mu" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="currency" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="1fb7e7b1-4974-449a-9349-facdd39817f9">
+        <dropForeignKeyConstraint baseTableName="t_meter_user_associations" constraintName="fk8ikpoqiwcc3i40wdfjl2dynv7"/>
+        <addForeignKeyConstraint baseColumnNames="id_meter" baseTableName="t_meter_user_associations" constraintName="fk8ikpoqiwcc3i40wdfjl2dynv7" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="meter" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="d28e79fc-dde9-435b-8403-8fe50d613da5">
+        <dropForeignKeyConstraint baseTableName="meter" constraintName="fk8jgoj4oi6b9sjqeuh9v592a6q"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="meter" constraintName="fk8jgoj4oi6b9sjqeuh9v592a6q" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="f95fdf3d-d48b-4293-a07c-a4a6a8ad3962">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger" constraintName="fk8ldob1vt7bg8dexi3p6x86sfo"/>
+        <addForeignKeyConstraint baseColumnNames="team_id" baseTableName="work_order_meter_trigger" constraintName="fk8ldob1vt7bg8dexi3p6x86sfo" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="team" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="39975ff4-de9c-4594-a77e-11c9896128f3">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance_files" constraintName="fk8mtccux67q9rtp914y4n7jvom"/>
+        <addForeignKeyConstraint baseColumnNames="files_id" baseTableName="preventive_maintenance_files" constraintName="fk8mtccux67q9rtp914y4n7jvom" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="ca7b6cc6-fefb-40a4-86fe-9e8b3b501f75">
+        <dropForeignKeyConstraint baseTableName="t_location_vendor_associations" constraintName="fk8qdsmekvft0a8cjricw0fyjeq"/>
+        <addForeignKeyConstraint baseColumnNames="id_vendor" baseTableName="t_location_vendor_associations" constraintName="fk8qdsmekvft0a8cjricw0fyjeq" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vendor" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="0f78e4f7-80b1-40b9-9d1f-e2b30396a3b6">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance_assigned_to" constraintName="fk8s7h4xe4shx1myrlnum9wj23h"/>
+        <addForeignKeyConstraint baseColumnNames="preventive_maintenance_id" baseTableName="preventive_maintenance_assigned_to" constraintName="fk8s7h4xe4shx1myrlnum9wj23h" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="preventive_maintenance" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="2068a290-2cd5-4e15-b1d5-2e7cfb1be405">
+        <dropForeignKeyConstraint baseTableName="t_part_team_associations" constraintName="fk8xln4ekdxsmga312jsw9lqxg8"/>
+        <addForeignKeyConstraint baseColumnNames="id_team" baseTableName="t_part_team_associations" constraintName="fk8xln4ekdxsmga312jsw9lqxg8" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="team" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="d3a18adc-e83a-4082-9cf4-40adc6d9bf22">
+        <dropForeignKeyConstraint baseTableName="notification" constraintName="fk99ahq0v75lcyyue9jk2jx01xh"/>
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="notification" constraintName="fk99ahq0v75lcyyue9jk2jx01xh" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="d6c304a6-0826-4d7d-958d-25fb96c466ad">
+        <dropForeignKeyConstraint baseTableName="company_settings" constraintName="fk9lv45cb6urv0o8r8sq1exw2rt"/>
+        <addForeignKeyConstraint baseColumnNames="general_preferences_id" baseTableName="company_settings" constraintName="fk9lv45cb6urv0o8r8sq1exw2rt" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="general_preferences" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="62fa7a9c-d9f9-40c5-82f6-da2da64fb18e">
+        <dropForeignKeyConstraint baseTableName="verification_token" constraintName="fk9sh6q5nyk1pmm19t235i67sxk"/>
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="verification_token" constraintName="fk9sh6q5nyk1pmm19t235i67sxk" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="fa4f6dea-0103-4eac-9e61-97692f6738f8">
+        <dropForeignKeyConstraint baseTableName="own_user_work_orders" constraintName="fk9shb970menrny3c08rd8hqwd5"/>
+        <addForeignKeyConstraint baseColumnNames="own_user_id" baseTableName="own_user_work_orders" constraintName="fk9shb970menrny3c08rd8hqwd5" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a1176d1f-3f40-4682-90dd-c4b5e260d34a">
+        <dropForeignKeyConstraint baseTableName="own_user_preventive_maintenances" constraintName="fk9ttebk37s6yxteght7367u6hl"/>
+        <addForeignKeyConstraint baseColumnNames="own_user_id" baseTableName="own_user_preventive_maintenances" constraintName="fk9ttebk37s6yxteght7367u6hl" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="cc8cc987-99c6-4053-952e-ef8bce30e851">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fkac4vsg728gaycwq1w9o77uw3c"/>
+        <addForeignKeyConstraint baseColumnNames="completed_by_id" baseTableName="work_order" constraintName="fkac4vsg728gaycwq1w9o77uw3c" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="805d7b06-4402-41e2-80f9-e31a9b7f7bdc">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fkajaqh96l0dquvxdfw8fj77241"/>
+        <addForeignKeyConstraint baseColumnNames="parent_preventive_maintenance_id" baseTableName="work_order" constraintName="fkajaqh96l0dquvxdfw8fj77241" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="preventive_maintenance" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="727de0be-07d4-4426-ba9d-b60995c07f3a">
+        <dropForeignKeyConstraint baseTableName="asset" constraintName="fkas2sx5fk8xkk8l6mppu2tmlvc"/>
+        <addForeignKeyConstraint baseColumnNames="deprecation_id" baseTableName="asset" constraintName="fkas2sx5fk8xkk8l6mppu2tmlvc" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="deprecation" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="79799fbd-0bc3-45e9-95a8-687cddbca2ce">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fkauql9ts1kbmwftgtrjbdys6a3"/>
+        <addForeignKeyConstraint baseColumnNames="team_id" baseTableName="work_order" constraintName="fkauql9ts1kbmwftgtrjbdys6a3" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="team" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="6a6de3ee-ade5-45a8-a4e3-6cf3bb88b77f">
+        <dropForeignKeyConstraint baseTableName="t_location_vendor_associations" constraintName="fkb6alk3ojlofcs76q4hnce764b"/>
+        <addForeignKeyConstraint baseColumnNames="id_location" baseTableName="t_location_vendor_associations" constraintName="fkb6alk3ojlofcs76q4hnce764b" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="ca2c7e0e-f317-4f2d-9861-dbfcee042c84">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger" constraintName="fkbdhu8fagmbqqtyf07h10lap9o"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="work_order_meter_trigger" constraintName="fkbdhu8fagmbqqtyf07h10lap9o" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="90052739-7158-46d0-9f26-11c689afbc6a">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger_assigned_to" constraintName="fkbjgihoivnrlo4tnjf3mlb93e8"/>
+        <addForeignKeyConstraint baseColumnNames="assigned_to_id" baseTableName="work_order_meter_trigger_assigned_to" constraintName="fkbjgihoivnrlo4tnjf3mlb93e8" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="1146263a-430b-426c-b8ea-a1a06a9f81b7">
+        <dropForeignKeyConstraint baseTableName="work_order_files" constraintName="fkccol3khq2jntfddtvcfv8hk56"/>
+        <addForeignKeyConstraint baseColumnNames="files_id" baseTableName="work_order_files" constraintName="fkccol3khq2jntfddtvcfv8hk56" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="abbc6b17-ac0b-4865-bc78-fa843e1cf567">
+        <dropForeignKeyConstraint baseTableName="part_preventive_maintenances" constraintName="fkcec0nx6ooubsuiwcwg23jod93"/>
+        <addForeignKeyConstraint baseColumnNames="part_id" baseTableName="part_preventive_maintenances" constraintName="fkcec0nx6ooubsuiwcwg23jod93" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="part" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="66ce41c6-f682-487c-8581-61c0fb2715a8">
+        <dropForeignKeyConstraint baseTableName="own_user_work_orders" constraintName="fkcgnpjx8ahn3ptxpl9ucot819u"/>
+        <addForeignKeyConstraint baseColumnNames="work_orders_id" baseTableName="own_user_work_orders" constraintName="fkcgnpjx8ahn3ptxpl9ucot819u" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="54d57cae-70e8-4414-9b50-1dbcab0cd0c0">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance" constraintName="fkcp1qytc19odw5ngu7y4lx79me"/>
+        <addForeignKeyConstraint baseColumnNames="team_id" baseTableName="preventive_maintenance" constraintName="fkcp1qytc19odw5ngu7y4lx79me" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="team" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="52c2518f-49b4-4592-9ab3-af955801c487">
+        <dropForeignKeyConstraint baseTableName="own_user_preventive_maintenances" constraintName="fkcppm5srhdsuc9di027fiv62aa"/>
+        <addForeignKeyConstraint baseColumnNames="preventive_maintenances_id" baseTableName="own_user_preventive_maintenances" constraintName="fkcppm5srhdsuc9di027fiv62aa" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="preventive_maintenance" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="c489e7dc-c9cf-4d21-982e-1bf9389a8a2e">
+        <dropForeignKeyConstraint baseTableName="t_meter_user_associations" constraintName="fkctimil7gh7ea6xa1n98kea0id"/>
+        <addForeignKeyConstraint baseColumnNames="id_user" baseTableName="t_meter_user_associations" constraintName="fkctimil7gh7ea6xa1n98kea0id" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="7a5a8d05-87b9-40cb-b4a4-fe76de0bfec7">
+        <dropForeignKeyConstraint baseTableName="company" constraintName="fkd2u2jho0d84whs0ryeg9ixs5t"/>
+        <addForeignKeyConstraint baseColumnNames="logo_id" baseTableName="company" constraintName="fkd2u2jho0d84whs0ryeg9ixs5t" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="8de05515-7788-48de-bc3c-51512d20e415">
+        <dropForeignKeyConstraint baseTableName="checklist_task_bases" constraintName="fkd34phs94o7382otdgl82mcoua"/>
+        <addForeignKeyConstraint baseColumnNames="checklist_id" baseTableName="checklist_task_bases" constraintName="fkd34phs94o7382otdgl82mcoua" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="checklist" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="4bb5455e-e40f-4bc4-b04f-b94c9fbe4dac">
+        <dropForeignKeyConstraint baseTableName="request_files" constraintName="fkd3vswlusjseoo7lpwb0697w2o"/>
+        <addForeignKeyConstraint baseColumnNames="request_id" baseTableName="request_files" constraintName="fkd3vswlusjseoo7lpwb0697w2o" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="request" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="7c568018-d45e-4b91-b3ae-890671116f62">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fkdbtdl51i4yup1hs6ek3ecqros"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="work_order" constraintName="fkdbtdl51i4yup1hs6ek3ecqros" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="4a9ab8a8-20be-4684-9cc3-cafa2090de57">
+        <dropForeignKeyConstraint baseTableName="role_view_permissions" constraintName="fkdcn9sty6hgjhdocywpdyqbl8s"/>
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="role_view_permissions" constraintName="fkdcn9sty6hgjhdocywpdyqbl8s" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="43842e5f-1273-412e-b931-ac8ab75a74dc">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger" constraintName="fkdkxi8xmqmo48y8xtml1860nbc"/>
+        <addForeignKeyConstraint baseColumnNames="asset_id" baseTableName="work_order_meter_trigger" constraintName="fkdkxi8xmqmo48y8xtml1860nbc" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="2175bf31-b8d6-4a86-bb98-0f0c0f27709c">
+        <dropForeignKeyConstraint baseTableName="work_order_files" constraintName="fkdoggd73pxsy9naoq00g3epsg1"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_id" baseTableName="work_order_files" constraintName="fkdoggd73pxsy9naoq00g3epsg1" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="5e9ef195-e5d1-427d-8641-6926edcb39e7">
+        <dropForeignKeyConstraint baseTableName="request_files" constraintName="fke28fh1hvbl1e8jww275n3b1w0"/>
+        <addForeignKeyConstraint baseColumnNames="files_id" baseTableName="request_files" constraintName="fke28fh1hvbl1e8jww275n3b1w0" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="f4f31da1-c344-41dd-952b-8d4d1282d50b">
+        <dropForeignKeyConstraint baseTableName="t_location_user_associations" constraintName="fke43mw9vk8u1y3ugxjhwt19s0g"/>
+        <addForeignKeyConstraint baseColumnNames="id_user" baseTableName="t_location_user_associations" constraintName="fke43mw9vk8u1y3ugxjhwt19s0g" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="5e9b1c6e-3f5f-4566-a1bf-bff9466012a2">
+        <dropForeignKeyConstraint baseTableName="t_asset_file_associations" constraintName="fkefr6a3an7giyclgfs4e2vqjp0"/>
+        <addForeignKeyConstraint baseColumnNames="id_file" baseTableName="t_asset_file_associations" constraintName="fkefr6a3an7giyclgfs4e2vqjp0" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="75527b65-6c34-4bf5-aeed-3a2c036c11a5">
+        <dropForeignKeyConstraint baseTableName="request_assigned_to" constraintName="fkeg8mmectqp7vcxgxw7k64wt1h"/>
+        <addForeignKeyConstraint baseColumnNames="request_id" baseTableName="request_assigned_to" constraintName="fkeg8mmectqp7vcxgxw7k64wt1h" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="request" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="c463a092-1fef-4bdf-8de4-761ba1e319e7">
+        <dropForeignKeyConstraint baseTableName="part" constraintName="fkeh8vu21l8gci666ew34wnfgb9"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="part" constraintName="fkeh8vu21l8gci666ew34wnfgb9" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="d599cba1-93cd-4013-a15d-967b33cd2ecb">
+        <dropForeignKeyConstraint baseTableName="user_invitation" constraintName="fkf77hi4ixclj9edbkfheps1sv9"/>
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="user_invitation" constraintName="fkf77hi4ixclj9edbkfheps1sv9" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="75b5a754-a939-423b-82e7-594014ab9926">
+        <dropForeignKeyConstraint baseTableName="floor_plan" constraintName="fkfg2lm01gcc8gwo3kkm1l64vc0"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="floor_plan" constraintName="fkfg2lm01gcc8gwo3kkm1l64vc0" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="885e9720-6549-48ae-98f7-4ea27922565f">
+        <dropForeignKeyConstraint baseTableName="relation" constraintName="fkfi6xl41fol251r2391ypx9ga5"/>
+        <addForeignKeyConstraint baseColumnNames="parent_id" baseTableName="relation" constraintName="fkfi6xl41fol251r2391ypx9ga5" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="3a627614-0757-4c1d-a412-edc05f9e0843">
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fkfweq9owhxrrcsowk9w12qgmrb"/>
+        <addForeignKeyConstraint baseColumnNames="category_id" baseTableName="request" constraintName="fkfweq9owhxrrcsowk9w12qgmrb" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_category" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a76b7e49-28aa-4bc8-b76b-da44cc9a531f">
+        <dropForeignKeyConstraint baseTableName="work_order_history" constraintName="fkggkgvrsfxoevabt4igrse99m3"/>
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="work_order_history" constraintName="fkggkgvrsfxoevabt4igrse99m3" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="172342a8-de74-483f-a34f-837b95fa8064">
+        <dropForeignKeyConstraint baseTableName="t_work_order_file_associations" constraintName="fkghh8ggrdasrs4wij0xneb4qhj"/>
+        <addForeignKeyConstraint baseColumnNames="id_file" baseTableName="t_work_order_file_associations" constraintName="fkghh8ggrdasrs4wij0xneb4qhj" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="eecb8a51-7f6c-446a-b2fc-a96d74c8ce54">
+        <dropForeignKeyConstraint baseTableName="workflow_secondary_conditions" constraintName="fkghlfm1gckeadderktdefpo66s"/>
+        <addForeignKeyConstraint baseColumnNames="workflow_id" baseTableName="workflow_secondary_conditions" constraintName="fkghlfm1gckeadderktdefpo66s" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="workflow" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="f7c6e7f5-987b-41f9-bec9-ffef6f37e04c">
+        <dropForeignKeyConstraint baseTableName="t_work_order_file_associations" constraintName="fkgky3mpbw56uh8apli8ys6w4lv"/>
+        <addForeignKeyConstraint baseColumnNames="id_work_order" baseTableName="t_work_order_file_associations" constraintName="fkgky3mpbw56uh8apli8ys6w4lv" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="b9e39a28-159e-4de0-b098-b6dda972e4e2">
+        <dropForeignKeyConstraint baseTableName="work_order_customers" constraintName="fkglrmndromgkolt5unqykpu45u"/>
+        <addForeignKeyConstraint baseColumnNames="customers_id" baseTableName="work_order_customers" constraintName="fkglrmndromgkolt5unqykpu45u" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="customer" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="014da9b3-0ac3-40bd-88db-1c8947130689">
+        <dropForeignKeyConstraint baseTableName="t_multi_parts_part_associations" constraintName="fkh2jvrtqx4b25nfqafdlc92aek"/>
+        <addForeignKeyConstraint baseColumnNames="id_part" baseTableName="t_multi_parts_part_associations" constraintName="fkh2jvrtqx4b25nfqafdlc92aek" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="part" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="97ffee55-6909-49c7-9862-c53ef7889f15">
+        <dropForeignKeyConstraint baseTableName="asset" constraintName="fkhh76eg71adtmdagspxgbnmjd5"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="asset" constraintName="fkhh76eg71adtmdagspxgbnmjd5" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="991ba0cb-5bf3-41d1-9b26-d6adb322fed4">
+        <dropForeignKeyConstraint baseTableName="checklist_task_bases" constraintName="fkhk7924rrpw72xmw6xcnd04xtf"/>
+        <addForeignKeyConstraint baseColumnNames="task_bases_id" baseTableName="checklist_task_bases" constraintName="fkhk7924rrpw72xmw6xcnd04xtf" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="task_base" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="6cec10bf-b464-4904-b197-6d5542579ed6">
+        <dropForeignKeyConstraint baseTableName="subscription" constraintName="fkhn8hnxbdoi29nb4m7ojkocqfm"/>
+        <addForeignKeyConstraint baseColumnNames="subscription_plan_id" baseTableName="subscription" constraintName="fkhn8hnxbdoi29nb4m7ojkocqfm" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="subscription_plan" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="7a992349-d7a5-4ad1-a52d-6e253154bc4c">
+        <dropForeignKeyConstraint baseTableName="t_location_file_associations" constraintName="fkhtvits97qtdn3ocj1kgik44j"/>
+        <addForeignKeyConstraint baseColumnNames="id_file" baseTableName="t_location_file_associations" constraintName="fkhtvits97qtdn3ocj1kgik44j" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a5fa1ca6-6088-4c13-8779-0b54b1683008">
+        <dropForeignKeyConstraint baseTableName="additional_cost" constraintName="fkhw3t1120mikcf9ajl5tvqb4le"/>
+        <addForeignKeyConstraint baseColumnNames="category_id" baseTableName="additional_cost" constraintName="fkhw3t1120mikcf9ajl5tvqb4le" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="cost_category" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="0f624c6a-7c46-4fe9-947d-2adc6cb5b0d3">
+        <dropForeignKeyConstraint baseTableName="asset" constraintName="fkhw44q3ymkd329b8b6mvqxatsh"/>
+        <addForeignKeyConstraint baseColumnNames="category_id" baseTableName="asset" constraintName="fkhw44q3ymkd329b8b6mvqxatsh" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset_category" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="6c71cd30-6636-49b9-95b5-4a827dec5625">
+        <dropForeignKeyConstraint baseTableName="t_request_file_associations" constraintName="fki27xearjt3x6ralbb0of1jmmd"/>
+        <addForeignKeyConstraint baseColumnNames="id_request" baseTableName="t_request_file_associations" constraintName="fki27xearjt3x6ralbb0of1jmmd" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="request" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="7145886f-0a17-4674-a2b5-14e1c5f0a52b">
+        <dropForeignKeyConstraint baseTableName="t_asset_customer_associations" constraintName="fkil356y7ax7m8tqfryd4p8pe6o"/>
+        <addForeignKeyConstraint baseColumnNames="id_asset" baseTableName="t_asset_customer_associations" constraintName="fkil356y7ax7m8tqfryd4p8pe6o" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="b9f84390-180e-46bb-8e7b-c20edf386a83">
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fkj7y0rwrqngdydkkdcohwisqq6"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="request" constraintName="fkj7y0rwrqngdydkkdcohwisqq6" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="6ed6732f-c539-4683-92ac-ddc92999e7fe">
+        <dropForeignKeyConstraint baseTableName="t_asset_user_associations" constraintName="fkjgn04l4eish0drw94bb50lrk3"/>
+        <addForeignKeyConstraint baseColumnNames="id_user" baseTableName="t_asset_user_associations" constraintName="fkjgn04l4eish0drw94bb50lrk3" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="e9c7d7ef-bbb8-42cf-9473-548e10e6f93e">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance_customers" constraintName="fkjihm0pei7bll8d9oim1v4edjo"/>
+        <addForeignKeyConstraint baseColumnNames="preventive_maintenance_id" baseTableName="preventive_maintenance_customers" constraintName="fkjihm0pei7bll8d9oim1v4edjo" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="preventive_maintenance" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="af3505b9-45cd-4945-a5c2-963d697a0365">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance_assigned_to" constraintName="fkjqfkojt6e6my5qxjgirsg6v8"/>
+        <addForeignKeyConstraint baseColumnNames="assigned_to_id" baseTableName="preventive_maintenance_assigned_to" constraintName="fkjqfkojt6e6my5qxjgirsg6v8" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="596b9f4c-90cd-495c-b5c5-4c54f84eae61">
+        <dropForeignKeyConstraint baseTableName="location" constraintName="fkjuo4g2hd6k6g383v9jr6megvr"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="location" constraintName="fkjuo4g2hd6k6g383v9jr6megvr" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="298600b6-1d40-4bbc-9540-0f6a9c8280bc">
+        <dropForeignKeyConstraint baseTableName="task_base" constraintName="fkjuw0e6wckoo1tqast1m6baj9f"/>
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="task_base" constraintName="fkjuw0e6wckoo1tqast1m6baj9f" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="8297ef77-7e4a-4111-910e-15e89fa0ef74">
+        <dropForeignKeyConstraint baseTableName="t_asset_customer_associations" constraintName="fkk6oovqj8yvfaxueq7pdjm9rj6"/>
+        <addForeignKeyConstraint baseColumnNames="id_customer" baseTableName="t_asset_customer_associations" constraintName="fkk6oovqj8yvfaxueq7pdjm9rj6" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="customer" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="12c3adba-b0ff-40d2-a627-72ce4f284c5b">
+        <dropForeignKeyConstraint baseTableName="task_option" constraintName="fkko048mkiejn0ikwy5t4rqwf7o"/>
+        <addForeignKeyConstraint baseColumnNames="task_base_id" baseTableName="task_option" constraintName="fkko048mkiejn0ikwy5t4rqwf7o" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="task_base" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="d9646674-3951-4c4f-afbb-7161ff304ed1">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger_customers" constraintName="fkkvfp8se58k6wyyt8ctgv4r3f0"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_meter_trigger_id" baseTableName="work_order_meter_trigger_customers" constraintName="fkkvfp8se58k6wyyt8ctgv4r3f0" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_meter_trigger" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="0fe03b52-dbfe-44f2-8be7-5a857919e361">
+        <dropForeignKeyConstraint baseTableName="request_customers" constraintName="fklbeh6vh70b2pqoj6lri2ua4fk"/>
+        <addForeignKeyConstraint baseColumnNames="request_id" baseTableName="request_customers" constraintName="fklbeh6vh70b2pqoj6lri2ua4fk" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="request" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="71467db1-13c0-4b2b-b906-7b6eb6de85c2">
+        <dropForeignKeyConstraint baseTableName="t_part_vendor_associations" constraintName="fklhnjg0qhqks9ob72oybq4xk73"/>
+        <addForeignKeyConstraint baseColumnNames="id_vendor" baseTableName="t_part_vendor_associations" constraintName="fklhnjg0qhqks9ob72oybq4xk73" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vendor" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="258c7162-c6b4-4847-8670-b61c93868d0d">
+        <dropForeignKeyConstraint baseTableName="t_location_team_associations" constraintName="fkljl6bq0u1fc9qgyj3ry1pfu1n"/>
+        <addForeignKeyConstraint baseColumnNames="id_location" baseTableName="t_location_team_associations" constraintName="fkljl6bq0u1fc9qgyj3ry1pfu1n" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="6b0981b2-9e13-4704-96fa-4d5b8e950aa4">
+        <dropForeignKeyConstraint baseTableName="t_asset_part_associations" constraintName="fklok6yse9itekmdxni6i1f58ys"/>
+        <addForeignKeyConstraint baseColumnNames="id_asset" baseTableName="t_asset_part_associations" constraintName="fklok6yse9itekmdxni6i1f58ys" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="90762e24-9e0a-4886-bcaf-2ec627525fb5">
+        <dropForeignKeyConstraint baseTableName="company_settings" constraintName="fklr3cfk7ltvoc41wylou0p9llc"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_configuration_id" baseTableName="company_settings" constraintName="fklr3cfk7ltvoc41wylou0p9llc" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_configuration" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="627424e9-3af9-4667-803a-fe072d8eff8d">
+        <dropForeignKeyConstraint baseTableName="t_request_file_associations" constraintName="fklrujxbod3pgniljml93urvthe"/>
+        <addForeignKeyConstraint baseColumnNames="id_file" baseTableName="t_request_file_associations" constraintName="fklrujxbod3pgniljml93urvthe" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="b54b6422-9b14-4c43-8453-7dddea779921">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance_customers" constraintName="fkm4lsl8y9ttb1jvliu0af15mh3"/>
+        <addForeignKeyConstraint baseColumnNames="customers_id" baseTableName="preventive_maintenance_customers" constraintName="fkm4lsl8y9ttb1jvliu0af15mh3" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="customer" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="c825e3b6-42e9-430e-9255-57a625b215da">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger" constraintName="fkmdb3avajahyo8mc6wi38ls8xi"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="work_order_meter_trigger" constraintName="fkmdb3avajahyo8mc6wi38ls8xi" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="69c6a466-ef86-4086-9a22-bf16ac8a3af9">
+        <dropForeignKeyConstraint baseTableName="work_order_assigned_to" constraintName="fkmfhu1adi2mobtmdpsprmuo267"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_id" baseTableName="work_order_assigned_to" constraintName="fkmfhu1adi2mobtmdpsprmuo267" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="44a07ae0-47ca-4bae-8619-6472fc28faec">
+        <dropForeignKeyConstraint baseTableName="t_part_file_associations" constraintName="fkmjt71i7hevju3uswyyumdgttb"/>
+        <addForeignKeyConstraint baseColumnNames="id_part" baseTableName="t_part_file_associations" constraintName="fkmjt71i7hevju3uswyyumdgttb" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="part" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a75069e3-0b4f-44de-ba74-0e95f34d74c4">
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fkml2rlcjiurmq5rjyw1gmsstf6"/>
+        <addForeignKeyConstraint baseColumnNames="asset_id" baseTableName="request" constraintName="fkml2rlcjiurmq5rjyw1gmsstf6" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="10f33ffd-5aaf-4383-bece-4ab4bd9a3c96">
+        <dropForeignKeyConstraint baseTableName="relation" constraintName="fkmn3265pc5poqrn82h1j75if3p"/>
+        <addForeignKeyConstraint baseColumnNames="child_id" baseTableName="relation" constraintName="fkmn3265pc5poqrn82h1j75if3p" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="611db4c8-4abe-445e-bf8b-3beca6aab47d">
+        <dropForeignKeyConstraint baseTableName="asset" constraintName="fkmq4as1d1exvm4mg3ayokdan30"/>
+        <addForeignKeyConstraint baseColumnNames="primary_user_id" baseTableName="asset" constraintName="fkmq4as1d1exvm4mg3ayokdan30" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="5bea9418-3782-4e71-bc28-58de0b1313f2">
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fkn6hy6udqudy40u4cgtwvwtp9l"/>
+        <addForeignKeyConstraint baseColumnNames="primary_user_id" baseTableName="request" constraintName="fkn6hy6udqudy40u4cgtwvwtp9l" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="fddcd203-523a-441f-8d21-0994c704f035">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fknixhvhyqdk11xntyainal50tf"/>
+        <addForeignKeyConstraint baseColumnNames="primary_user_id" baseTableName="work_order" constraintName="fknixhvhyqdk11xntyainal50tf" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="cb1809d6-6432-4ae8-bb7a-b834b38dd700">
+        <dropForeignKeyConstraint baseTableName="field_configuration" constraintName="fknm0jfo2of1li65idn1qvbbm00"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_configuration_id" baseTableName="field_configuration" constraintName="fknm0jfo2of1li65idn1qvbbm00" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_configuration" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="3538523b-cffb-4b0c-9b11-21d213897298">
+        <dropForeignKeyConstraint baseTableName="t_asset_part_associations" constraintName="fkno24a5qbnjjn9xl0x2goppspd"/>
+        <addForeignKeyConstraint baseColumnNames="id_part" baseTableName="t_asset_part_associations" constraintName="fkno24a5qbnjjn9xl0x2goppspd" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="part" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="baf89e3d-cebe-4f30-9165-d08791e2b257">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fko87wf45c2qbyn4jhgjv8s4s5d"/>
+        <addForeignKeyConstraint baseColumnNames="parent_request_id" baseTableName="work_order" constraintName="fko87wf45c2qbyn4jhgjv8s4s5d" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="request" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a984de7f-34d6-4093-b6cd-a1dc0d85cd25">
+        <dropForeignKeyConstraint baseTableName="meter" constraintName="fkoid61jgpxbr04np7rop8pag13"/>
+        <addForeignKeyConstraint baseColumnNames="meter_category_id" baseTableName="meter" constraintName="fkoid61jgpxbr04np7rop8pag13" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="meter_category" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="f732be6c-5ea3-4495-8136-e701263adec7">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger_files" constraintName="fkol2wwydmtktqbnc7lvv23r5jy"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_meter_trigger_id" baseTableName="work_order_meter_trigger_files" constraintName="fkol2wwydmtktqbnc7lvv23r5jy" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_meter_trigger" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="f223712a-adcd-4404-9408-ca0eae3ebdcc">
+        <dropForeignKeyConstraint baseTableName="asset" constraintName="fkoo11h2f4j12wv0axk6d8u1wy0"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="asset" constraintName="fkoo11h2f4j12wv0axk6d8u1wy0" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="807e52b4-e035-416c-900e-9490219617b0">
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fkoo6uxlauwwyxfohx3lver2t0x"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_id" baseTableName="request" constraintName="fkoo6uxlauwwyxfohx3lver2t0x" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a53e2c83-7936-4729-9ad4-8a95d1ac731a">
+        <dropForeignKeyConstraint baseTableName="additional_cost" constraintName="fkov7r0agrfyv2u9v67rd4e4hxf"/>
+        <addForeignKeyConstraint baseColumnNames="assigned_to_id" baseTableName="additional_cost" constraintName="fkov7r0agrfyv2u9v67rd4e4hxf" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="0c46104e-f0c4-4cc2-93ba-da7e929221a6">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance" constraintName="fkp1wj9d43qdhi19swp3ab00r4e"/>
+        <addForeignKeyConstraint baseColumnNames="category_id" baseTableName="preventive_maintenance" constraintName="fkp1wj9d43qdhi19swp3ab00r4e" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_category" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="297ce944-c6f8-4d17-90cb-ba7f85ddf8e4">
+        <dropForeignKeyConstraint baseTableName="t_part_team_associations" constraintName="fkp3whk5onr642t9ts5p2jmuda9"/>
+        <addForeignKeyConstraint baseColumnNames="id_part" baseTableName="t_part_team_associations" constraintName="fkp3whk5onr642t9ts5p2jmuda9" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="part" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="1678dc86-cfb6-4e79-87ae-f7333711cf98">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fkp4hbmaa9hcp6myymsfyxg6fo2"/>
+        <addForeignKeyConstraint baseColumnNames="asset_id" baseTableName="work_order" constraintName="fkp4hbmaa9hcp6myymsfyxg6fo2" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="129e5b50-11b9-4287-aa42-269d0942ac0c">
+        <dropForeignKeyConstraint baseTableName="t_asset_vendor_associations" constraintName="fkpgtou9e97sr7cmfyxfp1hp9sb"/>
+        <addForeignKeyConstraint baseColumnNames="id_asset" baseTableName="t_asset_vendor_associations" constraintName="fkpgtou9e97sr7cmfyxfp1hp9sb" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a1eb7fbb-c012-42cf-94c0-262ce2178779">
+        <dropForeignKeyConstraint baseTableName="t_location_file_associations" constraintName="fkpxrshqnllftrn323eubyaqqhq"/>
+        <addForeignKeyConstraint baseColumnNames="id_location" baseTableName="t_location_file_associations" constraintName="fkpxrshqnllftrn323eubyaqqhq" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="6554e0b5-6641-4114-85c5-15edc64cfca9">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance_files" constraintName="fkqhoc4ma9gysgmv2445yitvs8f"/>
+        <addForeignKeyConstraint baseColumnNames="preventive_maintenance_id" baseTableName="preventive_maintenance_files" constraintName="fkqhoc4ma9gysgmv2445yitvs8f" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="preventive_maintenance" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="8ed48cf8-8fb7-4038-800a-f385a980f0b7">
+        <dropForeignKeyConstraint baseTableName="request_assigned_to" constraintName="fkqlbo8p3wkhw4ddewc0cx4d28q"/>
+        <addForeignKeyConstraint baseColumnNames="assigned_to_id" baseTableName="request_assigned_to" constraintName="fkqlbo8p3wkhw4ddewc0cx4d28q" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="10f1e081-22fd-471d-b6a4-bc7be79ba012">
+        <dropForeignKeyConstraint baseTableName="t_part_file_associations" constraintName="fkqny8ad10cc9oam3yrfhenfthp"/>
+        <addForeignKeyConstraint baseColumnNames="id_file" baseTableName="t_part_file_associations" constraintName="fkqny8ad10cc9oam3yrfhenfthp" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="127c3141-8f41-4205-8704-c73e5ae3513f">
+        <dropForeignKeyConstraint baseTableName="t_asset_team_associations" constraintName="fkqr34hfl16wsv4krhpdcatpeft"/>
+        <addForeignKeyConstraint baseColumnNames="id_asset" baseTableName="t_asset_team_associations" constraintName="fkqr34hfl16wsv4krhpdcatpeft" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="0d4fb972-a30b-424d-ac7e-feafcba9059e">
+        <dropForeignKeyConstraint baseTableName="field_configuration" constraintName="fkqrsw1egn2l8w4ve311io2fa5e"/>
+        <addForeignKeyConstraint baseColumnNames="work_order_request_configuration_id" baseTableName="field_configuration" constraintName="fkqrsw1egn2l8w4ve311io2fa5e" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_request_configuration" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a8e0f3f4-0f89-4f11-8003-caf3bcc8a424">
+        <dropForeignKeyConstraint baseTableName="own_user" constraintName="fkqwalae8dm1n117q5p2k5xv8mk"/>
+        <addForeignKeyConstraint baseColumnNames="image_id" baseTableName="own_user" constraintName="fkqwalae8dm1n117q5p2k5xv8mk" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="d055aa8f-6989-4b50-8717-e146545668d2">
+        <dropForeignKeyConstraint baseTableName="company" constraintName="fkr5eqioud6jn02js440qjt6mxb"/>
+        <addForeignKeyConstraint baseColumnNames="subscription_id" baseTableName="company" constraintName="fkr5eqioud6jn02js440qjt6mxb" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="subscription" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="63ac61a6-0f9c-4ded-ba21-c6e7c5dd10b4">
+        <dropForeignKeyConstraint baseTableName="labor" constraintName="fkr5slomxbec1ob9k9npjcdad05"/>
+        <addForeignKeyConstraint baseColumnNames="assigned_to_id" baseTableName="labor" constraintName="fkr5slomxbec1ob9k9npjcdad05" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="8a21f859-65cb-4600-8095-ce6978ac9fc9">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger" constraintName="fkrle6bql4ubcd8vjmqb19aukwl"/>
+        <addForeignKeyConstraint baseColumnNames="primary_user_id" baseTableName="work_order_meter_trigger" constraintName="fkrle6bql4ubcd8vjmqb19aukwl" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="1dacdebe-277f-43c5-bccb-e116a96a5d25">
+        <dropForeignKeyConstraint baseTableName="own_user" constraintName="fkrlvsrdrcmmbtbgeqr8y4j69p4"/>
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="own_user" constraintName="fkrlvsrdrcmmbtbgeqr8y4j69p4" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="a11c9d89-6b71-4b88-8228-de0c568bb87f">
+        <dropForeignKeyConstraint baseTableName="t_location_customer_associations" constraintName="fkrohs7o68xw77yvwvlo0prue70"/>
+        <addForeignKeyConstraint baseColumnNames="id_location" baseTableName="t_location_customer_associations" constraintName="fkrohs7o68xw77yvwvlo0prue70" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="bc3bf999-d2b9-46d0-b470-962c474b517a">
+        <dropForeignKeyConstraint baseTableName="t_asset_vendor_associations" constraintName="fkrqd179yspkkgkqn96oggb7lhp"/>
+        <addForeignKeyConstraint baseColumnNames="id_vendor" baseTableName="t_asset_vendor_associations" constraintName="fkrqd179yspkkgkqn96oggb7lhp" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="vendor" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="3a27edbd-9fcb-4a8f-ad19-1e58040d9a24">
+        <dropForeignKeyConstraint baseTableName="push_notification_token" constraintName="fkrv32gwhy1ktdvrlfeg2y1pcqo"/>
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="push_notification_token" constraintName="fkrv32gwhy1ktdvrlfeg2y1pcqo" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="d9959440-8f85-49f5-afd2-4a9c51b354c4">
+        <dropForeignKeyConstraint baseTableName="work_order_assigned_to" constraintName="fks2pjdwafjgekyxtwj4f82qn4q"/>
+        <addForeignKeyConstraint baseColumnNames="assigned_to_id" baseTableName="work_order_assigned_to" constraintName="fks2pjdwafjgekyxtwj4f82qn4q" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="211d77b5-12c9-43bb-b53a-896dbf45a362">
+        <dropForeignKeyConstraint baseTableName="work_order" constraintName="fks33w3o0htu3jkkj4r40w1plvs"/>
+        <addForeignKeyConstraint baseColumnNames="signature_id" baseTableName="work_order" constraintName="fks33w3o0htu3jkkj4r40w1plvs" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="file" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="3f111383-44c2-4b6b-8b33-e5b7ab0a52ca">
+        <dropForeignKeyConstraint baseTableName="t_location_team_associations" constraintName="fks4ryynu0uwcxtffdq28y54bbr"/>
+        <addForeignKeyConstraint baseColumnNames="id_team" baseTableName="t_location_team_associations" constraintName="fks4ryynu0uwcxtffdq28y54bbr" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="team" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="d4c009b9-06f5-4edf-9094-498d1b87d1d0">
+        <dropForeignKeyConstraint baseTableName="workflow_secondary_conditions" constraintName="fkshydsqbgheutdqrqsol5h9e0p"/>
+        <addForeignKeyConstraint baseColumnNames="secondary_conditions_id" baseTableName="workflow_secondary_conditions" constraintName="fkshydsqbgheutdqrqsol5h9e0p" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="workflow_condition" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="bcecc180-55c6-423e-918c-8c2517510405">
+        <dropForeignKeyConstraint baseTableName="general_preferences" constraintName="fkskbryn4bunuqp0op70ogiu4ow"/>
+        <addForeignKeyConstraint baseColumnNames="currency_id" baseTableName="general_preferences" constraintName="fkskbryn4bunuqp0op70ogiu4ow" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="currency" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="8060601a-14f6-4ee5-a1a3-57b59a6c262c">
+        <dropForeignKeyConstraint baseTableName="own_user" constraintName="fkssx9vqtrk77wqmtsi1gokyi8l"/>
+        <addForeignKeyConstraint baseColumnNames="user_settings_id" baseTableName="own_user" constraintName="fkssx9vqtrk77wqmtsi1gokyi8l" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="user_settings" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="846d7b26-ca48-4abf-95eb-35e58d64a638">
+        <dropForeignKeyConstraint baseTableName="preventive_maintenance" constraintName="fkt6xom1a5ksujm9l99daervnjw"/>
+        <addForeignKeyConstraint baseColumnNames="primary_user_id" baseTableName="preventive_maintenance" constraintName="fkt6xom1a5ksujm9l99daervnjw" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="own_user" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="32c4fb93-05b3-4254-aa0b-4ed2a07cc91f">
+        <dropForeignKeyConstraint baseTableName="work_order_meter_trigger" constraintName="fkt8pkfck219uufrehqu9k8ekh5"/>
+        <addForeignKeyConstraint baseColumnNames="category_id" baseTableName="work_order_meter_trigger" constraintName="fkt8pkfck219uufrehqu9k8ekh5" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="work_order_category" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="562b878f-8380-4ae0-b87c-b604c7c8bde4">
+        <dropForeignKeyConstraint baseTableName="subscription_plan_features" constraintName="fkt9uih9cwfu9enes7yueekd2rx"/>
+        <addForeignKeyConstraint baseColumnNames="subscription_plan_id" baseTableName="subscription_plan_features" constraintName="fkt9uih9cwfu9enes7yueekd2rx" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="subscription_plan" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="5fd0e82c-37f4-4476-b404-7cf45106dfa7">
+        <dropForeignKeyConstraint baseTableName="request" constraintName="fktb79vm0l79yhsnqtllqgf97nl"/>
+        <addForeignKeyConstraint baseColumnNames="team_id" baseTableName="request" constraintName="fktb79vm0l79yhsnqtllqgf97nl" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="team" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="ca043a38-5019-4fea-acc6-de2938fe1c28">
+        <dropForeignKeyConstraint baseTableName="t_asset_user_associations" constraintName="fktelhjpyo61q5q6ex771eug6y"/>
+        <addForeignKeyConstraint baseColumnNames="id_asset" baseTableName="t_asset_user_associations" constraintName="fktelhjpyo61q5q6ex771eug6y" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="asset" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="2fee3bf1-8ade-4592-955a-63831361d0ee">
+        <dropForeignKeyConstraint baseTableName="own_user" constraintName="fktmprdfwe8axkp8cobywe2gc1d"/>
+        <addForeignKeyConstraint baseColumnNames="location_id" baseTableName="own_user" constraintName="fktmprdfwe8axkp8cobywe2gc1d" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+    </changeSet>
+    <changeSet author="Ibrahima (script)" id="5eede869-3b82-4c0d-b120-058a113af2cf">
+        <dropForeignKeyConstraint baseTableName="role_create_permissions" constraintName="fktncs84qs8gmbgb3qsula45o4r"/>
+        <addForeignKeyConstraint baseColumnNames="role_id" baseTableName="role_create_permissions" constraintName="fktncs84qs8gmbgb3qsula45o4r" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="role" validate="true"/>
+    </changeSet>
+</databaseChangeLog>

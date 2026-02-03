@@ -1,0 +1,19 @@
+{
+    "name": "Factory I/O Default",
+    "description": "Basic simulation with buttons and LEDs",
+    "server": {
+        "host": "0.0.0.0",
+        "port": 502
+    },
+    "inputs": [
+        {"coil": 0, "gpio": 17, "name": "Start_Button"},
+        {"coil": 1, "gpio": 27, "name": "Stop_Button"},
+        {"coil": 2, "gpio": 22, "name": "E_Stop"}
+    ],
+    "outputs": [
+        {"coil": 10, "gpio": 5, "name": "LED_Green"},
+        {"coil": 11, "gpio": 6, "name": "LED_Red"},
+        {"coil": 12, "gpio": 13, "name": "Relay1"},
+        {"coil": 13, "gpio": 19, "name": "Relay2"}
+    ]
+}

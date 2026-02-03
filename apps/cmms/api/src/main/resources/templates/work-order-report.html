@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<link href="https://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<style th:inline="css">
+    .invoice-title h2, .invoice-title h3 {
+        display: inline-block;
+    }
+</style>
+<body>
+<!--@thymesVar id="workOrder" type="com.grash.model.WorkOrder"-->
+<!--/*@thymesVar id="backgroundColor" type="java.lang.String"*/-->
+<!--@thymesVar id="companyName" type="java.lang.String"-->
+<!--/*@thymesVar id="relations" type="java.util.List<com.grash.model.Relation>"*/-->
+<!--/*@thymesVar id="tasks" type="java.util.List<com.grash.model.Task>"*/-->
+<!--/*@thymesVar id="tasksImagesUrls" type="java.util.Map<java.lang.Long, java.lang.String[]>"*/-->
+<!--/*@thymesVar id="assignedTo" type="java.lang.String"*/-->
+<!--/*@thymesVar id="customers" type="java.lang.String"*/-->
+<!--/*@thymesVar id="companyPhone" type="java.lang.String"*/-->
+<!--/*@thymesVar id="primaryUserName" type="java.lang.String"*/-->
+<!--/*@thymesVar id="currency" type="java.lang.String"*/-->
+<!--/*@thymesVar id="additionalCosts" type="java.util.List<com.grash.model.AdditionalCost>"*/-->
+<!--/*@thymesVar id="workOrderHistories" type="java.util.List<com.grash.model.WorkOrderHistory>"*/-->
+<!--/*@thymesVar id="partQuantities" type="java.util.List<com.grash.model.PartQuantity>"*/-->
+<!--/*@thymesVar id="labors" type="java.util.List<com.grash.model.Labor>"*/-->
+<!--/*@thymesVar id="messageSource" type="org.springframework.context.MessageSource"*/-->
+<!--/*@thymesVar id="locale" type="java.util.Locale"*/-->
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="invoice-title">
+                <h3 th:text="${companyName}"></h3>
+                <h3 th:class="pull-right" th:style="'color:'+${backgroundColor}"
+                    th:text="#{wo_number(${workOrder.customId})}"></h3>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-xs-6">
+                    <address>
+                        <div th:text="${companyPhone}"></div>
+                        <strong th:text="#{created_at}+': '"> </strong>
+                        <span th:text="${workOrder.createdAt}"></span>
+                        <br>
+                        <strong th:text="#{last_updated}+': '"></strong><span
+                            th:text="${workOrder.updatedAt}"></span><br>
+                    </address>
+                </div>
+                <div class="col-xs-6 text-right">
+                    <address>
+                        <div th:if="${primaryUserName}">
+                            <strong th:text="#{assigned_to}+': '"></strong>
+                            <span
+                                    th:text="${primaryUserName}">
+                            </span>
+                            <br>
+                        </div>
+                        <div th:if="${workOrder.dueDate}">
+                            <strong th:text="#{due_date}+': '"> </strong>
+                            <span
+                                    th:text="${workOrder.dueDate}">
+                            </span>
+                            <br>
+                        </div>
+                        <div th:if="${workOrder.status}">
+                            <strong th:text="#{status}+': '"> </strong>
+                            <span
+                                    th:text="#{${workOrder.status}}">
+                            </span>
+                            <br>
+                        </div>
+                        <div th:if="${workOrder.priority}">
+                            <strong th:text="#{priority}+': '"> </strong>
+                            <span
+                                    th:text="#{${workOrder.priority}}">
+                            </span>
+                            <br>
+                        </div>
+                    </address>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong th:text="#{work_order}"></strong></h3>
+                </div>
+                <div class="panel-body">
+                    <h3 th:text="${workOrder.title}">
+
+                    </h3>
+                    <h5 th:text="${workOrder.description}">
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong th:text="#{details}+': '"></strong></h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <div th:if="${workOrder.location}">
+                                <strong th:text="#{location}+': '"></strong>
+                                <span
+                                        th:text="${workOrder.location.name}">
+                                </span>
+                            </div>
+                            <div th:if="${workOrder.asset}">
+                                <strong th:text="#{asset}+': '"></strong>
+                                <span
+                                        th:text="${workOrder.asset.name}">
+                                </span>
+                            </div>
+                            <div th:if="${workOrder.estimatedDuration}">
+                                <strong th:text="#{estimated_duration}+': '"> </strong>
+                                <span
+                                        th:text="${workOrder.estimatedDuration}">
+                                </span>
+                            </div>
+                            <div th:if="${workOrder.team}">
+                                <strong th:text="#{team}+': '"> </strong>
+                                <span
+                                        th:text="${workOrder.team.name}">
+                                </span>
+                            </div>
+                            <div th:if="${workOrder.category}">
+                                <strong th:text="#{category}+': '"></strong>
+                                <span
+                                        th:text="${workOrder.category.name}">
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-xs-6">
+                            <div th:if="${!#strings.isEmpty(assignedTo)}">
+                                <strong th:text="#{assigned_to}+': '"> </strong>
+                                <span
+                                        th:text="${assignedTo}">
+                                </span>
+                            </div>
+                            <div th:if="${!#strings.isEmpty(customers)}">
+                                <strong th:text="#{customers}+': '"> </strong>
+                                <span
+                                        th:text="${customers}">
+                                </span>
+                            </div>
+                            <div th:if="${workOrder.completedBy}">
+                                <strong th:text="#{completed_by}+': '"></strong>
+                                <span
+                                        th:text="${workOrder.completedBy.getFullName()}">
+                                </span>
+                            </div>
+                            <div th:if="${workOrder.completedOn}">
+                                <strong th:text="#{completed_on}+': '"></strong>
+                                <span
+                                        th:text="${workOrder.completedOn}">
+                                </span>
+                            </div>
+                            <div th:if="${workOrder.feedback}">
+                                <strong th:text="#{feedback}+': '"> </strong>
+                                <span
+                                        th:text="${workOrder.feedback}">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" th:if="${not #lists.isEmpty(tasks)}">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong th:text="#{tasks}"></strong></h3>
+                </div>
+                <div class="panel-body">
+                    <th:block th:each="task : ${tasks}">
+                        <div>
+                            <strong th:text="${task.getTaskBase().getLabel()}"></strong>
+                            <div th:text="${task.getTranslatedValue(locale, messageSource)}"></div>
+                            <div style="font-size: 10px" th:text="${task.getNotes()}"></div>
+                            <th:block th:each="imageUrl : ${tasksImagesUrls.get(task.getId())}">
+                                <img th:src="${imageUrl}" height="250"/>
+                            </th:block>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" th:if="${not #lists.isEmpty(labors)}">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong th:text="#{labors}"></strong></h3>
+                </div>
+                <div class="panel-body">
+                    <th:block th:each="labor : ${labors}">
+                        <div>
+                            <strong th:text="#{user}+': '"> </strong> <span
+                                th:text="${labor.getAssignedTo() ==null ? '' : labor.getAssignedTo().getFullName()}"></span>
+                        </div>
+                        <div>
+                            <strong th:text="#{duration}+': '"> </strong> <span
+                                th:text="#{format_date(${labor.getFormattedDuration().get(0)},${labor.getFormattedDuration().get(1)},${labor.getFormattedDuration().get(2)})}"></span>
+                        </div>
+                        <div>
+                            <strong th:text="#{cost}+': '"></strong> <span
+                                th:text="${labor.getCost()}+' '+ ${currency}"></span>
+                        </div>
+                        <br>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" th:if="${not #lists.isEmpty(relations)}">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong th:text="#{relations}"></strong></h3>
+                </div>
+                <div class="panel-body">
+                    <th:block th:each="relation : ${relations}">
+                        <div th:text="${relation.getParent().getTitle()} + ' '+#{${relation.getRelationType()}} + ' '+ ${relation.getChild().getTitle()}"></div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" th:if="${not #lists.isEmpty(additionalCosts)}">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong th:text="#{additional_costs}"></strong></h3>
+                </div>
+                <div class="panel-body">
+                    <th:block th:each="additionalCost : ${additionalCosts}">
+                        <div th:text="${additionalCost.getDescription()} + ': '+${additionalCost.getCost()} + ' '+ ${currency}"></div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" th:if="${not #lists.isEmpty(workOrderHistories)}">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong th:text="#{history}"></strong></h3>
+                </div>
+                <div class="panel-body">
+                    <th:block th:each="workOrderHistory : ${workOrderHistories}">
+                        <div>
+                            <strong th:text="#{user}+': '"> </strong><span
+                                th:text="${workOrderHistory.getUser().getFullName()}"></span>
+                        </div>
+                        <div th:text="${workOrderHistory.getName()}"></div>
+                        <div th:text="${workOrderHistory.getCreatedAt()}"></div>
+                        <br>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" th:if="${not #lists.isEmpty(partQuantities)}">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><strong th:text="#{parts}"></strong></h3>
+                </div>
+                <div class="panel-body">
+                    <th:block th:each="partQuantity : ${partQuantities}">
+                        <div>
+                            <strong th:text="${partQuantity.getPart().getName()}"></strong>
+                        </div>
+                        <div>
+                            <span th:text="#{quantity}+': '"></span>
+                            <span th:text="${partQuantity.getQuantity()}"></span>
+                        </div>
+                        <div><span th:text="#{cost}+': '"></span><span
+                                th:text="${partQuantity.getCost()}+' '+ ${currency}"></span>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-6">
+            <strong th:text="#{signature}+': '"> </strong><br>
+        </div>
+        <div class="col-xs-6">
+            <strong th:text="#{date}+': '"> </strong><br>
+        </div>
+    </div>
+    <br>
+    <hr>
+    <div style="display: flex; align-items: center; justify-content: center;">
+        <span th:text="#{this_wo_created}" style="margin-right: 20px;"></span>
+        <img th:src="@{${#strings.isEmpty(environment.getProperty('white-labeling.logo-paths')) ?
+    environment.getProperty('api.host') + '/images/logo.png' :
+    environment.getProperty('api.host') + '/images/custom-logo.png'}}" width="75" height="75"/>
+    </div>
+</div>
+</body>
+</html>
