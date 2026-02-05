@@ -1,0 +1,32 @@
+# Base Template - Shared Components
+metadata:
+  author: "FactoryLM"
+  version: "1.0"
+  created: "2026-02-04"
+
+defaults:
+  max_retries: 3
+  timeout_seconds: 300
+  require_spec: true
+  require_judge: true
+
+model_variants:
+  claude_opus:
+    context_window: 200000
+    style: "detailed"
+  claude_sonnet:
+    context_window: 200000
+    style: "balanced"
+  gpt4o:
+    context_window: 128000
+    style: "structured_json"
+  ollama_local:
+    context_window: 8000
+    style: "concise"
+
+common_rules:
+  - "Attempt implementation, don't just describe"
+  - "If blocked, state exactly what's missing"
+  - "Output working artifacts, not placeholders"
+  - "Reference spec acceptance criteria"
+  - "Assume Hammurabi will judge your output"
