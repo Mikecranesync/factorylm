@@ -28,3 +28,19 @@
 - 50 edge devices manufactured and deployed
 
 The fundamentals are proven. Now we scale from prototype to production.
+---
+
+## Latest: Father-Son Demo Build (Feb 8, 2026)
+
+**Real-time product development:**
+- Founder + son building YC demo conveyor together
+- Using FactoryLM AI to guide the build (this conversation)
+- Potential alignment with **Boy Scouts AI Merit Badge** (launched Oct 2025)
+
+**Why this matters:**
+- Product is simple enough for a kid to help build
+- AI assistance makes industrial projects accessible
+- Next generation learning manufacturing + AI together
+
+> "We're not just building a demo. We're proving that industrial AI can start in any garage, with any family."
+

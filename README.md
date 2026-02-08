@@ -2,7 +2,7 @@
 
 **Industrial AI Platform — The Vision**
 
-**Version:** 0.25  
+**Version:** 1.0  
 **Author:** Mike Harper  
 **Status:** CANONICAL — This document IS the vision. Everything references this.  
 **Last Updated:** February 3, 2026
@@ -402,4 +402,4 @@ Build for durability. Code others can maintain. Architecture that scales.
 
 ---
 
-*Commandments v1.0 | Constitution v1.0 | Vision v0.25*
+*Commandments v1.0 | Constitution v1.0 | Vision v1.0*
