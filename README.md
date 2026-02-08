@@ -403,3 +403,13 @@ Build for durability. Code others can maintain. Architecture that scales.
 ---
 
 *Commandments v1.0 | Constitution v1.0 | Vision v1.0*
+
+---
+
+## 🚀 Try FactoryLM
+
+**See it in action:**
+1. Visit [factorylm.com](https://factorylm.com)
+2. Join our [Telegram Bot](https://t.me/FactoryLMBot) 
+3. Send a photo of any fault code → Get instant diagnosis
+
