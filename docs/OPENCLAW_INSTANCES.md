@@ -177,7 +177,7 @@ ssh hostinger "systemctl status clawdbot 2>/dev/null || ps aux | grep claw"
 
 ```powershell
 # Start local Axiom shipper
-$env:AXIOM_TOKEN = "xaat-d41a82bb-c999-4ad1-a4b7-f1f871325eee"
+$env:AXIOM_TOKEN = "$AXIOM_TOKEN"  # Real token in Doppler — do not hardcode
 powershell -File "$env:USERPROFILE\.openclaw\axiom-shipper.ps1"
 ```
 

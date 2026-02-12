@@ -1,13 +1,14 @@
 import json
+import os  # Real GROQ_API_KEY lives in Doppler / environment variables
 
 with open('/root/.clawdbot/clawdbot.json') as f:
     cfg = json.load(f)
 
-cfg['env']['GROQ_API_KEY'] = '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'
+cfg['env']['GROQ_API_KEY'] = os.environ["GROQ_API_KEY"]
 
 cfg['models']['providers']['groq'] = {
     'baseUrl': 'https://api.groq.com/openai/v1',
-    'apiKey': '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',
+    'apiKey': os.environ["GROQ_API_KEY"],
     'api': 'openai-completions',
     'models': [
         {'id': 'llama-3.3-70b-versatile', 'name': 'Llama 3.3 70B (Groq)', 'reasoning': False, 'input': ['text'], 'contextWindow': 131072, 'maxTokens': 32768, 'cost': {'input': 0, 'output': 0, 'cacheRead': 0, 'cacheWrite': 0}},

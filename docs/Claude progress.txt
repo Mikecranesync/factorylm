@@ -49,7 +49,7 @@
 
   1. Balena Pi Image - Use Dashboard (CLI had Windows issues)
     - Dashboard: https://dashboard.balena-cloud.com/fleets/2332816
-    - WiFi: hharperson2000 / Bo1ws2er@12
+    - WiFi: hharperson2000 / [REDACTED]
   2. Deploy diagnosis_service.py to VPS (100.68.120.99)
     - Copy file to VPS
     - Run on port 8200
@@ -119,7 +119,7 @@
   2. Click "Add device"
   3. Select device type (Raspberry Pi 3/4/Zero?)
   4. Toggle "WiFi + Ethernet"
-  5. Enter: hharperson2000 / Bo1ws2er@12
+  5. Enter: hharperson2000 / [REDACTED]
   6. Download the .img file
   7. Flash with Etcher
 
@@ -163,7 +163,7 @@
   5. Network: Select "Wifi + Ethernet"
   6. Enter WiFi credentials:
     - SSID: hharperson2000
-    - Password: Bo1ws2er@12
+    - Password: [REDACTED]
   7. Click "Download balenaOS"
   8. Flash the .img.zip to SD card with https://etcher.balena.io/
   9. Insert SD, power on Pi - it auto-joins WiFi and appears in your fleet

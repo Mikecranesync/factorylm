@@ -25,7 +25,7 @@
    - Plan file: `C:\Users\hharp\.claude\plans\serene-tickling-valley.md`
    - Created `scripts/pi-setup/firstrun.sh` for manual Tailscale setup
 4. **Balena Cloud Setup** - Connected to existing fleet `factorylm-edge` (ID: 2332816)
-   - API Key: `L63SH34mlImFPELbk43rKawwirHHW3lC`
+   - API Key: `[SET IN DOPPLER: BALENA_API_KEY]`
    - Dashboard: https://dashboard.balena-cloud.com/fleets/2332816
 
 ### In Progress:
@@ -44,7 +44,7 @@
 
 **WiFi Credentials (for Pi provisioning):**
 - SSID: `hharperson2000`
-- Password: `Bo1ws2er@12`
+- Password: `[REDACTED — see Doppler]`
 
 ---
 
@@ -84,7 +84,7 @@
 1. **Use Balena Dashboard** to create Pi image:
    - Go to: https://dashboard.balena-cloud.com/fleets/2332816
    - Click "Add device"
-   - Configure WiFi: `hharperson2000` / `Bo1ws2er@12`
+   - Configure WiFi: `hharperson2000` / `[REDACTED — see Doppler]`
    - Download and flash with Etcher
 
 2. **Deploy diagnosis_service.py to VPS**:

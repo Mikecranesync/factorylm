@@ -1,11 +1,12 @@
 import json
+import os  # Real GROQ_API_KEY lives in Doppler / environment variables
 
 path = "/root/.openclaw/openclaw.json"
 with open(path) as f:
     d = json.load(f)
 
 # Add Groq API key to env
-d["env"]["GROQ_API_KEY"] = "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"
+d["env"]["GROQ_API_KEY"] = os.environ["GROQ_API_KEY"]
 
 # Add Groq as provider
 if "providers" not in d["models"]:
@@ -13,7 +14,7 @@ if "providers" not in d["models"]:
 
 d["models"]["providers"]["groq"] = {
     "baseUrl": "https://api.groq.com/openai/v1",
-    "apiKey": "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",
+    "apiKey": os.environ["GROQ_API_KEY"],  # Real key in Doppler
     "api": "openai-completions",
     "models": [
         {
