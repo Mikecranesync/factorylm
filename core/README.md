@@ -44,7 +44,7 @@ Edit `.env`:
 ```env
 LLM_PROVIDER=groq
 LLM_API_KEY=your-api-key-here
-LLM_MODEL=mixtral-8x7b-32768
+LLM_MODEL=llama-3.3-70b-versatile
 ```
 
 ### Usage
@@ -79,9 +79,9 @@ print(f"Estimated cost: ${client.estimate_cost(response):.6f}")
 
 | Provider | Status | Default Model |
 |----------|--------|---------------|
-| GROQ | ✅ Full | mixtral-8x7b-32768 |
+| GROQ | ✅ Full | llama-3.3-70b-versatile |
 | DeepSeek | ✅ Full | deepseek-chat |
-| Claude | ✅ Full | claude-3-sonnet-20240229 |
+| Claude | ✅ Full | claude-sonnet-4-20250514 |
 | FLM | 🔜 Planned | flm-industrial-v1 |
 
 ## Development

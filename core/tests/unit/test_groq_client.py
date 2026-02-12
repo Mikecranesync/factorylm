@@ -18,7 +18,7 @@ class TestGroqClientInitialization:
         from factorylm.llm.groq_client import GroqClient
 
         client = GroqClient(api_key="valid-key")
-        assert client.get_model_name() == "mixtral-8x7b-32768"
+        assert client.get_model_name() == "llama-3.3-70b-versatile"
 
     def test_init_with_custom_model(self, mock_groq_client):
         """Test initialization with custom model."""
@@ -115,24 +115,24 @@ class TestGroqClientAnalyzeMachineState:
 class TestGroqClientCostEstimation:
     """Tests for GroqClient cost estimation."""
 
-    def test_estimate_cost_mixtral(self, mock_groq_client):
-        """Test cost estimation for Mixtral model."""
+    def test_estimate_cost_default(self, mock_groq_client):
+        """Test cost estimation for default model (llama-3.3-70b)."""
         from factorylm.llm.groq_client import GroqClient
 
-        client = GroqClient(api_key="test-key", model="mixtral-8x7b-32768")
+        client = GroqClient(api_key="test-key")
 
         response = LLMResponse(
             text="Test",
             tokens_used=1000,
-            model="mixtral-8x7b-32768",
+            model="llama-3.3-70b-versatile",
             input_tokens=600,
             output_tokens=400,
         )
 
         cost = client.estimate_cost(response)
 
-        # Mixtral: $0.24 per 1M input, $0.24 per 1M output
-        expected = (600 / 1_000_000 * 0.24) + (400 / 1_000_000 * 0.24)
+        # llama-3.3-70b: $0.59 per 1M input, $0.79 per 1M output
+        expected = (600 / 1_000_000 * 0.59) + (400 / 1_000_000 * 0.79)
         assert abs(cost - expected) < 0.000001
 
     def test_estimate_cost_llama(self, mock_groq_client):
@@ -218,7 +218,7 @@ class TestGroqClientUtilities:
 
         assert isinstance(models, list)
         assert len(models) > 0
-        assert "mixtral-8x7b-32768" in models
+        assert "llama-3.3-70b-versatile" in models
 
     def test_health_check_success(self, mock_groq_client):
         """Test health_check returns True on success."""
