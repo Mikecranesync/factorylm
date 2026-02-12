@@ -23,11 +23,12 @@ Not everything in this repo is production code. Check the maturity map:
 | Component | Status | Test Command |
 |-----------|--------|-------------|
 | `core/` — LLM abstraction | ✅ Production (148 tests) | `cd core && pytest` |
-| `My-Ralph/` — Dev loop agent | ✅ Production (321 tests) | `cd My-Ralph && npm test` |
+| `my-ralph/` — Dev loop agent | ✅ Production (321 tests) | `cd my-ralph && npm test` |
 | `services/plc-modbus/` — PLC client + API | ✅ Working (162 tests) | `cd services/plc-modbus && pytest` |
 | `services/plc-copilot/` — Telegram bot | ✅ Working (no tests) | Manual |
+| `services/diagnosis/` — PLC→LLM bridge | ✅ Working (no tests) | `uvicorn main:app --port 8200` |
 | `apps/cmms/` — CMMS web app | ⚠️ Forked, not rebranded | — |
-| `plc-client/`, `plc-client-factoryio/` | ⛔ DEPRECATED | Don't touch |
+| `docs/archive/plc-client-v1/` | 📦 Archived | Tests migrated to plc-modbus |
 | `apps/dashboard/`, `apps/web/`, `services/api/`, `services/assistant/`, `packages/auth/`, `packages/db/`, `packages/ui/` | 🔴 Placeholder | Not implemented |
 
 If a directory has `NOT_IMPLEMENTED.md` or `DEPRECATED.md`, don't try to build on it.
@@ -99,7 +100,7 @@ When you change something, update:
 | `core/` | Python 3.11+ | — | pip / setuptools |
 | `services/plc-modbus/` | Python 3.9+ | FastAPI | pip / setuptools |
 | `services/plc-copilot/` | Python 3.9+ | python-telegram-bot | pip |
-| `My-Ralph/` | Bash + Python | BATS (tests), FastAPI (API) | npm (tests), pip (API) |
+| `my-ralph/` | Bash + Python | BATS (tests), FastAPI (API) | npm (tests), pip (API) |
 | `apps/cmms/api/` | Java 17 | Spring Boot | Maven |
 | `apps/cmms/frontend/` | TypeScript | React 18 + MUI | npm |
 | Root monorepo | — | Turborepo | npm workspaces |
@@ -159,7 +160,7 @@ Two systems, both optional:
 - **Don't** propose microservice architectures for things that should be functions
 - **Don't** add abstractions "for future use" — build what's needed now
 - **Don't** change README.md unless Mike says "update the README" (it's the vision)
-- **Don't** touch `plc-client/` or `plc-client-factoryio/` — they're deprecated
+- **Don't** touch `docs/archive/plc-client-v1/` — it's archived (canonical code is in `services/plc-modbus/`)
 - **Don't** assume placeholder directories have code — check for `NOT_IMPLEMENTED.md`
 - **Don't** use outdated model names (mixtral, claude-3-sonnet) — check `config.py` for current defaults
 - **Don't** use LangSmith/Phoenix/CodeSee — these are mentioned in old docs but not currently used
