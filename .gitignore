@@ -1,5 +1,11 @@
 # Dependencies
 node_modules/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
 .pnp
 .pnp.js
 
