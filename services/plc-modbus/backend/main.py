@@ -15,6 +15,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ---------- OpenTelemetry (no-op if packages missing) ----------
+try:
+    from factorylm.observability import init_tracing, tracing_health, create_span
+
+    init_tracing("plc-modbus")
+except ImportError:
+    # factorylm core not installed — tracing simply disabled
+    def tracing_health():  # type: ignore[misc]
+        return {"enabled": False, "service_name": "plc-modbus", "endpoint": ""}
+
+    from contextlib import contextmanager as _cm
+
+    @_cm
+    def create_span(name, attributes=None):  # type: ignore[misc]
+        yield None
+
 # Create FastAPI app
 app = FastAPI(
     title=settings.api_title,
@@ -37,10 +53,17 @@ app.add_middleware(
 @app.get(f"{settings.api_prefix}/health")
 async def health_check() -> dict:
     """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "version": settings.api_version,
-    }
+    with create_span("health-check"):
+        return {
+            "status": "healthy",
+            "version": settings.api_version,
+        }
+
+
+@app.get(f"{settings.api_prefix}/tracing-health")
+async def tracing_health_check() -> dict:
+    """Diagnostic endpoint for tracing status."""
+    return tracing_health()
 
 
 # Include routers
