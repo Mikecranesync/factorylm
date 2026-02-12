@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenClaw Gateway (Ultron VPS - 24/7)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/openclaw gateway --port 18789
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=HOME=/root
+WorkingDirectory=/root
+
+[Install]
+WantedBy=multi-user.target

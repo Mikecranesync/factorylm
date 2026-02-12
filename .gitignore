@@ -34,3 +34,12 @@ npm-debug.log*
 
 # Testing
 coverage/
+
+# Junk files (Windows artifacts, accidental shell output)
+nul
+Stop-Process
+${CLAUDE_ENV_FILE}
+openclaw
+
+# Claude local settings
+.claude/settings.local.json
