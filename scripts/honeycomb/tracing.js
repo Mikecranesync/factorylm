@@ -32,12 +32,16 @@ if (!apiKey) {
 // scripts.  If any package is missing we catch and warn rather than crashing
 // the host process.
 // ---------------------------------------------------------------------------
-let NodeSDK, OTLPTraceExporter, Resource, getNodeAutoInstrumentations, ATTR;
+let NodeSDK, OTLPTraceExporter, createResource, getNodeAutoInstrumentations, ATTR;
 
 try {
   ({ NodeSDK }                      = require('@opentelemetry/sdk-node'));
   ({ OTLPTraceExporter }            = require('@opentelemetry/exporter-trace-otlp-http'));
-  ({ Resource }                     = require('@opentelemetry/resources'));
+  const resources                   = require('@opentelemetry/resources');
+  // OTel SDK v2.x uses resourceFromAttributes(), v1.x uses new Resource()
+  createResource = resources.resourceFromAttributes
+    ? (attrs) => resources.resourceFromAttributes(attrs)
+    : (attrs) => new resources.Resource(attrs);
   ({ getNodeAutoInstrumentations }  = require('@opentelemetry/auto-instrumentations-node'));
   ATTR                              = require('@opentelemetry/semantic-conventions');
 } catch (err) {
@@ -61,10 +65,10 @@ const deploymentEnv     = process.env.OTEL_DEPLOYMENT_ENVIRONMENT   || 'producti
 // ---------------------------------------------------------------------------
 // Resource attributes — instance identification metadata sent with every span
 // ---------------------------------------------------------------------------
-const resource = new Resource({
-  [ATTR.ATTR_SERVICE_NAME]:               serviceName,
-  [ATTR.ATTR_SERVICE_VERSION]:            process.env.npm_package_version || 'unknown',
-  [ATTR.ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: deploymentEnv,
+const resource = createResource({
+  'service.name':                          serviceName,
+  'service.version':                       process.env.npm_package_version || 'unknown',
+  'deployment.environment.name':           deploymentEnv,
   'instance.name':                         instanceName,
   'host.name':                             require('os').hostname(),
   'host.arch':                             process.arch,
