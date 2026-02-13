@@ -63,3 +63,12 @@
 | Decommission Hostinger | 1 | Not started |
 | Decommission DigitalOcean | 1 | Not started |
 | **Total** | **~17** | |
+
+## Cosmos Cookoff MVP
+
+- [ ] Matrix API boots and HMI reachable at http://localhost:8000
+- [ ] Factory I/O bridge successfully reads and posts tags
+- [ ] Cosmos watcher polls and attaches insights to incidents
+- [ ] HMI displays incident + Cosmos insight
+- [ ] End-to-end demo completed (sim mode)
+- [ ] End-to-end demo completed (Factory I/O mode)

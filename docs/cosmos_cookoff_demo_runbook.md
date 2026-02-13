@@ -1,0 +1,158 @@
+# Cosmos Cookoff Demo Runbook
+
+**Last Updated:** 2026-02-13  
+**Status:** MVP — working end-to-end with stub Cosmos responses
+
+---
+
+## Prerequisites
+
+- Python 3.11+
+- pip packages: `fastapi uvicorn httpx pyyaml pymodbus` (install with `pip install fastapi uvicorn httpx pyyaml pymodbus`)
+- Factory I/O installed with a conveyor scene loaded (Optional — built-in simulator available)
+- If using Factory I/O: Modbus TCP server enabled (Settings → Drivers → Modbus TCP/IP Server)
+
+---
+
+## Quick Start (Simulator Mode — No Hardware Needed)
+
+Open **three terminals**, all from the repo root (`c:\Users\hharp\OneDrive\Desktop\FactoryLM`):
+
+### Terminal 1: Start Matrix API
+
+```bash
+python -m uvicorn services.matrix.app:app --host 0.0.0.0 --port 8000
+```
+
+Open http://localhost:8000 in your browser — you should see the FactoryLM Matrix dashboard.
+
+### Terminal 2: Start Factory I/O Bridge (Simulator Mode)
+
+```bash
+python sim/factoryio_bridge.py --sim --interval 500
+```
+
+Tags will start flowing into the Matrix API. The dashboard will show live values.
+
+### Terminal 3: Start Cosmos Watcher
+
+```bash
+python cosmos/watcher.py --matrix-url http://localhost:8000 --interval 5
+```
+
+The watcher polls for open incidents every 5 seconds.
+
+### Trigger a Fault
+
+In **Terminal 2**, the simulator is running. To inject a fault, stop the bridge (`Ctrl+C`), then run with a fault:
+
+```bash
+python sim/factoryio_bridge.py --sim --interval 500
+```
+
+Or use the standalone simulator with interactive fault injection:
+
+```bash
+# Terminal 2 (alternative): Use interactive simulator + bridge separately
+# Terminal 2a: Simulator
+python sim/plc_simulator.py --interval 500
+
+# Terminal 2b: Bridge (reads from simulator's SQLite)
+# For now, the --sim flag on the bridge does both
+```
+
+**Simplest fault injection**: Stop the bridge, start the standalone sim, type `jam`, then restart the bridge.
+
+Or use curl to directly inject a faulted tag:
+
+```bash
+curl -X POST http://localhost:8000/api/tags -H "Content-Type: application/json" -d "{\"timestamp\":\"2026-02-13T10:00:00Z\",\"node_id\":\"sim-micro820\",\"motor_running\":true,\"motor_speed\":60,\"motor_current\":8.5,\"temperature\":35.0,\"pressure\":100,\"conveyor_running\":true,\"conveyor_speed\":0,\"sensor_1\":true,\"sensor_2\":false,\"fault_alarm\":true,\"e_stop\":false,\"error_code\":3,\"error_message\":\"Conveyor jam\"}"
+```
+
+### Watch the Result
+
+1. **Terminal 3** (Cosmos watcher) will log: `Analyzing incident #1: Conveyor jam`
+2. **Browser** (http://localhost:8000): Click on the incident to see the Cosmos Reason 2 insight with root cause, confidence, and suggested checks.
+
+---
+
+## Full Mode (Factory I/O + Real Modbus)
+
+### Step 1: Configure Factory I/O
+
+1. Open Factory I/O
+2. Load a conveyor scene (e.g., "Sorting by Height" or a custom scene)
+3. Go to **Settings → Drivers → Modbus TCP/IP Server**
+4. Enable the Modbus server (default port 502)
+5. Map your tags to the standard addresses (see `config/factoryio.yaml`)
+
+### Step 2: Start the Stack
+
+```bash
+# Terminal 1: Matrix API
+python -m uvicorn services.matrix.app:app --host 0.0.0.0 --port 8000
+
+# Terminal 2: Factory I/O Bridge (real Modbus)
+python sim/factoryio_bridge.py --plc-host 127.0.0.1 --plc-port 502
+
+# Terminal 3: Cosmos Watcher
+python cosmos/watcher.py
+```
+
+### Step 3: Trigger a Fault in Factory I/O
+
+- Manually stop a conveyor
+- Block a sensor
+- Press the emergency stop
+
+The bridge will detect the fault, the Matrix API will create an incident, and the Cosmos watcher will analyze it.
+
+---
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| Matrix API won't start | Check port 8000 is free: `netstat -ano \| findstr :8000` |
+| Bridge can't connect to Modbus | Verify Factory I/O Modbus server is enabled, check firewall |
+| Cosmos watcher says "Cannot reach Matrix API" | Start Matrix API first (Terminal 1) |
+| No incidents appearing | Check bridge is posting tags: look for "Posted N snapshots" in Terminal 2 |
+| Dashboard shows "Loading..." | Matrix API may not be running — check Terminal 1 |
+| `httpx` not found | `pip install httpx` |
+| `pymodbus` not found | `pip install pymodbus` (only needed for real Modbus, not sim mode) |
+
+---
+
+## What This Demonstrates
+
+1. **Real-time PLC data ingestion** — tags flow from PLC/simulator → Matrix API
+2. **Automatic incident detection** — faults trigger incident creation
+3. **AI-powered root cause analysis** — Cosmos Reason 2 (stub) analyzes each incident
+4. **Mobile-friendly HMI** — web dashboard at http://localhost:8000 shows live data + insights
+5. **Read-only safety** — the system never writes to the PLC
+
+---
+
+## Architecture (End-to-End Flow)
+
+```
+Factory I/O / Simulator
+        │ Modbus TCP or built-in sim
+        ▼
+  factoryio_bridge.py
+        │ HTTP POST /api/tags
+        ▼
+  Matrix API (FastAPI + SQLite)
+        │ Auto-creates incidents on fault
+        ▼
+  cosmos/watcher.py
+        │ Polls /api/incidents?status=open
+        │ Calls CosmosClient.analyze_incident()
+        │ Posts result to /api/insights
+        ▼
+  Web HMI (http://localhost:8000)
+        │ Polls /api/tags + /api/incidents
+        │ Shows live tags + incident detail + Cosmos insight
+        ▼
+  Technician sees root cause + suggested actions
+```

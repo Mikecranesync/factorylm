@@ -1,0 +1,31 @@
+# Factory I/O Bridge Configuration
+
+factoryio:
+  # Modbus TCP connection to Factory I/O
+  host: "127.0.0.1"
+  port: 502
+  
+  # Matrix API endpoint
+  matrix_url: "http://localhost:8000"
+  
+  # Poll interval in milliseconds
+  interval_ms: 500
+
+  # Tag map (Factory I/O Modbus addresses → FactoryLM tag names)
+  # These match the Micro 820 address map in services/plc-modbus/CLAUDE.md
+  coils:
+    0: motor_running
+    1: motor_stopped
+    2: fault_alarm
+    3: conveyor_running
+    4: sensor_1_active
+    5: sensor_2_active
+    6: e_stop_active
+  
+  registers:
+    100: motor_speed
+    101: motor_current      # scale: /10
+    102: temperature         # scale: /10
+    103: pressure
+    104: conveyor_speed
+    105: error_code
