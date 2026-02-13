@@ -293,6 +293,22 @@ FactoryLM is a **diagnostic tool**, not a control system.
 
 ---
 
+## NVIDIA Cosmos Cookoff 2026
+
+FactoryLM is entered in the [NVIDIA Cosmos Cookoff](https://forums.developer.nvidia.com/t/the-nvidia-cosmos-cookoff-is-here/359090) (Jan 29 – Feb 26, 2026).
+
+**Entry concept:** Voltron/Matrix provides the PLC "nervous system" (data pipeline + HMIs), and NVIDIA Cosmos Reason 2 acts as the "brain" — interpreting sensor data and video to explain faults, check physical plausibility, and guide maintenance.
+
+| Document | Description |
+|----------|-------------|
+| [Cosmos Cookoff Plan](docs/cosmos_cookoff_plan.md) | Milestones, checklist, elevator pitch |
+| [Cosmos Architecture](docs/cosmos_architecture.md) | Data flow, connector spec, Postgres schema |
+| [Goals](docs/goals.md) | Tracked objectives and sub-goals |
+
+**Connector stub:** `cosmos/agent.py` — scaffolded, not yet calling Cosmos API.
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
