@@ -11,7 +11,8 @@ Keep this file current. One source of truth for all bot instances.
 | Instance | Codename | Bot | Host | Status |
 |----------|----------|-----|------|--------|
 | **Local** | `jarvis-local` | @TravelLaptop_bot | Windows laptop | ✅ Active |
-| **DO VPS** | `ultron` | @UltronVPS_bot | DigitalOcean (100.68.120.99) | ⚠️ Billing issues |
+| **DO VPS** | `ultron` | @UltronVPS_bot | DigitalOcean (100.68.120.99) | ✅ Fixed (Anthropic primary) |
+| **Hetzner** | `hetzner` | _(pending migration)_ | Hetzner (46.225.103.156) | 🟡 Fresh — needs setup |
 | **Hostinger** | `jarvis-legacy` | _(unnamed bot)_ | Hostinger (72.60.175.144) | ⚠️ Decommissioning |
 
 ---
@@ -29,9 +30,10 @@ Keep this file current. One source of truth for all bot instances.
 | **Agent data** | `C:\Users\hharp\.openclaw\agents\main\agent\` |
 | **Models.json** | `C:\Users\hharp\.openclaw\agents\main\agent\models.json` |
 | **Gateway port** | 18800 |
-| **Primary model** | `groq/llama-3.3-70b-versatile` |
-| **Fallbacks** | DeepSeek R1 → OpenRouter Llama → Gemini Flash → DeepSeek Chat |
-| **Providers** | Groq, OpenRouter, Anthropic, Google |
+| **Primary model** | `anthropic/claude-opus-4-5-20250514` |
+| **Fallbacks** | groq/llama-3.3-70b-versatile → openrouter/llama-3.3-70b → openrouter/deepseek-chat → gemini-2.5-flash |
+| **Compaction** | `safeguard` + `reserveTokensFloor: 4000` |
+| **Providers** | Anthropic, Groq, OpenRouter, Google |
 | **Source code** | `https://github.com/Mikecranesync/clawdbot` (private) |
 | **Identity** | Jarvis — sharp, competent ops assistant |
 
@@ -53,21 +55,49 @@ Keep this file current. One source of truth for all bot instances.
 | **Service** | `systemctl status openclaw` |
 | **Logs** | `/tmp/openclaw/openclaw-YYYY-MM-DD.log` |
 | **Gateway port** | 18789 |
-| **Primary model** | `groq/llama-3.3-70b-versatile` |
-| **Fallbacks** | DeepSeek R1 → Claude Sonnet → Gemini Flash |
-| **Providers** | Groq, Ollama (qwen2.5:0.5b, tinyllama), Anthropic (OAuth) |
+| **Primary model** | `anthropic/claude-sonnet-4-20250514` |
+| **Fallbacks** | groq/llama-3.1-8b-instant → groq/llama-3.3-70b-versatile → google/gemini-2.5-flash |
+| **Compaction** | `safeguard` + `reserveTokensFloor: 4000` |
+| **Providers** | Anthropic (OAuth, 280d token), Groq, Google, Ollama (qwen2.5:0.5b, tinyllama) |
 | **Extra features** | WhatsApp channel, TTS (edge), heartbeat every 2h |
 | **Source code** | `https://github.com/Mikecranesync/clawdbot` (private) |
 | **Identity** | Not yet named — uses extended SOUL.md with Jesus H Christ agent |
 
-### ⚠️ Known Issues (as of 2026-02-12)
-- Anthropic OAuth: rate-limited (Claude Code workspace)
-- Google API: billing exhausted → top up at https://console.cloud.google.com/billing
-- **Groq is working** ✅
+### ✅ Fix Applied (2026-02-12 ~23:00 UTC)
+- Switched primary from Groq → Anthropic Claude Sonnet 4 (OAuth token valid 280 days)
+- Root cause: Groq TPM limit (12K) too low for 18K system prompt
+- Fixed invalid fallback `groq/qwen/qwen3-32b` → `groq/llama-3.1-8b-instant`
+- Google API billing still exhausted (kept as last fallback)
+- **Bot is now responding** ✅
 
 ---
 
-## 3. `jarvis-legacy` — Hostinger VPS (Decommissioning)
+## 3. `hetzner` — Hetzner VPS (New — Pending Setup)
+
+| Detail | Value |
+|--------|-------|
+| **Bot** | _(pending — will take over @UltronVPS_bot)_ |
+| **Machine** | Hetzner Cloud |
+| **IPv4** | `46.225.103.156` |
+| **IPv6** | `2a01:4f8:1c19:966::/64` |
+| **SSH** | `ssh root@46.225.103.156` |
+| **Status** | 🟡 Fresh server — needs Node 22, pnpm, clawdbot, systemd |
+
+### Setup Checklist
+- [ ] Change root password & add SSH key
+- [ ] Install Node 22 + pnpm
+- [ ] Install Tailscale
+- [ ] Clone clawdbot repo
+- [ ] Deploy with `clawdbot daemon install`
+- [ ] Migrate config from DO ultron instance
+- [ ] Configure Honeycomb tracing
+- [ ] Configure Vector/Axiom log shipping
+- [ ] Verify bot responds
+- [ ] Decommission DigitalOcean VPS
+
+---
+
+## 4. `jarvis-legacy` — Hostinger VPS (Decommissioning)
 
 | Detail | Value |
 |--------|-------|

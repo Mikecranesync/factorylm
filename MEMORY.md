@@ -6,6 +6,33 @@
 
 ## Session Actions Log
 
+### Session: 2026-02-12 (Evening) - Bot Fix + Hetzner VPS
+
+**Actions Completed:**
+
+1. **Claude Code CLI fixed @UltronVPS_bot** (parallel agent session)
+   - Root cause: Groq TPM limit (12K) too low for 18K system prompt
+   - Fix: Switched primary to `anthropic/claude-sonnet-4-20250514` (OAuth token, 280d validity)
+   - Fixed invalid fallback `groq/qwen/qwen3-32b` → `groq/llama-3.1-8b-instant`
+   - Restarted openclaw systemd service — bot is responding ✅
+
+2. **New Hetzner VPS provisioned** — `46.225.103.156`
+   - Fresh server, needs full setup (Node 22, pnpm, clawdbot, Tailscale)
+   - Goal: consolidate all bots here, decommission DO + Hostinger
+
+3. **Updated docs/OPENCLAW_INSTANCES.md**
+   - Reflected ultron fix (Anthropic primary, Groq fallback)
+   - Added Hetzner section with setup checklist
+   - Renumbered sections
+
+**Next Steps:**
+- Set up Hetzner VPS (Node 22, pnpm, Tailscale, clawdbot)
+- Merge 6 cleanup PRs to main
+- Rotate leaked secrets (Groq key, Axiom token)
+- Top up Google Cloud billing for Gemini fallback
+
+---
+
 ### Session: 2026-02-12 - OpenClaw Infrastructure Debugging
 
 **Actions Completed:**

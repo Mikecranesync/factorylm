@@ -49,3 +49,6 @@ openclaw
 
 # Claude local settings
 .claude/settings.local.json
+
+# Ultron VPS snapshot (contains secrets)
+scripts/ultron-snapshot/
