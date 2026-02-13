@@ -1,66 +1,145 @@
 # Factory I/O Bridge
 
 **Last Updated:** 2026-02-13  
-**Status:** Working — supports both real Modbus and built-in simulator
+**Status:** Working — config-driven, persistent Modbus connection, 5-10 Hz polling
 
 ---
 
 ## What It Does
 
 The bridge (`sim/factoryio_bridge.py`) reads PLC tags from either:
-- **Factory I/O** via Modbus TCP (when Factory I/O is running with Modbus server enabled)
+- **Factory I/O** via Modbus TCP (persistent connection, config-driven tag map)
 - **Built-in simulator** (when no Factory I/O available — use `--sim` flag)
 
-It then POSTs each tag snapshot to the Matrix API at configurable intervals.
+It posts each tag snapshot to the Matrix API, which auto-creates incidents on faults.
 
 ---
 
 ## Usage
 
 ```bash
+# Factory I/O mode (default — reads from Modbus)
+python sim/factoryio_bridge.py
+
 # Simulator mode (no Factory I/O needed)
 python sim/factoryio_bridge.py --sim
 
-# Real Modbus (Factory I/O running)
-python sim/factoryio_bridge.py --plc-host 127.0.0.1 --plc-port 502
+# High-frequency polling (200ms = 5 Hz)
+python sim/factoryio_bridge.py --interval 200
 
-# Custom Matrix API URL and interval
-python sim/factoryio_bridge.py --sim --matrix-url http://localhost:8000 --interval 200
+# Custom host (real PLC on network)
+python sim/factoryio_bridge.py --plc-host 192.168.1.100 --plc-port 502
 ```
 
 ---
 
-## Factory I/O Setup
+## Factory I/O Modbus Setup (Step-by-Step)
 
-1. Install Factory I/O from https://factoryio.com
-2. Open a scene (e.g., "Sorting by Height", "From A to B")
-3. Go to **Settings → Drivers → Modbus TCP/IP Server**
-4. Enable the server (default: `127.0.0.1:502`)
-5. Map I/O tags to the standard addresses in `config/factoryio.yaml`
+### Step 1: Install and Open Factory I/O
+- Download from https://factoryio.com (free trial available)
+- Open the application
 
-### Tag Address Map
+### Step 2: Load a Scene
+- **Recommended:** "Sorting by Height" — has conveyors, photoeye sensors, jams
+- **Alternative:** "From A to B" — simpler, one conveyor with sensors
+- Go to **File → Scenes** and select your scene
 
-| Register | Tag | Description |
-|----------|-----|-------------|
-| Coil 0 | motor_running | Main motor state |
-| Coil 2 | fault_alarm | Any fault active |
-| Coil 3 | conveyor_running | Belt running |
-| Coil 4-5 | sensor_1, sensor_2 | Photoeye sensors |
-| Coil 6 | e_stop | Emergency stop |
-| Reg 100 | motor_speed | Speed (0-100%) |
-| Reg 101 | motor_current | Current (raw ÷ 10 = Amps) |
-| Reg 102 | temperature | Temp (raw ÷ 10 = °C) |
-| Reg 103 | pressure | Pressure (PSI) |
-| Reg 104 | conveyor_speed | Belt speed (0-100%) |
-| Reg 105 | error_code | 0=OK, 1=Overload, 2=Overheat, 3=Jam, 4=Sensor, 5=Comms |
+### Step 3: Enable the Modbus TCP Server
+1. Go to **File → Drivers**
+2. Select **Modbus TCP/IP Server** from the driver list
+3. Click **Configuration**
+4. Set:
+   - **Host:** `127.0.0.1` (or your machine's IP if bridging remotely)
+   - **Port:** `502`
+5. Click **OK**
+
+### Step 4: Map I/O Points to Modbus Addresses
+
+In the Modbus Configuration window:
+
+| Factory I/O Signal | Modbus Type | Address | FactoryLM Tag |
+|-------------------|-------------|---------|---------------|
+| Conveyor Motor | Coil | 0 | motor_running |
+| Conveyor Running | Coil | 3 | conveyor_running |
+| Entry Sensor | Coil | 4 | sensor_1_active |
+| Exit Sensor | Coil | 5 | sensor_2_active |
+| E-Stop | Coil | 6 | e_stop_active |
+| Motor Speed | Holding Register | 100 | motor_speed |
+| Motor Current | Holding Register | 101 | motor_current |
+| Conveyor Speed | Holding Register | 104 | conveyor_speed |
+
+**Tip:** Not all signals need to be mapped. Start with conveyor_running and sensors — those are enough to demonstrate fault detection.
+
+### Step 5: Start the Scene
+- Click the **Play** button (▶) in Factory I/O
+- The Modbus server starts automatically when the scene runs
+
+### Step 6: Run the Bridge
+```bash
+python sim/factoryio_bridge.py
+```
+
+You should see:
+```
+Config loaded from config/factoryio.yaml
+Modbus connected to 127.0.0.1:502
+Bridge started — posting to http://localhost:8000 every 200ms (5.0 Hz)
+```
+
+### Step 7: Trigger a Fault
+- In Factory I/O, **manually stop a conveyor** or **block a sensor** with a box
+- The bridge detects `fault_alarm=True` and the Matrix API creates an incident
+- The Cosmos watcher analyzes it and attaches an insight
 
 ---
 
 ## Configuration
 
-See `config/factoryio.yaml` for connection settings and tag mapping.
+All settings in `config/factoryio.yaml`:
 
-Environment variables (override CLI args):
-- `PLC_HOST` — Modbus TCP host (default: 127.0.0.1)
-- `PLC_PORT` — Modbus TCP port (default: 502)
-- `MATRIX_URL` — Matrix API URL (default: http://localhost:8000)
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `host` | 127.0.0.1 | Modbus TCP host |
+| `port` | 502 | Modbus TCP port |
+| `matrix_url` | http://localhost:8000 | Matrix API endpoint |
+| `interval_ms` | 200 | Poll interval (200ms = 5 Hz) |
+| `incident_source` | factoryio | `factoryio` or `sim` |
+| `coils` | see file | Coil address → tag name mapping |
+| `registers` | see file | Register address → tag name mapping |
+
+Environment variables override CLI args:
+- `PLC_HOST` — Modbus TCP host
+- `PLC_PORT` — Modbus TCP port
+- `MATRIX_URL` — Matrix API URL
+
+---
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| "pymodbus not installed" | `pip install pymodbus` |
+| "Modbus connection failed" | Is Factory I/O running? Is the Modbus driver enabled? |
+| Bridge connects but no data | Check tag addresses match your Factory I/O Modbus configuration |
+| Tags appear but no incidents | Trigger a fault in Factory I/O (block a sensor, stop motor) |
+| High poll_errors count | Reduce polling frequency (increase interval_ms) or check network |
+
+---
+
+## Architecture
+
+```
+Factory I/O (Modbus TCP Server :502)
+        │ persistent TCP connection
+        │ polls coils + registers at 5-10 Hz
+        ▼
+  factoryio_bridge.py (ModbusReader)
+        │ maps raw values to tag names
+        │ applies scale factors
+        │ HTTP POST /api/tags
+        ▼
+  Matrix API → auto-creates incidents on fault
+        │
+        ▼
+  Cosmos Watcher → analyzes → HMI shows insight
+```

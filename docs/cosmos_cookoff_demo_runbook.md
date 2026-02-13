@@ -76,36 +76,60 @@ curl -X POST http://localhost:8000/api/tags -H "Content-Type: application/json" 
 
 ---
 
-## Full Mode (Factory I/O + Real Modbus)
+## Full Mode (Factory I/O as the Virtual Line)
 
-### Step 1: Configure Factory I/O
+This path uses Factory I/O as a realistic virtual conveyor system.
+
+### Step 1: Set Up Factory I/O
 
 1. Open Factory I/O
-2. Load a conveyor scene (e.g., "Sorting by Height" or a custom scene)
-3. Go to **Settings → Drivers → Modbus TCP/IP Server**
-4. Enable the Modbus server (default port 502)
-5. Map your tags to the standard addresses (see `config/factoryio.yaml`)
+2. Load the **"Sorting by Height"** scene (or "From A to B" for simplicity)
+3. Enable the Modbus driver:
+   - Go to **File → Drivers → Modbus TCP/IP Server**
+   - Click **Configuration** → set Host: `127.0.0.1`, Port: `502`
+   - Map I/O points to Modbus addresses (see `docs/factoryio_bridge.md` for the full mapping)
+4. Click **Play** (▶) to start the scene
 
-### Step 2: Start the Stack
+### Step 2: Start the FactoryLM Stack (3 terminals)
 
 ```bash
-# Terminal 1: Matrix API
+# Terminal 1: Matrix API + Web HMI
 python -m uvicorn services.matrix.app:app --host 0.0.0.0 --port 8000
 
-# Terminal 2: Factory I/O Bridge (real Modbus)
-python sim/factoryio_bridge.py --plc-host 127.0.0.1 --plc-port 502
+# Terminal 2: Factory I/O Bridge (reads Modbus, posts to Matrix)
+python sim/factoryio_bridge.py
 
-# Terminal 3: Cosmos Watcher
-python cosmos/watcher.py
+# Terminal 3: Cosmos Watcher (analyzes incidents)
+python cosmos/watcher.py --interval 5
 ```
 
-### Step 3: Trigger a Fault in Factory I/O
+### Step 3: Verify Tags Are Flowing
 
-- Manually stop a conveyor
-- Block a sensor
-- Press the emergency stop
+- Open http://localhost:8000 — the dashboard should show live tag values updating at 5 Hz
+- Terminal 2 should log: `Stats: N posted, 0 poll_errors, 0 post_errors, 5.0 posts/sec`
 
-The bridge will detect the fault, the Matrix API will create an incident, and the Cosmos watcher will analyze it.
+### Step 4: Trigger a Fault in Factory I/O
+
+Choose one:
+- **Block a sensor**: drag a box to block the entry photoeye for >3 seconds
+- **Stop the conveyor**: manually toggle the conveyor motor off
+- **Press E-Stop**: click the emergency stop button in the scene
+
+### Step 5: Watch the Result
+
+1. **Terminal 2** logs: `⚡ FAULT DETECTED: Conveyor jam (error_code=3)`
+2. **Terminal 3** logs: `Analyzing incident #1: Conveyor jam`
+3. **Browser** (http://localhost:8000): Click the incident to see the Cosmos insight:
+   - Summary: "Conveyor jam detected. Material flow interrupted."
+   - Root cause: "Physical obstruction in conveyor path"
+   - Confidence: 88%
+   - Suggested checks: Clear jammed material, inspect photoeyes, check belt tracking
+
+### Step 6: Clear the Fault
+
+- Remove the obstruction in Factory I/O
+- Terminal 2 logs: `✅ Fault cleared`
+- The conveyor resumes normal operation
 
 ---
 
