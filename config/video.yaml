@@ -1,0 +1,32 @@
+# FactoryLM Video Pipeline Configuration
+
+video:
+  # Input: where raw recordings land
+  input_dir: "recordings/raw"
+  
+  # Output: chunked clips
+  chunks_dir: "recordings/chunks"
+  
+  # Chunk settings
+  chunk_duration_seconds: 15
+  min_chunk_seconds: 5
+  
+  # Supported formats
+  extensions: [".mp4", ".avi", ".mkv", ".mov", ".webm"]
+  
+  # Analysis
+  interesting_threshold: 60  # 0-100, clips scoring above this become highlights
+  
+  # Short builder
+  overlay:
+    font: "Arial"
+    font_size: 24
+    position: "bottom"  # top, bottom, center
+    fade_duration: 0.5
+  
+  # Matrix API
+  matrix_url: "http://localhost:8000"
+  
+  # Poll intervals
+  ingester_poll_seconds: 5
+  analyzer_poll_seconds: 10

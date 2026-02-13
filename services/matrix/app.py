@@ -71,6 +71,30 @@ def init_db():
             cosmos_model TEXT,
             FOREIGN KEY (incident_id) REFERENCES incidents(id)
         );
+        CREATE TABLE IF NOT EXISTS video_clips (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+            video_id TEXT,
+            source_file TEXT,
+            chunk_file TEXT,
+            start_time REAL,
+            end_time REAL,
+            duration REAL,
+            source_camera TEXT DEFAULT 'default',
+            status TEXT DEFAULT 'pending_analysis',
+            incident_id INTEGER,
+            FOREIGN KEY (incident_id) REFERENCES incidents(id)
+        );
+        CREATE TABLE IF NOT EXISTS video_analyses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            clip_id INTEGER NOT NULL,
+            timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+            caption TEXT,
+            key_events_json TEXT,
+            interesting_score INTEGER DEFAULT 0,
+            cosmos_model TEXT,
+            FOREIGN KEY (clip_id) REFERENCES video_clips(id)
+        );
     """)
     conn.commit()
     conn.close()
@@ -122,6 +146,29 @@ class InsightPayload(BaseModel):
     reasoning: str = ""
     suggested_checks: list[str] = []
     video_url: str = ""
+    cosmos_model: str = "nvidia/cosmos-reason2"
+
+
+class VideoClipPayload(BaseModel):
+    video_id: str = ""
+    source_file: str = ""
+    chunk_file: str = ""
+    start_time: float = 0.0
+    end_time: float = 0.0
+    duration: float = 0.0
+    source_camera: str = "default"
+    incident_id: int | None = None
+
+
+class VideoClipUpdate(BaseModel):
+    status: str
+
+
+class VideoAnalysisPayload(BaseModel):
+    clip_id: int
+    caption: str = ""
+    key_events_json: list | None = None
+    interesting_score: int = 0
     cosmos_model: str = "nvidia/cosmos-reason2"
 
 
@@ -298,7 +345,121 @@ async def list_insights(limit: int = 20):
         conn.close()
 
 
+# --- Video Clips ---
+
+@app.post("/api/video/clips")
+async def create_clip(payload: VideoClipPayload):
+    """Register a new video clip."""
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            """INSERT INTO video_clips
+               (video_id, source_file, chunk_file, start_time, end_time,
+                duration, source_camera, incident_id)
+               VALUES (?,?,?,?,?,?,?,?)""",
+            (payload.video_id, payload.source_file, payload.chunk_file,
+             payload.start_time, payload.end_time, payload.duration,
+             payload.source_camera, payload.incident_id),
+        )
+        conn.commit()
+        return {"clip_id": cur.lastrowid}
+    finally:
+        conn.close()
+
+
+@app.get("/api/video/clips")
+async def list_clips(status: str | None = None, limit: int = 50):
+    """List video clips, optionally filtered by status."""
+    conn = get_db()
+    try:
+        if status:
+            rows = conn.execute(
+                "SELECT * FROM video_clips WHERE status=? ORDER BY id DESC LIMIT ?",
+                (status, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM video_clips ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+@app.get("/api/video/clips/{clip_id}")
+async def get_clip(clip_id: int):
+    """Get a single video clip."""
+    conn = get_db()
+    try:
+        row = conn.execute("SELECT * FROM video_clips WHERE id=?", (clip_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, "Clip not found")
+        return dict(row)
+    finally:
+        conn.close()
+
+
+@app.patch("/api/video/clips/{clip_id}")
+async def update_clip(clip_id: int, payload: VideoClipUpdate):
+    """Update clip status."""
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE video_clips SET status=? WHERE id=?",
+            (payload.status, clip_id),
+        )
+        conn.commit()
+        return {"ok": True}
+    finally:
+        conn.close()
+
+
+@app.post("/api/video/analyses")
+async def create_video_analysis(payload: VideoAnalysisPayload):
+    """Store a video analysis result."""
+    conn = get_db()
+    try:
+        import json as _json
+        cur = conn.execute(
+            """INSERT INTO video_analyses
+               (clip_id, caption, key_events_json, interesting_score, cosmos_model)
+               VALUES (?,?,?,?,?)""",
+            (payload.clip_id, payload.caption,
+             _json.dumps(payload.key_events_json or []),
+             payload.interesting_score, payload.cosmos_model),
+        )
+        conn.commit()
+        return {"analysis_id": cur.lastrowid}
+    finally:
+        conn.close()
+
+
+@app.get("/api/video/analyses")
+async def list_video_analyses(clip_id: int | None = None, limit: int = 50):
+    """List video analyses, optionally filtered by clip_id."""
+    conn = get_db()
+    try:
+        if clip_id:
+            rows = conn.execute(
+                "SELECT * FROM video_analyses WHERE clip_id=? ORDER BY id DESC LIMIT ?",
+                (clip_id, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM video_analyses ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
 # --- Web HMI (inline HTML) ---
+
+@app.get("/video", response_class=HTMLResponse)
+async def hmi_video_log():
+    """Video Log HMI page."""
+    return HTML_VIDEO_LOG
+
 
 @app.get("/", response_class=HTMLResponse)
 async def hmi_dashboard():
@@ -341,7 +502,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 </head>
 <body>
 <h1>🏭 FactoryLM Matrix</h1>
-<p style="color:#888; font-size:0.85rem;">NVIDIA Cosmos Cookoff 2026 — Live Dashboard</p>
+<p style="color:#888; font-size:0.85rem;">NVIDIA Cosmos Cookoff 2026 — Live Dashboard | <a href="/video" style="color:#76b900;">🎬 Video Log</a></p>
 
 <div class="grid">
   <div class="card" id="live-tags-card">
@@ -470,6 +631,138 @@ async function showInsight(incidentId) {
 setInterval(() => { fetchTags(); fetchIncidents(); }, 2000);
 fetchTags(); fetchIncidents();
 document.getElementById('status').textContent = 'Connected to Matrix API at ' + window.location.origin;
+</script>
+</body>
+</html>"""
+
+
+HTML_VIDEO_LOG = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FactoryLM — Video Log</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; padding: 16px; }
+  h1 { color: #76b900; margin-bottom: 4px; font-size: 1.4rem; }
+  h2 { color: #aaa; font-size: 1rem; margin: 16px 0 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+  a { color: #76b900; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #222; }
+  th { color: #888; }
+  tr:hover { background: #1a1a1a; cursor: pointer; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+  .badge-pending { background: #aa8800; color: #fff; }
+  .badge-analyzed { background: #336; color: #aaf; }
+  .badge-highlight { background: #76b900; color: #000; }
+  .score { font-family: monospace; font-weight: bold; }
+  .score-high { color: #76b900; }
+  .score-med { color: #aa8800; }
+  .score-low { color: #666; }
+  .detail-box { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .detail-box h3 { color: #76b900; margin-bottom: 8px; }
+  .detail-box p { margin: 4px 0; font-size: 0.85rem; }
+  .events { list-style: none; padding: 0; margin-top: 8px; }
+  .events li { padding: 4px 0; border-bottom: 1px solid #222; font-size: 0.85rem; }
+  .events li span.ts { color: #76b900; font-family: monospace; margin-right: 8px; }
+  select { background: #222; color: #e0e0e0; border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+  #status { font-size: 0.8rem; color: #666; margin-top: 12px; }
+</style>
+</head>
+<body>
+<p><a href="/">← Dashboard</a></p>
+<h1>🎬 Video Log</h1>
+<p style="color:#888;font-size:0.85rem;">Cosmos Video Diary — clip analysis and highlights</p>
+
+<div style="margin-top:12px;">
+  <label style="color:#888;font-size:0.85rem;">Filter: </label>
+  <select id="status-filter" onchange="fetchClips()">
+    <option value="">All</option>
+    <option value="pending_analysis">Pending</option>
+    <option value="analyzed">Analyzed</option>
+    <option value="highlight">Highlights</option>
+  </select>
+</div>
+
+<table>
+  <thead><tr><th>#</th><th>Time</th><th>File</th><th>Duration</th><th>Status</th><th>Score</th><th>Caption</th></tr></thead>
+  <tbody id="clips-body"><tr><td colspan="7" style="color:#666">Loading...</td></tr></tbody>
+</table>
+
+<div id="clip-detail"></div>
+<div id="status">Loading...</div>
+
+<script>
+const API = '';
+let analysisCache = {};
+
+async function fetchClips() {
+  try {
+    const filter = document.getElementById('status-filter').value;
+    const url = filter ? API+'/api/video/clips?status='+filter+'&limit=50' : API+'/api/video/clips?limit=50';
+    const res = await fetch(url);
+    const clips = await res.json();
+
+    // Also fetch all analyses in one go
+    const aRes = await fetch(API+'/api/video/analyses?limit=200');
+    const analyses = await aRes.json();
+    analysisCache = {};
+    for (const a of analyses) { analysisCache[a.clip_id] = a; }
+
+    const tbody = document.getElementById('clips-body');
+    if (!clips.length) { tbody.innerHTML = '<tr><td colspan="7" style="color:#666">No clips</td></tr>'; return; }
+
+    let html = '';
+    for (const c of clips) {
+      const a = analysisCache[c.id] || {};
+      const fname = c.chunk_file ? c.chunk_file.split(/[/\\\\]/).pop() : '—';
+      const dur = c.duration ? c.duration.toFixed(1)+'s' : '—';
+      const badge = c.status === 'highlight' ? '<span class="badge badge-highlight">★ highlight</span>'
+        : c.status === 'analyzed' ? '<span class="badge badge-analyzed">analyzed</span>'
+        : '<span class="badge badge-pending">pending</span>';
+      const score = a.interesting_score || 0;
+      const scoreClass = score >= 70 ? 'score-high' : score >= 40 ? 'score-med' : 'score-low';
+      const caption = a.caption ? a.caption.substring(0,60)+'...' : '—';
+      html += '<tr onclick="showClipDetail('+c.id+')">';
+      html += '<td>'+c.id+'</td><td style="font-size:0.8rem;">'+c.timestamp+'</td>';
+      html += '<td style="font-family:monospace;font-size:0.8rem;">'+fname+'</td>';
+      html += '<td>'+dur+'</td><td>'+badge+'</td>';
+      html += '<td class="score '+scoreClass+'">'+score+'</td>';
+      html += '<td style="color:#aaa;">'+caption+'</td></tr>';
+    }
+    tbody.innerHTML = html;
+    document.getElementById('status').textContent = clips.length + ' clips loaded';
+  } catch(e) { document.getElementById('status').textContent = 'Error: '+e.message; }
+}
+
+async function showClipDetail(clipId) {
+  const a = analysisCache[clipId];
+  if (!a) { document.getElementById('clip-detail').innerHTML = '<div class="detail-box"><p style="color:#888">No analysis yet</p></div>'; return; }
+
+  let events = [];
+  try { events = JSON.parse(a.key_events_json || '[]'); } catch(e) {}
+  
+  let html = '<div class="detail-box">';
+  html += '<h3>Clip #'+clipId+' — Analysis</h3>';
+  html += '<p><strong>Score:</strong> <span class="score '+(a.interesting_score>=70?'score-high':a.interesting_score>=40?'score-med':'score-low')+'">'+a.interesting_score+'/100</span></p>';
+  html += '<p><strong>Caption:</strong> '+a.caption+'</p>';
+  if (events.length) {
+    html += '<p style="margin-top:8px;"><strong>Key Events:</strong></p><ul class="events">';
+    for (const e of events) {
+      const ts = typeof e.timestamp==='number' ? e.timestamp.toFixed(1)+'s' : e.timestamp;
+      html += '<li><span class="ts">'+ts+'</span> '+e.action+'</li>';
+    }
+    html += '</ul>';
+  }
+  html += '<p style="color:#555;font-size:0.75rem;margin-top:8px;">Model: '+(a.cosmos_model||'—')+'</p>';
+  html += '</div>';
+  document.getElementById('clip-detail').innerHTML = html;
+}
+
+setInterval(fetchClips, 5000);
+fetchClips();
 </script>
 </body>
 </html>"""

@@ -170,6 +170,91 @@ class CosmosClient:
             cosmos_model=self.model,
         )
 
+    def analyze_video(
+        self,
+        video_path: str,
+        context: str = "",
+    ) -> dict:
+        """Analyze a video clip via Cosmos Reason 2.
+
+        Returns a dict with caption, key_events, interesting_score, and cosmos_model.
+        Currently returns stub responses — replace with real API call.
+        """
+        # TODO: Replace with real Cosmos Reason 2 video API call
+        # POST {self.api_base_url}/v1/video/analyze
+        # Headers: Authorization: Bearer {self.api_key}
+        # Body: { model, video_url_or_base64, context }
+
+        logger.info(
+            "CosmosClient.analyze_video called for %s (STUB)",
+            Path(video_path).name if video_path else "unknown",
+        )
+
+        # Generate contextual stub responses based on filename
+        name = Path(video_path).stem.lower() if video_path else ""
+        
+        if "jam" in name or "fault" in name or "error" in name:
+            return {
+                "caption": (
+                    "Conveyor jam detected at 0:08. Photoeye sensor blocked by misaligned "
+                    "package. Technician arrives at 0:12, clears obstruction manually. "
+                    "Belt restarts at 0:18. Total downtime: 10 seconds."
+                ),
+                "key_events": [
+                    {"timestamp": 8.0, "action": "Conveyor jam — photoeye blocked"},
+                    {"timestamp": 12.0, "action": "Technician arrives, begins clearing"},
+                    {"timestamp": 18.0, "action": "Obstruction cleared, belt restarted"},
+                ],
+                "interesting_score": 85,
+                "cosmos_model": self.model,
+            }
+        elif "repair" in name or "fix" in name or "maintenance" in name:
+            return {
+                "caption": (
+                    "Scheduled maintenance on conveyor motor. Technician replaces drive "
+                    "belt at 0:05, tests motor at 0:20. Belt tracking adjusted at 0:25. "
+                    "System returned to service."
+                ),
+                "key_events": [
+                    {"timestamp": 5.0, "action": "Drive belt replacement begins"},
+                    {"timestamp": 20.0, "action": "Motor test — running normally"},
+                    {"timestamp": 25.0, "action": "Belt tracking adjusted"},
+                ],
+                "interesting_score": 70,
+                "cosmos_model": self.model,
+            }
+        elif "estop" in name or "emergency" in name or "stop" in name:
+            return {
+                "caption": (
+                    "Emergency stop activated at 0:03. All motion ceased. Operator "
+                    "inspects area at 0:06. E-stop released at 0:14. System restart "
+                    "sequence initiated."
+                ),
+                "key_events": [
+                    {"timestamp": 3.0, "action": "E-STOP activated"},
+                    {"timestamp": 6.0, "action": "Operator inspecting area"},
+                    {"timestamp": 14.0, "action": "E-STOP released, restart initiated"},
+                ],
+                "interesting_score": 90,
+                "cosmos_model": self.model,
+            }
+        else:
+            # Normal operation
+            import random
+            score = random.randint(10, 45)
+            return {
+                "caption": (
+                    "Conveyor running normally. Parts moving through sorting station at "
+                    "standard speed. Photoeye sensors cycling as expected. No anomalies "
+                    "detected in motor current or temperature."
+                ),
+                "key_events": [
+                    {"timestamp": 0.0, "action": "Normal conveyor operation"},
+                ],
+                "interesting_score": score,
+                "cosmos_model": self.model,
+            }
+
     def is_available(self) -> bool:
         """Return True if the client has credentials configured."""
         return bool(self.api_key)

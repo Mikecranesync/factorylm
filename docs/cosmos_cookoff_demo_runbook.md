@@ -133,6 +133,39 @@ The bridge will detect the fault, the Matrix API will create an incident, and th
 
 ---
 
+## Using the Video Diary for Documentation
+
+The Video Diary system automatically analyzes footage and generates demo clips.
+
+### Review Today's Highlights
+
+```bash
+# See top highlights from today
+python video/highlight_selector.py --date 2026-02-13 --top 10
+
+# Filter to jam-related events only
+python video/highlight_selector.py --event jam --min-score 70
+```
+
+### Generate a 30-Second Cookoff Submission Clip
+
+```bash
+# Auto-select the best highlights and build a demo reel
+python video/short_builder.py --auto --top 5 --output cookoff_demo.mp4 --title "FactoryLM + Cosmos Reason 2"
+
+# Or hand-pick specific clips
+python video/short_builder.py --clips 3,7,12 --output jam_diagnosis.mp4 --title "Asynchronous Jam Diagnosis"
+```
+
+### Browse in the HMI
+
+Open **http://localhost:8000/video** to:
+- See all analyzed clips with scores and captions
+- Filter to highlights only
+- Click any clip for full Cosmos analysis detail
+
+---
+
 ## Architecture (End-to-End Flow)
 
 ```
