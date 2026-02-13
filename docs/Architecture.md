@@ -325,4 +325,22 @@ Additionally, `core/` has empty Python stub directories (`adapters/`, `services/
 
 ---
 
+### D. Offline-First Migration Plan (2026-02-13)
+
+**What's happening:** Moving from 3 VPSes (DigitalOcean, Hostinger, Hetzner) to an offline-first setup where everything runs locally and only one minimal VPS (Hetzner) handles public web traffic.
+
+**New docs created:**
+- `infra/migration/vps_inventory.md` — Every VPS, its services, data paths, and migration priority
+- `infra/migration/target_architecture.md` — End-state diagram (local everything, Hetzner = Caddy only)
+- `infra/migration/progress.md` — Checklist with hour estimates (~17h total)
+- `infra/migration/hostinger.md` — Extraction runbook for Hostinger (jarvis-legacy)
+- `infra/migration/digitalocean.md` — Extraction runbook for DigitalOcean (ultron)
+- `infra/migration/hetzner_minimal.md` — Setup guide for minimal Hetzner (Caddy + Tailscale)
+- `docs/local_setup.md` — Full local dev setup instructions
+- `docs/infra_overview.md` — Script and infrastructure tool inventory
+
+**Follow-up:** Execute extraction runbooks, build Docker Compose, decommission old VPSes.
+
+---
+
 *This document will be updated as cleanup progresses through Phases 2-5.*

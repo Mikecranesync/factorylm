@@ -309,6 +309,22 @@ FactoryLM is entered in the [NVIDIA Cosmos Cookoff](https://forums.developer.nvi
 
 ---
 
+## Local Quickstart
+
+Run everything locally — no VPS required. See [docs/local_setup.md](docs/local_setup.md) for full instructions.
+
+```bash
+git clone https://github.com/Mikecranesync/factorylm.git
+cd factorylm
+python -m venv .venv && .\.venv\Scripts\Activate.ps1
+pip install -e core/
+cd services/plc-modbus && PLC_USE_MOCK=true uvicorn backend.main:app --reload
+```
+
+**Infrastructure docs:** [docs/infra_overview.md](docs/infra_overview.md) | **Migration plan:** [infra/migration/](infra/migration/)
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
