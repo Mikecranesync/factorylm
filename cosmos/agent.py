@@ -8,31 +8,18 @@ analysis and video-grounded reasoning.
 Read-only — CosmosAgent never writes to PLCs.
 """
 
-import dataclasses
+import asyncio
 import datetime
 import json
 import logging
 import os
+import sqlite3
 from pathlib import Path
 
+from cosmos.client import CosmosClient
+from cosmos.models import CosmosInsight
+
 logger = logging.getLogger(__name__)
-
-
-@dataclasses.dataclass
-class CosmosInsight:
-    """Result of a Cosmos Reason 2 analysis for a single incident."""
-
-    incident_id: str
-    node_id: str
-    timestamp: datetime.datetime
-    summary: str = ""
-    root_cause: str = ""
-    confidence: float = 0.0
-    reasoning: str = ""
-    suggested_checks: list[str] = dataclasses.field(default_factory=list)
-    video_url: str = ""
-    tag_window_seconds: int = 60
-    cosmos_model: str = "nvidia/cosmos-reason2"
 
 
 class CosmosAgent:
@@ -43,6 +30,7 @@ class CosmosAgent:
         self.enabled: bool = False
         self.api_key: str = os.getenv("NVIDIA_COSMOS_API_KEY", "")
         self._config: dict = {}
+        self.client = CosmosClient(config_path=config_path)
 
         if cfg_file.exists():
             try:
@@ -80,12 +68,10 @@ class CosmosAgent:
             node_id,
         )
 
-        # TODO: Replace with real Cosmos Reason 2 API call
-        return CosmosInsight(
+        return self.client.analyze_incident(
             incident_id=incident_id,
             node_id=node_id,
-            timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-            summary="Cosmos Reason 2 analysis pending — stub implementation",
+            tags=tags,
             video_url=video_url,
         )
 
@@ -101,3 +87,120 @@ class CosmosAgent:
     def is_enabled(self) -> bool:
         """Return True when Cosmos integration is both configured and keyed."""
         return self.enabled and bool(self.api_key)
+
+    # ------------------------------------------------------------------
+    # Incident watching
+    # ------------------------------------------------------------------
+
+    async def watch_for_incidents(
+        self,
+        db_path: str = "sim/tags.db",
+        poll_interval: float = 2.0,
+    ) -> None:
+        """Poll *tag_snapshots* for new faults and analyse them via Cosmos.
+
+        Runs indefinitely until interrupted with ``KeyboardInterrupt``.
+        """
+        path = Path(db_path)
+        self._ensure_insights_table(path)
+        last_seen_id: int = 0
+
+        logger.info(
+            "Watching for incidents in %s (poll every %.1fs)", path, poll_interval
+        )
+
+        try:
+            while True:
+                conn = sqlite3.connect(str(path))
+                conn.row_factory = sqlite3.Row
+                try:
+                    rows = conn.execute(
+                        "SELECT * FROM tag_snapshots "
+                        "WHERE fault_alarm = 1 AND id > ? "
+                        "ORDER BY id ASC",
+                        (last_seen_id,),
+                    ).fetchall()
+                finally:
+                    conn.close()
+
+                for row in rows:
+                    row_dict = dict(row)
+                    last_seen_id = row_dict["id"]
+                    incident_id = f"fault-{row_dict['id']}"
+                    node_id = row_dict.get("node_id", "unknown")
+                    tags = {
+                        k: v
+                        for k, v in row_dict.items()
+                        if k not in ("id", "node_id")
+                    }
+
+                    insight = await self.on_incident(
+                        incident_id=incident_id,
+                        node_id=node_id,
+                        tags=tags,
+                    )
+                    self._store_insight(path, insight)
+                    logger.info(
+                        "Insight stored: incident=%s confidence=%.2f summary=%s",
+                        insight.incident_id,
+                        insight.confidence,
+                        insight.summary,
+                    )
+
+                await asyncio.sleep(poll_interval)
+        except KeyboardInterrupt:
+            logger.info("Incident watcher stopped by user")
+
+    def _ensure_insights_table(self, db_path: Path) -> None:
+        """Create the *cosmos_insights* table if it does not exist."""
+        conn = sqlite3.connect(str(db_path))
+        try:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS cosmos_insights (
+                    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+                    incident_id           TEXT NOT NULL,
+                    node_id               TEXT NOT NULL,
+                    timestamp             TEXT NOT NULL,
+                    summary               TEXT,
+                    root_cause            TEXT,
+                    confidence            REAL,
+                    reasoning             TEXT,
+                    suggested_checks_json TEXT,
+                    video_url             TEXT,
+                    cosmos_model          TEXT
+                )
+                """
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def _store_insight(self, db_path: Path, insight: CosmosInsight) -> None:
+        """Insert a *CosmosInsight* into the *cosmos_insights* table."""
+        conn = sqlite3.connect(str(db_path))
+        try:
+            conn.execute(
+                """
+                INSERT INTO cosmos_insights (
+                    incident_id, node_id, timestamp, summary, root_cause,
+                    confidence, reasoning, suggested_checks_json, video_url,
+                    cosmos_model
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    insight.incident_id,
+                    insight.node_id,
+                    insight.timestamp.isoformat(),
+                    insight.summary,
+                    insight.root_cause,
+                    insight.confidence,
+                    insight.reasoning,
+                    json.dumps(insight.suggested_checks),
+                    insight.video_url,
+                    insight.cosmos_model,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()

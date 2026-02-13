@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
-from cosmos.agent import CosmosAgent, CosmosInsight
+from cosmos.agent import CosmosAgent
+from cosmos.models import CosmosInsight
 
 
 class TestCosmosAgentDisabled:
@@ -52,7 +53,7 @@ class TestOnIncident:
         assert isinstance(insight, CosmosInsight)
         assert insight.incident_id == "INC-042"
         assert insight.node_id == "plc-7"
-        assert "stub" in insight.summary.lower()
+        assert len(insight.summary) > 0
 
 
 class TestFetchTagHistory:

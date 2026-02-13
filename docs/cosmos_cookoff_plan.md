@@ -64,6 +64,62 @@ Unplanned downtime costs manufacturers an estimated $50B/year. When a PLC faults
 
 ---
 
+## Sim + Cosmos Stub Demo
+
+End-to-end demo using the PLC simulator and Cosmos stub — no real hardware or API keys needed.
+
+### Prerequisites
+- Python 3.11+
+- PyYAML installed (`pip install pyyaml`)
+
+### Steps
+
+1. **Start the PLC simulator** (Terminal 1):
+   ```bash
+   python sim/plc_simulator.py --interval 500
+   ```
+   You'll see JSON tag snapshots printing every 500ms.
+
+2. **Start the Cosmos agent watcher** (Terminal 2):
+   ```bash
+   python -c "
+   import asyncio
+   from cosmos.agent import CosmosAgent
+   agent = CosmosAgent()
+   asyncio.run(agent.watch_for_incidents('sim/tags.db'))
+   "
+   ```
+
+3. **Inject a fault** (back in Terminal 1, type and press Enter):
+   ```
+   jam
+   ```
+
+4. **Watch Terminal 2** — the Cosmos agent will:
+   - Detect the fault in the SQLite database
+   - Call `CosmosClient.analyze_incident()` (stub response)
+   - Store a `CosmosInsight` in the `cosmos_insights` table
+   - Log the analysis summary
+
+5. **Query the insight** (Terminal 3):
+   ```bash
+   python -c "
+   import sqlite3, json
+   conn = sqlite3.connect('sim/tags.db')
+   for row in conn.execute('SELECT * FROM cosmos_insights ORDER BY id DESC LIMIT 1'):
+       print(json.dumps(dict(zip([d[0] for d in conn.execute('SELECT * FROM cosmos_insights LIMIT 0').description], row)), indent=2))
+   "
+   ```
+
+6. **Try other faults**: `overload`, `overheat`, `sensor`, `estop`, `clear`
+
+### What This Proves
+- End-to-end data flow: PLC sim → SQLite → Cosmos agent → CosmosInsight
+- Fault detection and analysis pipeline works
+- Ready to swap stub for real Cosmos Reason 2 API (see `docs/cosmos_integration_stub.md`)
+
+---
+
 ## TODO Stubs
 
 - [ ] Implement `cosmos/agent.py`
