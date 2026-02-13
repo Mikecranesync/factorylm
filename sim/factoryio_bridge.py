@@ -18,10 +18,17 @@ Usage:
 
 import argparse
 import datetime
+import sys
+from pathlib import Path
+
+# Ensure repo root is on sys.path so 'sim' and 'cosmos' packages are importable
+_repo_root = str(Path(__file__).resolve().parent.parent)
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
+
 import json
 import logging
 import os
-import sys
 import time
 
 import httpx
