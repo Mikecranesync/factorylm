@@ -18,7 +18,7 @@ import time
 from datetime import datetime
 from functools import wraps
 
-from telegram import Update
+from telegram import Update, Bot
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -26,6 +26,10 @@ from telegram.ext import (
     filters,
     ContextTypes,
 )
+
+# Alerting configuration
+ALERT_POLL_INTERVAL = 5  # Check for faults every 5 seconds
+ALERT_ENABLED = True  # Can be toggled via /alerts command
 
 # ============================================================================
 # Configuration
@@ -48,6 +52,14 @@ logger = logging.getLogger(__name__)
 
 # HTTP client
 http = httpx.Client(timeout=30)
+
+# Alert state tracking
+_last_fault_state = {
+    "fault_alarm": False,
+    "e_stop": False,
+    "error_code": 0,
+}
+_alert_enabled = True
 
 
 # ============================================================================
@@ -113,6 +125,29 @@ OFFLINE_RESPONSES = [
     "No connection to the equipment. Check if the gateway's running.",
     "Looks like we're disconnected from the factory floor.",
 ]
+
+ALERT_MESSAGES = [
+    "🚨 ALERT from Gus: Something just went wrong on the floor!",
+    "🚨 Heads up, boss — just picked up a new fault!",
+    "🚨 Gus here with an alert. We got a problem.",
+]
+
+ALERT_CLEARED = [
+    "✅ Good news — fault cleared. System's back to normal.",
+    "✅ All clear. The issue resolved itself.",
+    "✅ Fault's gone. We're running clean again.",
+]
+
+ERROR_CODE_NAMES = {
+    0: "No error",
+    1: "Motor overload",
+    2: "Sensor failure",
+    3: "Communication error",
+    4: "Overheat",
+    5: "Low pressure",
+    6: "Conveyor jam",
+    7: "Emergency stop",
+}
 
 
 def gus_says(options):
@@ -391,6 +426,126 @@ async def cmd_diagnose(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ============================================================================
+# Alerting Commands
+# ============================================================================
+
+@log_interaction("alerts")
+async def cmd_alerts(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /alerts command - toggle or show alert status."""
+    global _alert_enabled
+    if not is_allowed(update):
+        return
+
+    if context.args and context.args[0].lower() in ("on", "off"):
+        _alert_enabled = context.args[0].lower() == "on"
+        status = "ON" if _alert_enabled else "OFF"
+        await reply_and_log(update, f"Proactive alerts are now {status}.")
+    else:
+        status = "ON" if _alert_enabled else "OFF"
+        await reply_and_log(update,
+            f"Proactive alerts: {status}\n\n"
+            "I poll the equipment every 5 seconds and send you alerts when faults happen.\n\n"
+            "Use /alerts on or /alerts off to toggle."
+        )
+
+
+# ============================================================================
+# Background Alert Polling
+# ============================================================================
+
+async def check_for_faults(context: ContextTypes.DEFAULT_TYPE):
+    """Background job to check for new faults and alert users."""
+    global _last_fault_state, _alert_enabled
+
+    if not _alert_enabled:
+        return
+
+    try:
+        resp = http.get(f"{MATRIX_API}/api/tags?limit=1", timeout=5)
+        resp.raise_for_status()
+        tags_list = resp.json()
+
+        if not tags_list:
+            return
+
+        tags = tags_list[0]
+
+        # Convert to proper types (API may return 0/1 as integers)
+        raw_fault = tags.get('fault_alarm', 0)
+        raw_estop = tags.get('e_stop', 0)
+        raw_error = tags.get('error_code', 0)
+        current_fault = bool(raw_fault)
+        current_estop = bool(raw_estop)
+        current_error = int(raw_error)
+
+        # Log state changes for debugging
+        if (current_fault != _last_fault_state['fault_alarm'] or
+            current_error != _last_fault_state['error_code']):
+            logger.info(f"[POLL] State change: fault={current_fault} (was {_last_fault_state['fault_alarm']}), "
+                       f"error={current_error} (was {_last_fault_state['error_code']})")
+
+        # Detect transitions
+        new_fault = current_fault and not _last_fault_state['fault_alarm']
+        new_estop = current_estop and not _last_fault_state['e_stop']
+        new_error = current_error != _last_fault_state['error_code'] and current_error != 0
+        fault_cleared = _last_fault_state['fault_alarm'] and not current_fault
+
+        # Send alerts for new faults
+        if new_fault or new_estop or new_error:
+            error_name = ERROR_CODE_NAMES.get(current_error, f"Unknown ({current_error})")
+
+            lines = [gus_says(ALERT_MESSAGES), ""]
+
+            if new_estop:
+                lines.append("🛑 E-STOP PRESSED")
+            if new_fault:
+                lines.append(f"Error Code: {current_error} — {error_name}")
+
+            # Add some context
+            motor = "STOPPED" if not tags.get('motor_running') else "running"
+            lines.append(f"Motor: {motor}")
+            lines.append(f"Temp: {tags.get('temperature', 0):.0f}°C")
+            lines.append(f"Pressure: {tags.get('pressure', 0)} PSI")
+
+            lines.append("")
+            lines.append("Ask me 'why is this stopped?' for full diagnosis.")
+
+            message = "\n".join(lines)
+            logger.info(f"[ALERT] Sending fault alert: error_code={current_error}")
+
+            # Send to all allowed users
+            for user_id in ALLOWED_USERS:
+                try:
+                    await context.bot.send_message(chat_id=user_id, text=message)
+                except Exception as e:
+                    logger.error(f"Failed to send alert to {user_id}: {e}")
+
+        # Notify when fault clears
+        elif fault_cleared:
+            message = gus_says(ALERT_CLEARED)
+            logger.info("[ALERT] Fault cleared, notifying users")
+
+            for user_id in ALLOWED_USERS:
+                try:
+                    await context.bot.send_message(chat_id=user_id, text=message)
+                except Exception as e:
+                    logger.error(f"Failed to send clear alert to {user_id}: {e}")
+
+        # Update state (using booleans for alarms, int for error code)
+        _last_fault_state = {
+            "fault_alarm": bool(current_fault),
+            "e_stop": bool(current_estop),
+            "error_code": int(current_error),
+        }
+
+    except httpx.ConnectError:
+        # Silently ignore connection errors during polling
+        pass
+    except Exception as e:
+        logger.debug(f"Alert poll error: {e}")
+
+
+# ============================================================================
 # Message Handler (Natural Language)
 # ============================================================================
 
@@ -460,6 +615,7 @@ def main():
     logger.info(f"Matrix API: {MATRIX_API}")
     logger.info(f"Demo UI: {DEMO_UI}")
     logger.info(f"Allowed users: {ALLOWED_USERS}")
+    logger.info(f"Proactive alerts: {'ON' if _alert_enabled else 'OFF'} (poll every {ALERT_POLL_INTERVAL}s)")
 
     # Build application
     app = Application.builder().token(BOT_TOKEN).build()
@@ -470,9 +626,15 @@ def main():
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(CommandHandler("io", cmd_io))
     app.add_handler(CommandHandler("diagnose", cmd_diagnose))
+    app.add_handler(CommandHandler("alerts", cmd_alerts))
 
     # Natural language handler (must be last)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Set up background alerting job
+    job_queue = app.job_queue
+    job_queue.run_repeating(check_for_faults, interval=ALERT_POLL_INTERVAL, first=10)
+    logger.info("Alert polling job scheduled")
 
     # Run
     logger.info("Gus is on the floor. Ready to help.")
