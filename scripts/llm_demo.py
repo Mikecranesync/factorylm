@@ -186,7 +186,7 @@ Please analyze the current factory state and answer the operator's question.
 
         client = groq.Groq(api_key=api_key)
         response = client.chat.completions.create(
-            model="mixtral-8x7b-32768",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": get_system_prompt()},
                 {"role": "user", "content": full_prompt}

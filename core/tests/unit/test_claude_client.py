@@ -18,7 +18,7 @@ class TestClaudeClientInitialization:
         from factorylm.llm.claude_client import ClaudeClient
 
         client = ClaudeClient(api_key="valid-key")
-        assert client.get_model_name() == "claude-3-sonnet-20240229"
+        assert client.get_model_name() == "claude-sonnet-4-20250514"
 
     def test_init_with_custom_model(self, mock_anthropic_client):
         """Test initialization with custom model."""
@@ -134,7 +134,7 @@ class TestClaudeClientUtilities:
         models = client.list_models()
 
         assert isinstance(models, list)
-        assert "claude-3-sonnet-20240229" in models
+        assert "claude-sonnet-4-20250514" in models
         assert "claude-3-opus-20240229" in models
 
     def test_health_check_success(self, mock_anthropic_client):

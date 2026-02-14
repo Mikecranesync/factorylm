@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "instanceId": "oc_plc",
+    "hostname": "LAPTOP-0KA3C70H",
+    "role": "factory-floor",
+    "description": "PLC laptop agent - direct hardware access"
+  },
+  "env": {
+    "OC_INSTANCE_ID": "oc_plc",
+    "PLC_HOST": "localhost",
+    "PLC_PORT": "502",
+    "MATRIX_URL": "http://localhost:8000",
+    "FACTORY_IO_PATH": "C:\\Program Files (x86)\\Real Games\\Factory IO"
+  },
+  "models": {
+    "providers": {
+      "groq": {
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "llama-3.3-70b-versatile",
+            "name": "Llama 3.3 70B (Groq)",
+            "contextWindow": 131072,
+            "maxTokens": 32768
+          },
+          {
+            "id": "llama-3.1-8b-instant",
+            "name": "Llama 3.1 8B (Groq)",
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "nvidia": {
+        "baseUrl": "https://integrate.api.nvidia.com/v1",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "meta/llama-3.1-70b-instruct",
+            "name": "Llama 3.1 70B (NVIDIA)",
+            "contextWindow": 128000,
+            "maxTokens": 4096
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "groq/llama-3.3-70b-versatile",
+        "fallbacks": [
+          "nvidia/meta/llama-3.1-70b-instruct",
+          "groq/llama-3.1-8b-instant"
+        ]
+      },
+      "workspace": "C:\\Users\\hharp\\OneDrive\\Desktop\\FactoryLM",
+      "compaction": {
+        "mode": "safeguard",
+        "reserveTokensFloor": 4000
+      }
+    }
+  },
+  "tools": {
+    "modbus_tcp": {
+      "type": "modbus",
+      "host": "localhost",
+      "port": 502,
+      "description": "Direct Modbus TCP to Micro820 PLC or Factory I/O",
+      "read_only": true
+    },
+    "matrix_api": {
+      "type": "http",
+      "url": "http://localhost:8000",
+      "description": "Local Matrix API - tag storage",
+      "endpoints": {
+        "tags": "/api/tags",
+        "health": "/api/health",
+        "store": "/api/tags"
+      }
+    },
+    "factory_io": {
+      "type": "process",
+      "path": "C:\\Program Files (x86)\\Real Games\\Factory IO\\Factory IO.exe",
+      "description": "Factory I/O simulation software"
+    }
+  },
+  "gateway": {
+    "port": 8765,
+    "mode": "local",
+    "bind": "0.0.0.0",
+    "auth": {
+      "mode": "none"
+    }
+  },
+  "plugins": {
+    "entries": {}
+  }
+}

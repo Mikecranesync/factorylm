@@ -1,0 +1,18 @@
+[Unit]
+Description=FactoryLM Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/factorylm/services/telegram
+Environment=TELEGRAM_BOT_TOKEN=8447289218:AAGKcDbW_2DEDoF-FAeQ6Ss7hH1tXNt-O5Q
+Environment=MATRIX_API=http://100.72.2.99:8000
+Environment=DEMO_UI=http://100.72.2.99:8080
+Environment=JARVIS_NODE=http://100.72.2.99:8765
+ExecStart=/usr/bin/python3 factorylm_bot.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

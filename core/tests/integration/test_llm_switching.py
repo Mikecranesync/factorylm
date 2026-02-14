@@ -21,7 +21,7 @@ class TestCreateLLMClient:
         client = create_llm_client("groq", "test-api-key")
         assert isinstance(client, GroqClient)
         assert isinstance(client, BaseLLMClient)
-        assert client.get_model_name() == "mixtral-8x7b-32768"
+        assert client.get_model_name() == "llama-3.3-70b-versatile"
 
     def test_create_deepseek_client(self, mock_openai_client):
         """Test creating DeepSeek client via factory."""
@@ -39,7 +39,7 @@ class TestCreateLLMClient:
         client = create_llm_client("claude", "test-api-key")
         assert isinstance(client, ClaudeClient)
         assert isinstance(client, BaseLLMClient)
-        assert client.get_model_name() == "claude-3-sonnet-20240229"
+        assert client.get_model_name() == "claude-sonnet-4-20250514"
 
     def test_create_flm_client(self):
         """Test creating FLM client via factory."""
@@ -125,7 +125,7 @@ class TestProviderSwitching:
         assert "ClaudeClient" in type(claude_client).__name__
 
         # Both should still be usable
-        assert groq_client.get_model_name() == "mixtral-8x7b-32768"
+        assert groq_client.get_model_name() == "llama-3.3-70b-versatile"
         assert deepseek_client.get_model_name() == "deepseek-chat"
 
     def test_responses_are_standardized(

@@ -293,6 +293,38 @@ FactoryLM is a **diagnostic tool**, not a control system.
 
 ---
 
+## NVIDIA Cosmos Cookoff 2026
+
+FactoryLM is entered in the [NVIDIA Cosmos Cookoff](https://forums.developer.nvidia.com/t/the-nvidia-cosmos-cookoff-is-here/359090) (Jan 29 – Feb 26, 2026).
+
+**Entry concept:** Voltron/Matrix provides the PLC "nervous system" (data pipeline + HMIs), and NVIDIA Cosmos Reason 2 acts as the "brain" — interpreting sensor data and video to explain faults, check physical plausibility, and guide maintenance.
+
+| Document | Description |
+|----------|-------------|
+| [Cosmos Cookoff Plan](docs/cosmos_cookoff_plan.md) | Milestones, checklist, elevator pitch |
+| [Cosmos Architecture](docs/cosmos_architecture.md) | Data flow, connector spec, Postgres schema |
+| [Goals](docs/goals.md) | Tracked objectives and sub-goals |
+
+**Connector stub:** `cosmos/agent.py` — scaffolded, not yet calling Cosmos API.
+
+---
+
+## Local Quickstart
+
+Run everything locally — no VPS required. See [docs/local_setup.md](docs/local_setup.md) for full instructions.
+
+```bash
+git clone https://github.com/Mikecranesync/factorylm.git
+cd factorylm
+python -m venv .venv && .\.venv\Scripts\Activate.ps1
+pip install -e core/
+cd services/plc-modbus && PLC_USE_MOCK=true uvicorn backend.main:app --reload
+```
+
+**Infrastructure docs:** [docs/infra_overview.md](docs/infra_overview.md) | **Migration plan:** [infra/migration/](infra/migration/)
+
+---
+
 ## Version History
 
 | Version | Date | Changes |

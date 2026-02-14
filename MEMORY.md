@@ -1,10 +1,79 @@
 # FactoryLM Project Memory Graph
 
-## Last Updated: 2026-01-23
+## Last Updated: 2026-02-12
 
 ---
 
 ## Session Actions Log
+
+### Session: 2026-02-12 (Evening) - Bot Fix + Hetzner VPS
+
+**Actions Completed:**
+
+1. **Claude Code CLI fixed @UltronVPS_bot** (parallel agent session)
+   - Root cause: Groq TPM limit (12K) too low for 18K system prompt
+   - Fix: Switched primary to `anthropic/claude-sonnet-4-20250514` (OAuth token, 280d validity)
+   - Fixed invalid fallback `groq/qwen/qwen3-32b` → `groq/llama-3.1-8b-instant`
+   - Restarted openclaw systemd service — bot is responding ✅
+
+2. **New Hetzner VPS provisioned** — `46.225.103.156`
+   - Fresh server, needs full setup (Node 22, pnpm, clawdbot, Tailscale)
+   - Goal: consolidate all bots here, decommission DO + Hostinger
+
+3. **Updated docs/OPENCLAW_INSTANCES.md**
+   - Reflected ultron fix (Anthropic primary, Groq fallback)
+   - Added Hetzner section with setup checklist
+   - Renumbered sections
+
+**Next Steps:**
+- Set up Hetzner VPS (Node 22, pnpm, Tailscale, clawdbot)
+- Merge 6 cleanup PRs to main
+- Rotate leaked secrets (Groq key, Axiom token)
+- Top up Google Cloud billing for Gemini fallback
+
+---
+
+### Session: 2026-02-12 - OpenClaw Infrastructure Debugging
+
+**Actions Completed:**
+
+1. **Diagnosed @UltronVPS_bot inbound issue**
+   - Webhook was already deleted (not the cause)
+   - Confirmed Telegram polling IS working (409 conflict proves it)
+   - **ROOT CAUSE**: All 3 LLM providers failing:
+     - `anthropic/claude-opus-4-5`: HTTP 429 rate limit (account limit, not key issue)
+     - `anthropic/claude-sonnet-4-20250514`: Auth profiles in cooldown from Opus failure
+     - `google/gemini-2.5-flash`: **Billing exhausted** — API key out of credits
+   - Bot receives messages but can't generate responses
+
+2. **Fixed VPS model configuration**
+   - Changed primary from `claude-opus-4-5` → `claude-sonnet-4-20250514` (cheaper, higher rate limits)
+   - Fallbacks: `gemini-2.5-flash`, `claude-opus-4-5`
+   - Removed duplicate `GEMINI_API_KEY` env var (was conflicting with `GOOGLE_API_KEY`)
+   - Restarted openclaw systemd service
+
+3. **Created scripts/fix_vps_models.py** — VPS model config fix script
+
+**⚠️ BLOCKING ISSUES (Mike must fix):**
+- **Google API billing**: Key `AIzaSyBwC-7nCist26ERhr_4zSXjMIRg1nLXWTI` is out of credits → Top up at https://console.cloud.google.com/billing
+- **Anthropic rate limits**: "Claude Code" workspace API key has low rate limits → Create key in default workspace at https://console.anthropic.com
+- Until one of these is resolved, @UltronVPS_bot will fail to respond
+
+**OpenClaw Infrastructure Status:**
+
+| Instance | Bot | Status | Model | Issue |
+|----------|-----|--------|-------|-------|
+| Local (Windows) | @TravelLaptop_bot | ✅ Working | gemini-2.5-flash | None |
+| VPS (DigitalOcean) | @UltronVPS_bot | ⚠️ Partial | claude-sonnet-4 | All providers billing/rate-limited |
+
+**VPS Connection:**
+- Tailscale IP: 100.68.120.99
+- SSH: `ssh root@100.68.120.99`
+- Service: `systemctl status openclaw`
+- Logs: `/tmp/openclaw/openclaw-2026-02-12.log`
+- Config: `/root/.openclaw/openclaw.json`
+
+---
 
 ### Session: 2026-01-23 - Rivet-PRO Integration
 

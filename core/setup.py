@@ -72,6 +72,11 @@ setup(
             "mypy>=1.7.1",
             "isort>=5.13.2",
         ],
+        "otel": [
+            "opentelemetry-api>=1.20.0",
+            "opentelemetry-sdk>=1.20.0",
+            "opentelemetry-exporter-otlp-proto-http>=1.20.0",
+        ],
     },
     entry_points={
         "console_scripts": [

@@ -27,16 +27,16 @@ except ImportError:
     Anthropic = None
 
 
-# Claude pricing per 1M tokens (as of 2024)
+# Claude pricing per 1M tokens (as of 2025)
 CLAUDE_PRICING = {
-    "claude-3-opus-20240229": {"input": 15.00, "output": 75.00},
-    "claude-3-sonnet-20240229": {"input": 3.00, "output": 15.00},
-    "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},
+    "claude-sonnet-4-20250514": {"input": 3.00, "output": 15.00},
     "claude-3-5-sonnet-20241022": {"input": 3.00, "output": 15.00},
     "claude-3-5-haiku-20241022": {"input": 1.00, "output": 5.00},
+    "claude-3-opus-20240229": {"input": 15.00, "output": 75.00},
+    "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},
 }
 
-DEFAULT_MODEL = "claude-3-sonnet-20240229"
+DEFAULT_MODEL = "claude-sonnet-4-20250514"
 
 
 class ClaudeClient(BaseLLMClient):
@@ -60,7 +60,7 @@ class ClaudeClient(BaseLLMClient):
 
         Args:
             api_key: Anthropic API key from https://console.anthropic.com/
-            model: Model to use (default: claude-3-sonnet-20240229)
+            model: Model to use (default: claude-sonnet-4-20250514)
 
         Raises:
             ImportError: If anthropic package is not installed

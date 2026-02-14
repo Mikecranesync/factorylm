@@ -1,0 +1,54 @@
+# Factory I/O Bridge Configuration
+# Connects Factory I/O (or real PLC) to FactoryLM Matrix API via Modbus TCP.
+
+factoryio:
+  # Modbus TCP connection
+  host: "127.0.0.1"
+  port: 502
+
+  # Matrix API endpoint
+  matrix_url: "http://localhost:8000"
+
+  # Poll interval in milliseconds (200ms = 5 Hz, 100ms = 10 Hz)
+  interval_ms: 200
+
+  # Incident source: "sim" uses built-in PLC simulator, "factoryio" uses Modbus
+  # This controls which data source the bridge uses when started without --sim flag.
+  incident_source: "factoryio"
+
+  # Recommended Factory I/O scene: "Sorting by Height" or "From A to B"
+  # These scenes have conveyors, photoeye sensors, and jams you can trigger.
+  scene: "Sorting by Height"
+
+  # Tag map: Modbus addresses → FactoryLM tag names
+  # Adjust these to match your Factory I/O Modbus driver configuration.
+  #
+  # Factory I/O Modbus setup:
+  #   1. Open Factory I/O → File → Drivers → Modbus TCP/IP Server
+  #   2. Click "Configuration" to map I/O points to Modbus addresses
+  #   3. Match the addresses below to your mapping
+  #
+  # Default addresses match the Allen-Bradley Micro 820 convention
+  # used throughout this repo (see services/plc-modbus/CLAUDE.md).
+
+  coils:
+    0: motor_running        # Main conveyor motor state
+    1: motor_stopped        # Motor stopped indicator
+    2: fault_alarm          # Any fault active
+    3: conveyor_running     # Conveyor belt running
+    4: sensor_1_active      # Entry photoeye (part detected)
+    5: sensor_2_active      # Exit photoeye (part detected)
+    6: e_stop_active        # Emergency stop engaged
+
+  registers:
+    100: motor_speed        # Motor speed 0-100%
+    101: motor_current      # Motor current (raw ÷ 10 = Amps)
+    102: temperature        # Temperature (raw ÷ 10 = °C)
+    103: pressure           # Pressure (PSI)
+    104: conveyor_speed     # Conveyor belt speed 0-100%
+    105: error_code         # 0=OK, 1=Overload, 2=Overheat, 3=Jam, 4=Sensor, 5=Comms
+
+  # Scale factors for registers (applied automatically by the bridge)
+  scale:
+    motor_current: 0.1     # raw * 0.1 = Amps
+    temperature: 0.1       # raw * 0.1 = °C

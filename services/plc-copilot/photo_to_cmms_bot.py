@@ -118,6 +118,13 @@ def setup_logging():
 
 log = setup_logging()
 
+# ---------- OpenTelemetry (no-op if packages missing) ----------
+try:
+    from factorylm.observability import init_tracing, traced, create_span
+    _OTEL_IMPORTED = True
+except ImportError:
+    _OTEL_IMPORTED = False
+
 # ════════════════════════════════════════════════════════════════════════
 # STARTUP VALIDATION
 # ════════════════════════════════════════════════════════════════════════
@@ -179,8 +186,8 @@ def normalize_priority(priority: str) -> str:
     return "MEDIUM"  # Default fallback
 
 
-async def analyze_photo(photo_bytes: bytes) -> dict:
-    """Send photo to Gemini Vision with retry."""
+async def _analyze_photo_inner(photo_bytes: bytes) -> dict:
+    """Core Gemini Vision analysis (extracted for tracing wrapper)."""
     import PIL.Image
 
     for attempt in range(3):
@@ -211,6 +218,14 @@ async def analyze_photo(photo_bytes: bytes) -> dict:
             else:
                 return {"error": "AI analysis temporarily unavailable. Please try again in a moment."}
     return {"error": "Analysis failed after retries."}
+
+
+async def analyze_photo(photo_bytes: bytes) -> dict:
+    """Send photo to Gemini Vision with retry (traced)."""
+    if _OTEL_IMPORTED:
+        with create_span("analyze_photo", {"photo_size_bytes": str(len(photo_bytes))}):
+            return await _analyze_photo_inner(photo_bytes)
+    return await _analyze_photo_inner(photo_bytes)
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -786,6 +801,17 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     log.info(f"Complete: WO #{wo_id} for {equip_type} (user: {user_name})")
 
+    # Record structured tracing event for the completed pipeline
+    if _OTEL_IMPORTED:
+        from factorylm.observability import record_event
+        record_event("cmms_pipeline_complete", {
+            "equipment_type": equip_type,
+            "manufacturer": manufacturer,
+            "work_order_id": str(wo_id),
+            "pipeline_duration_s": f"{t_total:.2f}",
+            "user": user_name,
+        })
+
     # Track freemium usage
     usage = track_photo_usage(tg_id)
     if not usage.get("is_verified") and usage.get("photo_count", 0) > 0:
@@ -899,6 +925,11 @@ def main():
     log.info(f"  Mode: Freemium ({FREE_PHOTO_LIMIT} free photos, then registration)")
     log.info(f"  Rate limit: {RATE_LIMIT_PER_HOUR}/hour")
     log.info(f"  Log dir: {LOG_DIR}")
+
+    # Initialise OpenTelemetry tracing (no-op if packages/key missing)
+    if _OTEL_IMPORTED:
+        init_tracing("plc-copilot")
+
     log.info("=" * 60)
 
     # Clear stale polling lock

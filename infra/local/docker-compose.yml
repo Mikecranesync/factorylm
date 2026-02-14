@@ -1,0 +1,25 @@
+# FactoryLM Local Dev Stack
+# Usage: cd infra/local && docker-compose up -d
+
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: factorylm-postgres
+    environment:
+      POSTGRES_USER: factorylm
+      POSTGRES_PASSWORD: localdev
+      POSTGRES_DB: matrix_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U factorylm -d matrix_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:

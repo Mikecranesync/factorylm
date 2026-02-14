@@ -57,7 +57,7 @@ LLM_PROVIDER=groq
 LLM_API_KEY=your-api-key-here
 
 # Model (optional - uses provider default if not set)
-LLM_MODEL=mixtral-8x7b-32768
+LLM_MODEL=llama-3.3-70b-versatile
 
 # Logging
 LOG_LEVEL=INFO

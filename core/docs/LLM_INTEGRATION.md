@@ -11,7 +11,7 @@ from factorylm import create_llm_client
 client = create_llm_client(
     provider="groq",
     api_key="your-api-key",
-    model="mixtral-8x7b-32768"  # Optional
+    model="llama-3.3-70b-versatile"  # Optional
 )
 
 # Analyze machine state
@@ -59,7 +59,7 @@ client = create_llm_client("groq", api_key)
 ```
 
 **Available Models:**
-- `mixtral-8x7b-32768` (default)
+- `llama-3.3-70b-versatile` (default)
 - `llama-3.1-70b-versatile`
 - `llama-3.1-8b-instant`
 - `llama3-70b-8192`
@@ -68,7 +68,7 @@ client = create_llm_client("groq", api_key)
 **Pricing (per 1M tokens):**
 | Model | Input | Output |
 |-------|-------|--------|
-| mixtral-8x7b | $0.24 | $0.24 |
+| llama-3.3-70b | $0.59 | $0.79 |
 | llama-3.1-70b | $0.59 | $0.79 |
 | llama-3.1-8b | $0.05 | $0.08 |
 
@@ -101,17 +101,18 @@ client = create_llm_client("claude", api_key)
 ```
 
 **Available Models:**
-- `claude-3-sonnet-20240229` (default)
-- `claude-3-opus-20240229`
-- `claude-3-haiku-20240307`
+- `claude-sonnet-4-20250514` (default)
 - `claude-3-5-sonnet-20241022`
+- `claude-3-5-haiku-20241022`
+- `claude-3-opus-20240229`
 
 **Pricing (per 1M tokens):**
 | Model | Input | Output |
 |-------|-------|--------|
-| claude-3-sonnet | $3.00 | $15.00 |
+| claude-sonnet-4 | $3.00 | $15.00 |
+| claude-3-5-sonnet | $3.00 | $15.00 |
+| claude-3-5-haiku | $1.00 | $5.00 |
 | claude-3-opus | $15.00 | $75.00 |
-| claude-3-haiku | $0.25 | $1.25 |
 
 ## Adding a New Provider
 

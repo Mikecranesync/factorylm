@@ -2,7 +2,7 @@
 GROQ LLM Client Implementation
 
 Provides integration with GROQ's fast inference API using their official SDK.
-GROQ offers extremely fast inference with models like Mixtral and LLaMA.
+GROQ offers extremely fast inference with models like LLaMA.
 """
 
 import json
@@ -27,18 +27,17 @@ except ImportError:
     Groq = None
 
 
-# GROQ pricing per 1M tokens (as of 2024)
+# GROQ pricing per 1M tokens (as of 2025)
 GROQ_PRICING = {
-    "mixtral-8x7b-32768": {"input": 0.24, "output": 0.24},
+    "llama-3.3-70b-versatile": {"input": 0.59, "output": 0.79},
     "llama-3.1-70b-versatile": {"input": 0.59, "output": 0.79},
     "llama-3.1-8b-instant": {"input": 0.05, "output": 0.08},
     "llama3-70b-8192": {"input": 0.59, "output": 0.79},
     "llama3-8b-8192": {"input": 0.05, "output": 0.08},
-    "gemma-7b-it": {"input": 0.07, "output": 0.07},
     "gemma2-9b-it": {"input": 0.20, "output": 0.20},
 }
 
-DEFAULT_MODEL = "mixtral-8x7b-32768"
+DEFAULT_MODEL = "llama-3.3-70b-versatile"
 
 
 class GroqClient(BaseLLMClient):
@@ -46,7 +45,7 @@ class GroqClient(BaseLLMClient):
     GROQ LLM client implementation.
 
     GROQ provides extremely fast inference (100+ tokens/second) with
-    open-source models like Mixtral and LLaMA.
+    open-source models like LLaMA.
 
     Example:
         >>> client = GroqClient(api_key="your-key")
@@ -62,7 +61,7 @@ class GroqClient(BaseLLMClient):
 
         Args:
             api_key: GROQ API key from https://console.groq.com/keys
-            model: Model to use (default: mixtral-8x7b-32768)
+            model: Model to use (default: llama-3.3-70b-versatile)
 
         Raises:
             ImportError: If groq package is not installed
@@ -244,7 +243,7 @@ Technician Question: {question}"""
         """
         model = response.model or self._model
 
-        # Get pricing for model (default to mixtral pricing)
+        # Get pricing for model (default to llama-3.3 pricing)
         pricing = GROQ_PRICING.get(
             model, GROQ_PRICING[DEFAULT_MODEL]
         )

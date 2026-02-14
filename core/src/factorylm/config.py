@@ -18,14 +18,20 @@ except ImportError:
 
 
 # Valid LLM providers
+# - groq:     Free tier, fast inference (https://console.groq.com)
+# - deepseek: Budget option, good for code tasks (https://platform.deepseek.com)
+# - claude:   Anthropic, best reasoning (https://console.anthropic.com)
+# - flm:      FactoryLM's own industrial model (future / not yet available)
 VALID_PROVIDERS = ["groq", "deepseek", "claude", "flm"]
 
 # Default models per provider
+# These should match what we actually use in production (OpenClaw bots, services).
+# Updated 2026-02-12 — see docs/Architecture.md for current model lineup.
 DEFAULT_MODELS = {
-    "groq": "mixtral-8x7b-32768",
-    "deepseek": "deepseek-chat",
-    "claude": "claude-3-sonnet-20240229",
-    "flm": "flm-industrial-v1",
+    "groq": "llama-3.3-70b-versatile",       # Free tier, primary model across all bots
+    "deepseek": "deepseek-chat",              # Budget fallback, good for code generation
+    "claude": "claude-sonnet-4-20250514",     # Best reasoning, requires API key or Max sub
+    "flm": "flm-industrial-v1",              # Future — FactoryLM's own fine-tuned model
 }
 
 
@@ -42,10 +48,22 @@ class FactoryLMConfig:
         debug: Enable debug mode
     """
 
+    # Which AI provider to use. Options: "groq", "deepseek", "claude", "flm"
+    # Groq is the default because it's free and fast.
     llm_provider: str = "groq"
+
+    # Your API key for the chosen provider.
+    # Set via LLM_API_KEY environment variable (never hard-code this).
     llm_api_key: str = ""
+
+    # Which specific model to use. If not set, uses the default for your provider
+    # (see DEFAULT_MODELS above). Set via LLM_MODEL environment variable.
     llm_model: Optional[str] = None
+
+    # How much detail to show in logs. Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
     log_level: str = "INFO"
+
+    # When True, shows extra detail in error messages. Never use in production.
     debug: bool = False
 
     def __post_init__(self):
