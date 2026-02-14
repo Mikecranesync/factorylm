@@ -1,14 +1,17 @@
 """
-Cosmos Reason 2 API client — stub for NVIDIA Cosmos Cookoff 2026.
+Cosmos Reason 2 API client — NVIDIA Cosmos Cookoff 2026.
 
 Loads settings from config/cosmos.yaml and exposes analyze_incident().
-Replace the stub response with real HTTP calls once you have API access.
+Uses real NVIDIA API when NVIDIA_COSMOS_API_KEY is set, otherwise falls back to stub.
 """
 
 import datetime
+import json
 import logging
 import os
 from pathlib import Path
+
+import httpx
 
 from cosmos.models import CosmosInsight
 
@@ -16,14 +19,16 @@ logger = logging.getLogger(__name__)
 
 
 class CosmosClient:
-    """HTTP client for NVIDIA Cosmos Reason 2 API."""
+    """HTTP client for NVIDIA Cosmos Reason 2 API with Llama fallback."""
 
     def __init__(self, config_path: str | None = None) -> None:
         cfg_file = Path(config_path) if config_path else Path("config/cosmos.yaml")
         self.api_key: str = os.getenv("NVIDIA_COSMOS_API_KEY", "")
-        self.api_base_url: str = "https://api.nvidia.com/cosmos"
-        self.model: str = "nvidia/cosmos-reason2"
+        self.api_base_url: str = "https://integrate.api.nvidia.com/v1"
+        self.model: str = "nvidia/cosmos-reason2-8b"
+        self.fallback_model: str = "meta/llama-3.1-70b-instruct"
         self._config: dict = {}
+        self._use_fallback: bool = False  # Track if we should use fallback
 
         if cfg_file.exists():
             try:
@@ -34,6 +39,7 @@ class CosmosClient:
                 self._config = raw.get("cosmos", {})
                 self.api_base_url = self._config.get("api_base_url", self.api_base_url)
                 self.model = self._config.get("model", self.model)
+                self.fallback_model = self._config.get("fallback_model", self.fallback_model)
             except ImportError:
                 logger.warning("PyYAML not installed — using defaults")
             except Exception:
@@ -50,18 +56,151 @@ class CosmosClient:
     ) -> CosmosInsight:
         """Send an incident bundle to Cosmos Reason 2 and return a CosmosInsight.
 
-        Currently returns a realistic hard-coded stub response.
+        Uses real NVIDIA API when api_key is set, otherwise falls back to stub.
         """
-        # TODO: Replace with real HTTP call to Cosmos Reason 2 API
-        # POST {self.api_base_url}/v1/analyze
-        # Headers: Authorization: Bearer {self.api_key}
-        # Body: { model, images, tags, video_url, context }
+        # Use real API if key is available
+        if self.api_key:
+            return self._analyze_incident_real(
+                incident_id, node_id, tags, images, video_url, context
+            )
 
+        # Fall back to stub
         logger.info(
-            "CosmosClient.analyze_incident called for incident=%s node=%s (STUB)",
+            "CosmosClient.analyze_incident called for incident=%s node=%s (STUB - no API key)",
             incident_id,
             node_id,
         )
+        return self._analyze_incident_stub(incident_id, node_id, tags, video_url)
+
+    def _analyze_incident_real(
+        self,
+        incident_id: str,
+        node_id: str,
+        tags: dict,
+        images: list[str] | None,
+        video_url: str,
+        context: str,
+    ) -> CosmosInsight:
+        """Make real API call to NVIDIA Cosmos Reason 2 or fallback model."""
+        current_model = self.fallback_model if self._use_fallback else self.model
+        logger.info(
+            "CosmosClient.analyze_incident REAL API call for incident=%s node=%s model=%s",
+            incident_id,
+            node_id,
+            current_model,
+        )
+
+        # Build the prompt for fault analysis
+        tag_summary = json.dumps(tags, indent=2)
+        prompt = f"""Analyze this industrial equipment fault. Provide a diagnosis.
+
+Equipment Node: {node_id}
+Incident ID: {incident_id}
+
+Current Tag Values:
+{tag_summary}
+
+Additional Context: {context or 'None provided'}
+
+Please provide:
+1. A brief summary of the fault
+2. The most likely root cause
+3. Your confidence level (0-1)
+4. Reasoning for your diagnosis
+5. Suggested checks/fixes (as a list)
+
+Format your response as JSON with keys: summary, root_cause, confidence, reasoning, suggested_checks"""
+
+        # Build message content
+        content = [{"type": "text", "text": prompt}]
+
+        # Add video if provided
+        if video_url:
+            content.append({
+                "type": "video_url",
+                "video_url": {"url": video_url}
+            })
+
+        # Add images if provided
+        if images:
+            for img_url in images:
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": img_url}
+                })
+
+        try:
+            response = httpx.post(
+                f"{self.api_base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": current_model,
+                    "messages": [{"role": "user", "content": content}],
+                    "max_tokens": 1024,
+                },
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            # Parse the response
+            raw_text = result["choices"][0]["message"]["content"]
+            logger.debug("Cosmos raw response: %s", raw_text)
+
+            # Try to parse as JSON
+            try:
+                # Handle markdown code blocks
+                if "```json" in raw_text:
+                    raw_text = raw_text.split("```json")[1].split("```")[0]
+                elif "```" in raw_text:
+                    raw_text = raw_text.split("```")[1].split("```")[0]
+                parsed = json.loads(raw_text.strip())
+            except json.JSONDecodeError:
+                # Fallback: extract key info from free text
+                parsed = {
+                    "summary": raw_text[:200],
+                    "root_cause": "See full response",
+                    "confidence": 0.5,
+                    "reasoning": raw_text,
+                    "suggested_checks": ["Review full Cosmos response"],
+                }
+
+            return CosmosInsight(
+                incident_id=incident_id,
+                node_id=node_id,
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+                summary=parsed.get("summary", "Analysis complete"),
+                root_cause=parsed.get("root_cause", "Unknown"),
+                confidence=float(parsed.get("confidence", 0.5)),
+                reasoning=parsed.get("reasoning", ""),
+                suggested_checks=parsed.get("suggested_checks", []),
+                video_url=video_url,
+                cosmos_model=current_model,
+            )
+
+        except httpx.HTTPStatusError as e:
+            logger.error("Cosmos API HTTP error: %s - %s", e.response.status_code, e.response.text)
+            # If 404 and not already using fallback, try fallback model
+            if e.response.status_code == 404 and not self._use_fallback:
+                logger.info("Cosmos model not available, switching to fallback: %s", self.fallback_model)
+                self._use_fallback = True
+                return self._analyze_incident_real(incident_id, node_id, tags, images, video_url, context)
+            return self._analyze_incident_stub(incident_id, node_id, tags, video_url)
+        except Exception as e:
+            logger.exception("Cosmos API error: %s", e)
+            return self._analyze_incident_stub(incident_id, node_id, tags, video_url)
+
+    def _analyze_incident_stub(
+        self,
+        incident_id: str,
+        node_id: str,
+        tags: dict,
+        video_url: str,
+    ) -> CosmosInsight:
+        """Return stub response for testing without API key."""
 
         # Build a realistic stub response based on the tags provided
         fault_type = tags.get("error_code", 0)
@@ -178,18 +317,109 @@ class CosmosClient:
         """Analyze a video clip via Cosmos Reason 2.
 
         Returns a dict with caption, key_events, interesting_score, and cosmos_model.
-        Currently returns stub responses — replace with real API call.
+        Uses real API when api_key is set, otherwise falls back to stub.
         """
-        # TODO: Replace with real Cosmos Reason 2 video API call
-        # POST {self.api_base_url}/v1/video/analyze
-        # Headers: Authorization: Bearer {self.api_key}
-        # Body: { model, video_url_or_base64, context }
+        # Use real API if key is available
+        if self.api_key:
+            return self._analyze_video_real(video_path, context)
 
         logger.info(
-            "CosmosClient.analyze_video called for %s (STUB)",
+            "CosmosClient.analyze_video called for %s (STUB - no API key)",
+            Path(video_path).name if video_path else "unknown",
+        )
+        return self._analyze_video_stub(video_path)
+
+    def _analyze_video_real(self, video_path: str, context: str) -> dict:
+        """Make real API call for video analysis."""
+        import base64
+
+        logger.info(
+            "CosmosClient.analyze_video REAL API call for %s",
             Path(video_path).name if video_path else "unknown",
         )
 
+        prompt = f"""Analyze this factory floor video. Describe what's happening.
+
+Context: {context or 'Factory floor monitoring'}
+
+Please provide:
+1. A caption describing the key events (2-3 sentences)
+2. A list of timestamped key events
+3. An "interesting score" from 0-100 (higher = more noteworthy events)
+
+Format as JSON with keys: caption, key_events (list of {{timestamp, action}}), interesting_score"""
+
+        # Build content with video
+        content = [{"type": "text", "text": prompt}]
+
+        # For video files, we need to encode or use URL
+        video_file = Path(video_path)
+        if video_file.exists() and video_file.suffix.lower() in [".mp4", ".webm", ".mov"]:
+            # Read and base64 encode the video
+            try:
+                video_data = base64.b64encode(video_file.read_bytes()).decode("utf-8")
+                mime_type = "video/mp4" if video_file.suffix.lower() == ".mp4" else "video/webm"
+                content.append({
+                    "type": "video_url",
+                    "video_url": {"url": f"data:{mime_type};base64,{video_data}"}
+                })
+            except Exception as e:
+                logger.warning("Failed to read video file: %s", e)
+        elif video_path.startswith("http"):
+            content.append({
+                "type": "video_url",
+                "video_url": {"url": video_path}
+            })
+
+        try:
+            response = httpx.post(
+                f"{self.api_base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": self.model,
+                    "messages": [{"role": "user", "content": content}],
+                    "max_tokens": 512,
+                },
+                timeout=60.0,  # Longer timeout for video
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            raw_text = result["choices"][0]["message"]["content"]
+
+            # Try to parse as JSON
+            try:
+                if "```json" in raw_text:
+                    raw_text = raw_text.split("```json")[1].split("```")[0]
+                elif "```" in raw_text:
+                    raw_text = raw_text.split("```")[1].split("```")[0]
+                parsed = json.loads(raw_text.strip())
+                return {
+                    "caption": parsed.get("caption", "Analysis complete"),
+                    "key_events": parsed.get("key_events", []),
+                    "interesting_score": int(parsed.get("interesting_score", 50)),
+                    "cosmos_model": self.model,
+                }
+            except json.JSONDecodeError:
+                return {
+                    "caption": raw_text[:500],
+                    "key_events": [{"timestamp": 0.0, "action": "See full caption"}],
+                    "interesting_score": 50,
+                    "cosmos_model": self.model,
+                }
+
+        except httpx.HTTPStatusError as e:
+            logger.error("Cosmos video API error: %s - %s", e.response.status_code, e.response.text)
+            return self._analyze_video_stub(video_path)
+        except Exception as e:
+            logger.exception("Cosmos video API error: %s", e)
+            return self._analyze_video_stub(video_path)
+
+    def _analyze_video_stub(self, video_path: str) -> dict:
+        """Return stub response for video analysis."""
         # Generate contextual stub responses based on filename
         name = Path(video_path).stem.lower() if video_path else ""
         
