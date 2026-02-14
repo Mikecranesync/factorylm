@@ -1,0 +1,86 @@
+repos:
+
+  # Pip Audit
+  - repo: https://github.com/pypa/pip-audit
+    rev: v2.10.0
+    hooks:
+    - id: pip-audit
+      name: pip-audit
+      description: "Audits Python environments and dependency trees for known vulnerabilities"
+      entry: pip-audit
+      args: [--ignore-vuln, GHSA-4xh5-x5gv-qwph, --ignore-vuln, CVE-2026-21441]
+      pass_filenames: false
+      language: python
+
+  # Generic
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+        name: fix end of files
+        description: "Ensures that a file is either empty, or ends with one newline"
+        entry: end-of-file-fixer
+        types: [text]
+        stages: [pre-commit, pre-push, manual]
+        language: python
+
+      - id: trailing-whitespace
+        name: trim trailing whitespace
+        description: "Trims trailing whitespace"
+        entry: trailing-whitespace-fixer
+        types: [text]
+        stages: [pre-commit]
+        language: python
+
+  # TOML
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-toml
+        name: check toml
+        description: "Checks .toml files for parseable syntax"
+        entry: check-toml
+        types: [toml]
+        language: python
+
+  # YAML
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+        name: check yaml
+        description: "Checks .yaml files for parseable syntax"
+        entry: check-yaml
+        types: [yaml]
+        language: python
+
+  # Ruff formatter & linter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.10
+    hooks:
+    - id: ruff
+      args: [--fix]
+      name: ruff (linter)
+    - id: ruff-format
+      name: ruff (formatter)
+
+  # Pyright
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.408
+    hooks:
+      - id: pyright
+        additional_dependencies: [numpy, scipy, matplotlib, tqdm, sphinx-gallery]
+        args:
+        - --venvpath=./.venv
+
+  # MyST Markdown formatter
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        name: mdformat (MyST)
+        additional_dependencies:
+          - mdformat-myst
+        types_or: [markdown]
+        # Example args:
+        # args: ["--wrap", "88"]

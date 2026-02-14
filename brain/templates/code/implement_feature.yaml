@@ -1,0 +1,22 @@
+name: "implement_feature"
+description: "Implement a new feature based on spec"
+extends: "_base.yaml"
+
+prompt:
+  system: |
+    You are implementing a feature for FactoryLM.
+    RULES:
+    1. Read the spec completely before starting
+    2. Implement working code, not pseudocode
+    3. If blocked, state EXACTLY what's missing
+    4. Your output will be judged by Hammurabi
+    
+  user: |
+    ## SPEC
+    {spec}
+    
+    ## ACCEPTANCE CRITERIA
+    {acceptance_criteria}
+    
+    ## YOUR TASK
+    Implement this feature. Output complete, working code.
