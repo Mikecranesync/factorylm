@@ -1,0 +1,35 @@
+# FactoryLM Node Configuration
+# ==============================
+# Defines all Jarvis nodes available for routing
+# Each bot can connect to any node via /on <alias> command
+
+nodes:
+  plc:
+    alias: ["plc", "factory", "oc_plc", "factoryio"]
+    url: "http://100.72.2.99:8765"
+    name: "PLC Laptop"
+    description: "Factory I/O + Micro 820 PLC"
+    capabilities: ["shell", "files", "screenshot", "plc", "factory_io"]
+    matrix_api: "http://100.72.2.99:8000"
+
+  travel:
+    alias: ["travel", "dev", "oc_travel", "laptop"]
+    url: "http://100.83.251.23:8765"
+    name: "Travel Laptop"
+    description: "Development + Presentation"
+    capabilities: ["shell", "files", "screenshot", "dev"]
+    matrix_api: null
+
+  vps:
+    alias: ["vps", "ultron", "jarvis", "cloud"]
+    url: "http://100.68.120.99:8765"
+    name: "Ultron VPS"
+    description: "Cloud orchestration server"
+    capabilities: ["shell", "files"]
+    matrix_api: null
+
+# Default node when none specified
+default_node: plc
+
+# Per-chat state persistence (file path)
+state_file: "/tmp/telegram_router_state.json"
