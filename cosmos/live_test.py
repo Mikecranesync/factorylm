@@ -15,11 +15,14 @@ PLC_API = os.getenv("PLC_HOST", "100.72.2.99")
 
 
 def fetch_plc_tags():
-    """Fetch live tags from PLC API."""
+    """Fetch live tags from Matrix API."""
     try:
-        resp = httpx.get(f"http://{PLC_API}:8000/api/plc/io", timeout=5)
+        resp = httpx.get(f"http://{PLC_API}:8000/api/tags?limit=1", timeout=5)
         resp.raise_for_status()
-        return resp.json()
+        tags_list = resp.json()
+        if tags_list and len(tags_list) > 0:
+            return tags_list[0]  # Return most recent tag snapshot
+        return None
     except Exception as e:
         print(f"Error fetching PLC tags: {e}")
         return None
