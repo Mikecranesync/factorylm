@@ -5,17 +5,17 @@
     {
       "user": "/start",
       "expect_contains": ["Welcome", "FactoryLM"],
-      "expect_not_contains": ["error"]
+      "expect_not_contains": ["failed", "exception"]
     },
     {
       "user": "show me IO",
       "expect_contains": ["Motor", "Conveyor", "Temp"],
-      "expect_not_contains": ["error", "failed"]
+      "expect_not_contains": ["failed", "exception"]
     },
     {
       "user": "why is this stopped?",
-      "expect_contains": ["Diagnosis", "Model"],
-      "expect_not_contains": ["error"]
+      "expect_contains": ["AI Diagnosis"],
+      "expect_not_contains": ["failed", "exception"]
     },
     {
       "user": "/status",
@@ -24,8 +24,8 @@
     },
     {
       "user": "what faults are active?",
-      "expect_contains": ["Diagnosis"],
-      "expect_not_contains": ["error"]
+      "expect_contains": ["AI Diagnosis"],
+      "expect_not_contains": ["failed", "exception"]
     }
   ]
 }

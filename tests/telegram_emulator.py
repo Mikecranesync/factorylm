@@ -118,8 +118,8 @@ class TelegramEmulator:
         matrix_url: str = None,
         verbose: bool = True
     ):
-        self.diagnosis_url = diagnosis_url or os.getenv("DIAGNOSIS_URL", "http://localhost:8200")
-        self.demo_ui_url = demo_ui_url or os.getenv("DEMO_UI_URL", "http://localhost:8080")
+        self.diagnosis_url = diagnosis_url or os.getenv("DIAGNOSIS_URL", "http://100.72.2.99:8200")
+        self.demo_ui_url = demo_ui_url or os.getenv("DEMO_UI_URL", "http://100.72.2.99:8080")
         self.matrix_url = matrix_url or os.getenv("MATRIX_URL", "http://100.72.2.99:8000")
         self.verbose = verbose
         self.conversation_history: List[Dict] = []
