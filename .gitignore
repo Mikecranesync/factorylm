@@ -34,3 +34,10 @@ npm-debug.log*
 
 # Testing
 coverage/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.db
