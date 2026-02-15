@@ -31,6 +31,9 @@ class Settings:
     # Anthropic (for command parsing)
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
     
+    # Groq (primary for command parsing)
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    
     # LangFuse (observability)
     LANGFUSE_PUBLIC_KEY: str = os.getenv("LANGFUSE_PUBLIC_KEY", "")
     LANGFUSE_SECRET_KEY: str = os.getenv("LANGFUSE_SECRET_KEY", "")
