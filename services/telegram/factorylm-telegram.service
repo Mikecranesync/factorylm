@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/factorylm/services/telegram
-Environment=TELEGRAM_BOT_TOKEN=8447289218:AAGKcDbW_2DEDoF-FAeQ6Ss7hH1tXNt-O5Q
+EnvironmentFile=/root/.factorylm/.env
 Environment=MATRIX_API=http://100.72.2.99:8000
 Environment=DEMO_UI=http://100.72.2.99:8080
 Environment=JARVIS_NODE=http://100.72.2.99:8765

@@ -43,7 +43,9 @@ ALERT_ENABLED = True  # Can be toggled via /alerts command
 # Configuration
 # ============================================================================
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8447289218:AAGKcDbW_2DEDoF-FAeQ6Ss7hH1tXNt-O5Q")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    raise RuntimeError("TELEGRAM_BOT_TOKEN env var is required")
 ALLOWED_USERS = [8445149012]  # Mike's Telegram ID
 
 # PLC Laptop services (via Tailscale)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Long polling -> webhook forwarder for @JarvisMIO_bot"""
+import os
 import requests
 import time
 import sys
@@ -11,7 +12,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-BOT_TOKEN = '8387943893:AAEynugW3SP1sWs6An4aNgZParSSRBlWSJk'
+BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+if not BOT_TOKEN:
+    raise RuntimeError("TELEGRAM_BOT_TOKEN env var is required")
 WEBHOOK_URL = 'http://localhost:8100/telegram/webhook'
 last_update_id = 0
 

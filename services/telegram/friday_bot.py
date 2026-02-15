@@ -67,7 +67,9 @@ caps = get_capabilities()
 # ============================================================================
 
 # Create bot via @BotFather and set the token
-BOT_TOKEN = os.getenv("FRIDAY_BOT_TOKEN", "8422197159:AAGq_QCA-yHzktFOXF5wF83KuaaAK5oZ1AI")
+BOT_TOKEN = os.getenv("FRIDAY_BOT_TOKEN")
+if not BOT_TOKEN:
+    raise RuntimeError("FRIDAY_BOT_TOKEN env var is required")
 ALLOWED_USERS = [8445149012]  # Mike's Telegram ID
 
 # Services (fallback if router not available)
