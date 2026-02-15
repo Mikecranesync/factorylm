@@ -364,10 +364,11 @@ class GitForensics:
         for s in ranked:
             flags = " ".join(s["flags"])
             color = "red" if s["score"] > 1000 else "yellow" if s["score"] > 200 else "white"
+            score_str = f"{s['score']:.0f}"
             print(
                 f"  {c(s['sha'], 'cyan', self.color):<21} "
                 f"{s['date']:<18} "
-                f"{c(f'{s[\"score\"]:.0f}', color, self.color):>18} "
+                f"{c(score_str, color, self.color):>18} "
                 f"{s['churn']:>6} "
                 f"{s['files']:>5}  "
                 f"{s['subject']:<40} "
@@ -545,10 +546,11 @@ class GitForensics:
         print(c("  " + "─" * 95, "gray", self.color))
         for s in ranked:
             color = "red" if s["score"] > 500 else "yellow" if s["score"] > 100 else "white"
+            score_str = f"{s['score']:.0f}"
             print(
                 f"  {c(s['sha'], 'cyan', self.color):<21} "
                 f"{s['date']:<12} "
-                f"{c(f'{s[\"score\"]:.0f}', color, self.color):>19} "
+                f"{c(score_str, color, self.color):>19} "
                 f"{s['churn']:>7} "
                 f"{s['files']:>6}  "
                 f"{s['subject']}"
@@ -919,7 +921,16 @@ tr:hover{{background:#1a1a2a}}
 # ============================================================================
 
 
+def _fix_encoding() -> None:
+    """Ensure stdout can handle Unicode on Windows."""
+    if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+
+
 def main() -> None:
+    _fix_encoding()
     parser = argparse.ArgumentParser(
         prog="git-forensics",
         description="FactoryLM Git Forensics — zero-dependency retroactive git analysis",
