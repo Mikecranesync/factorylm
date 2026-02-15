@@ -1,0 +1,15 @@
+[Unit]
+Description=RemoteMe Backend - AI Remote Computer Control
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/remoteme
+Environment=PYTHONPATH=/opt/remoteme
+ExecStart=/opt/remoteme/venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 8100
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
