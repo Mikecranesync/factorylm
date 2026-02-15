@@ -1,0 +1,53 @@
+[Unit]
+Description=PEPPER Watchdog Monitoring System
+Documentation=https://github.com/Mikecranesync/factorylm
+After=network.target
+
+# Start after PEPPER main service
+After=pepper.service
+
+# Don't restart if PEPPER is down (we monitor it, not depend on it)
+Wants=pepper.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/pepper
+
+# Environment
+Environment="WATCHDOG_CONFIG=/root/pepper/watchdog.yaml"
+EnvironmentFile=-/root/.pepper/.env
+
+# Main process
+ExecStart=/usr/bin/python3 -m pepper.watchdog.main
+
+# Restart configuration
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Resource limits
+MemoryLimit=256M
+CPUQuota=10%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pepper-watchdog
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/root/.pepper-watchdog /var/log/pepper
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

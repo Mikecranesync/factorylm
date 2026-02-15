@@ -1,0 +1,41 @@
+[Unit]
+Description=PEPPER Watchdog Service
+Documentation=https://github.com/Mikecranesync/factorylm
+After=network.target pepper.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/pepper
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/root/pepper/.env
+
+# Start command
+ExecStart=/usr/bin/python3 -m pepper.watchdog.main /root/pepper/watchdog.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy
+Restart=always
+RestartSec=30
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Resource limits
+MemoryMax=256M
+CPUQuota=25%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pepper-watchdog
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/root/.pepper /root/.pepper-watchdog /var/log/pepper
+
+[Install]
+WantedBy=multi-user.target

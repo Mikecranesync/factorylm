@@ -1,0 +1,52 @@
+{
+  "twins": {
+    "plc": {
+      "id": "plc",
+      "name": "PLC Laptop",
+      "url": "http://100.72.2.99:8765",
+      "type": "PLCTwin",
+      "enabled": true,
+      "metadata": {
+        "device_type": "plc_laptop",
+        "plc_model": "Micro 820",
+        "simulation": "Factory I/O",
+        "ip_address": "100.72.2.99",
+        "tailscale_name": "LAPTOP-0KA3C70H",
+        "location": "Factory Floor"
+      }
+    },
+    "travel": {
+      "id": "travel",
+      "name": "Travel Laptop",
+      "url": "http://100.83.251.23:8765",
+      "type": "TravelTwin",
+      "enabled": true,
+      "metadata": {
+        "device_type": "development_laptop",
+        "hostname": "Miguelomaniac",
+        "ip_address": "100.83.251.23",
+        "role": "development",
+        "tools": ["git", "python", "node", "docker", "claude_code"]
+      }
+    },
+    "vps": {
+      "id": "vps",
+      "name": "VPS Server",
+      "url": "http://100.68.120.99:8765",
+      "type": "VPSTwin",
+      "enabled": true,
+      "metadata": {
+        "device_type": "vps",
+        "ip_address": "100.68.120.99",
+        "role": "orchestration",
+        "services": ["clawdbot", "n8n", "jarvis", "nginx"],
+        "provider": "unknown"
+      }
+    }
+  },
+  "registry": {
+    "health_check_interval": 60,
+    "health_check_timeout": 30,
+    "auto_start_monitoring": false
+  }
+}

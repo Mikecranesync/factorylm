@@ -1,0 +1,17 @@
+# PEPPER Watchdog Requirements
+# Python 3.9+
+
+# HTTP client for API checks and alerts
+httpx>=0.27.0
+
+# YAML configuration parsing
+PyYAML>=6.0
+
+# Standard library (no install needed)
+# - asyncio
+# - logging
+# - subprocess
+# - hashlib
+# - dataclasses
+# - pathlib
+# - json

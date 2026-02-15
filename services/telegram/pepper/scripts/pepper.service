@@ -1,0 +1,43 @@
+[Unit]
+Description=PEPPER Telegram Bot Service
+Documentation=https://github.com/Mikecranesync/factorylm
+After=network.target
+Wants=pepper-watchdog.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/pepper
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/root/pepper/.env
+
+# Start command
+ExecStart=/usr/bin/python3 -m pepper.gateway
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pepper
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/root/.pepper /var/log/pepper /tmp
+
+[Install]
+WantedBy=multi-user.target

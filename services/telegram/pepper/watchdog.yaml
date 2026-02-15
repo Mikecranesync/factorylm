@@ -1,0 +1,156 @@
+# PEPPER Watchdog Configuration
+# Health monitoring, drift detection, auto-recovery
+
+version: "1.0.0"
+
+# State storage
+state_dir: "/root/.pepper-watchdog"
+
+# Health Check Configuration
+health:
+  interval_seconds: 300  # 5 minutes
+  timeout_seconds: 10
+
+  nodes:
+    - id: plc
+      name: "PLC Laptop"
+      url: "http://100.72.2.99:8765/health"
+      critical: true
+
+    - id: travel
+      name: "Travel Laptop"
+      url: "http://100.83.251.23:8765/health"
+      critical: false
+
+    - id: vps_gateway
+      name: "VPS Gateway"
+      url: "http://localhost:18789/health"
+      critical: true
+
+    - id: matrix_api
+      name: "Matrix API"
+      url: "http://100.72.2.99:8000/health"
+      critical: false
+
+  services:
+    - name: pepper
+      type: systemd
+      critical: true
+      auto_restart: true
+
+    - name: pepper-watchdog
+      type: systemd
+      critical: true
+      auto_restart: false  # Don't restart ourselves
+
+    - name: clawdbot
+      type: systemd
+      critical: false
+      auto_restart: true
+
+# Config Drift Detection
+drift:
+  enabled: true
+  backup_on_change: true
+
+  monitored_files:
+    - path: "/root/.openclaw/openclaw.json"
+      critical_fields:
+        - "channels.telegram.botToken"
+        - "env.GROQ_API_KEY"
+        - "gateway.auth.token"
+      warning_fields:
+        - "agents.defaults.model.primary"
+        - "channels.telegram.allowFrom"
+
+    - path: "/root/pepper/config.yaml"
+      critical_fields:
+        - "bots.*.token"
+      warning_fields:
+        - "nodes.*.url"
+        - "intelligence.layer2.model"
+
+# API Key Validation
+api_validation:
+  interval_seconds: 900  # 15 minutes
+
+  providers:
+    - name: groq
+      test_endpoint: "https://api.groq.com/openai/v1/chat/completions"
+      env_var: "GROQ_API_KEY"
+
+    - name: anthropic
+      test_endpoint: "https://api.anthropic.com/v1/messages"
+      env_var: "ANTHROPIC_API_KEY"
+
+    - name: telegram_prime
+      test_endpoint: "https://api.telegram.org/bot{token}/getMe"
+      env_var: "PEPPER_PRIME_TOKEN"
+
+    - name: telegram_demo
+      test_endpoint: "https://api.telegram.org/bot{token}/getMe"
+      env_var: "FACTORYLM_BOT_TOKEN"
+
+# System Fingerprint
+fingerprint:
+  interval_seconds: 300
+
+  monitored_files:
+    - "/root/.openclaw/openclaw.json"
+    - "/root/pepper/config.yaml"
+    - "/etc/systemd/system/pepper.service"
+    - "/etc/systemd/system/pepper-watchdog.service"
+
+  monitored_env_vars:
+    - "GROQ_API_KEY"
+    - "ANTHROPIC_API_KEY"
+    - "PEPPER_PRIME_TOKEN"
+    - "FACTORYLM_BOT_TOKEN"
+    - "GOOGLE_API_KEY"
+
+# Auto-Recovery
+recovery:
+  enabled: true
+  max_attempts: 3
+  cooldown_minutes: 5
+
+  actions:
+    service_down:
+      - type: restart
+        max_attempts: 3
+
+    api_key_invalid:
+      - type: alert
+        severity: critical
+
+# Alert Configuration
+alerts:
+  telegram:
+    enabled: true
+    bot_token: ${PEPPER_PRIME_TOKEN}
+    chat_id: "8445149012"
+
+  log:
+    enabled: true
+    path: "/root/.pepper-watchdog/alerts.log"
+
+  severity_routing:
+    critical:
+      - telegram
+      - log
+    warning:
+      - telegram
+      - log
+    info:
+      - log
+
+  daily_digest:
+    enabled: true
+    hour: 8  # 8 AM
+    timezone: "America/New_York"
+
+# Backup Configuration
+backup:
+  config_retention_days: 30
+  fingerprint_retention_days: 7
+  max_config_backups: 10

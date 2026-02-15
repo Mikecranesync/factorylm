@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+"""
+PEPPER CLI - Deployment and Management Tool
+FactoryLM Dual-Mode Telegram Bot System
+
+Usage:
+    pepper deploy [--bump patch|minor|major] [--dry-run] [-c CHANGELOG...]
+    pepper rollback [VERSION] [--list]
+    pepper status
+    pepper version [VERSION]
+    pepper health
+    pepper logs [-f] [-n LINES]
+"""
+
+import argparse
+import sys
+import os
+
+# Add pepper module to path
+sys.path.insert(0, '/root/pepper')
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog='pepper',
+        description='PEPPER Deployment and Management Tool',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='''
+Examples:
+    pepper deploy                    # Deploy with patch version bump
+    pepper deploy --bump minor       # Deploy with minor version bump
+    pepper deploy --dry-run          # Preview deployment
+    pepper rollback                  # Rollback to previous version
+    pepper rollback v1.1.2           # Rollback to specific version
+    pepper rollback --list           # List available versions
+    pepper status                    # Show current status
+    pepper health                    # Run health checks
+    pepper logs -f                   # Follow logs
+        '''
+    )
+
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
+
+    # Deploy command
+    deploy_parser = subparsers.add_parser('deploy', help='Deploy new version')
+    deploy_parser.add_argument(
+        '--bump', '-b',
+        choices=['patch', 'minor', 'major'],
+        default='patch',
+        help='Version bump type (default: patch)'
+    )
+    deploy_parser.add_argument(
+        '--dry-run', '-d',
+        action='store_true',
+        help='Preview deployment without making changes'
+    )
+    deploy_parser.add_argument(
+        '--changelog', '-c',
+        nargs='+',
+        help='Changelog entries'
+    )
+    deploy_parser.add_argument(
+        '--skip-tests',
+        action='store_true',
+        help='Skip test suite (dangerous!)'
+    )
+
+    # Rollback command
+    rollback_parser = subparsers.add_parser('rollback', help='Rollback to previous version')
+    rollback_parser.add_argument(
+        'version',
+        nargs='?',
+        help='Specific version to rollback to (default: previous)'
+    )
+    rollback_parser.add_argument(
+        '--list', '-l',
+        action='store_true',
+        help='List available versions'
+    )
+    rollback_parser.add_argument(
+        '--history',
+        action='store_true',
+        help='Show rollback history'
+    )
+
+    # Status command
+    status_parser = subparsers.add_parser('status', help='Show current status')
+    status_parser.add_argument(
+        '--json',
+        action='store_true',
+        help='Output as JSON'
+    )
+
+    # Version command
+    version_parser = subparsers.add_parser('version', help='Show version details')
+    version_parser.add_argument(
+        'version',
+        nargs='?',
+        help='Version to inspect (default: current)'
+    )
+    version_parser.add_argument(
+        '--diff',
+        help='Compare with another version'
+    )
+
+    # Health command
+    health_parser = subparsers.add_parser('health', help='Run health checks')
+    health_parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Verbose output'
+    )
+
+    # Logs command
+    logs_parser = subparsers.add_parser('logs', help='View logs')
+    logs_parser.add_argument(
+        '--follow', '-f',
+        action='store_true',
+        help='Follow log output'
+    )
+    logs_parser.add_argument(
+        '--lines', '-n',
+        type=int,
+        default=50,
+        help='Number of lines to show (default: 50)'
+    )
+    logs_parser.add_argument(
+        '--service', '-s',
+        choices=['pepper', 'watchdog', 'all'],
+        default='all',
+        help='Which service logs to show'
+    )
+
+    # Config command
+    config_parser = subparsers.add_parser('config', help='Config management')
+    config_parser.add_argument(
+        'action',
+        choices=['show', 'validate', 'diff'],
+        help='Config action'
+    )
+    config_parser.add_argument(
+        '--version',
+        help='Config version to inspect'
+    )
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    # Import and execute commands
+    try:
+        if args.command == 'deploy':
+            from pepper.deploy.cli import cmd_deploy
+            cmd_deploy(args)
+
+        elif args.command == 'rollback':
+            from pepper.deploy.cli import cmd_rollback
+            cmd_rollback(args)
+
+        elif args.command == 'status':
+            from pepper.deploy.cli import cmd_status
+            cmd_status(args)
+
+        elif args.command == 'version':
+            from pepper.deploy.cli import cmd_version
+            cmd_version(args)
+
+        elif args.command == 'health':
+            from pepper.watchdog.cli import cmd_health
+            cmd_health(args)
+
+        elif args.command == 'logs':
+            cmd_logs(args)
+
+        elif args.command == 'config':
+            from pepper.deploy.cli import cmd_config
+            cmd_config(args)
+
+    except ImportError as e:
+        print(f"Error: PEPPER modules not installed: {e}")
+        print("Run: pip install -e /root/pepper")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\nAborted.")
+        sys.exit(130)
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+
+def cmd_logs(args):
+    """View service logs via journalctl."""
+    import subprocess
+
+    services = {
+        'pepper': 'pepper',
+        'watchdog': 'pepper-watchdog',
+        'all': 'pepper pepper-watchdog'
+    }
+
+    service = services[args.service]
+    cmd = ['journalctl', '-u', service]
+
+    if args.follow:
+        cmd.append('-f')
+    else:
+        cmd.extend(['-n', str(args.lines)])
+
+    cmd.append('--no-pager')
+
+    try:
+        subprocess.run(cmd)
+    except FileNotFoundError:
+        print("journalctl not found. Are you on a systemd system?")
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

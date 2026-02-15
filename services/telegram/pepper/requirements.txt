@@ -1,0 +1,39 @@
+# PEPPER System Dependencies
+# FactoryLM Dual-Mode Telegram Bot
+
+# Telegram
+python-telegram-bot>=21.0
+
+# Async HTTP
+httpx>=0.27.0
+aiohttp>=3.9.0
+
+# Configuration
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Data validation
+pydantic>=2.0.0
+
+# Utilities
+python-dateutil>=2.8.0
+
+# Hashing
+hashlib  # stdlib, but documenting use
+
+# Process management
+psutil>=5.9.0
+
+# API clients
+anthropic>=0.18.0
+groq>=0.4.0
+
+# Observability (optional)
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-exporter-otlp>=1.20.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0

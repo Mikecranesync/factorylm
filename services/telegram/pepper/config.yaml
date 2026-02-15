@@ -1,0 +1,137 @@
+# PEPPER System Configuration
+# Version: 1.0.0
+# FactoryLM Dual-Mode Telegram Bot
+
+version: "1.0.0"
+
+# Bot Configuration
+bots:
+  prime:
+    name: "Pepper Prime"
+    token: ${PEPPER_PRIME_TOKEN}
+    description: "God Mode - Full system access for Mike"
+  demo:
+    name: "Pepper"
+    token: ${FACTORYLM_BOT_TOKEN}
+    description: "Demo Mode - Guardrailed access for customers"
+
+# God Mode Users (Telegram user IDs)
+god_users:
+  - 8445149012  # Mike
+
+# Demo Mode Whitelist (empty = public access)
+demo_whitelist: []
+
+# Digital Twin Nodes
+nodes:
+  plc:
+    name: "PLC Laptop"
+    url: "http://100.72.2.99:8765"
+    matrix_api: "http://100.72.2.99:8000"
+    aliases: ["plc", "factory", "factoryio", "micro820"]
+    capabilities:
+      - shell
+      - files
+      - screenshot
+      - plc_read
+      - plc_write
+      - factory_io
+      - diagnosis
+    description: "Factory I/O + Micro 820 PLC"
+
+  travel:
+    name: "Travel Laptop"
+    url: "http://100.83.251.23:8765"
+    aliases: ["travel", "dev", "laptop", "code"]
+    capabilities:
+      - shell
+      - files
+      - screenshot
+      - claude_code
+      - git
+      - deploy
+    description: "Development + Presentation"
+
+  vps:
+    name: "Ultron VPS"
+    url: "http://localhost:18789"
+    aliases: ["vps", "ultron", "jarvis", "cloud", "server"]
+    capabilities:
+      - shell
+      - files
+      - telegram
+      - n8n
+      - clawdbot
+    description: "Cloud orchestration server"
+
+# Default node for routing
+default_node: plc
+
+# Intelligence Layer Configuration
+intelligence:
+  # Layer 2: Local LLM (Primary)
+  layer2:
+    provider: groq
+    model: "llama-3.3-70b-versatile"
+    fallbacks:
+      - "llama-3.1-8b-instant"
+      - "deepseek-r1-distill-llama-70b"
+
+  # Layer 3: Cloud AI (Fallback)
+  layer3:
+    provider: anthropic
+    model: "claude-sonnet-4-20250514"
+    fallbacks:
+      - "claude-3-haiku-20240307"
+
+# Watchdog Configuration
+watchdog:
+  enabled: true
+  health_check_interval: 300  # 5 minutes
+  api_validation_interval: 900  # 15 minutes
+  fingerprint_interval: 300  # 5 minutes
+
+  alerts:
+    telegram_chat_id: "8445149012"
+    daily_digest_hour: 8
+
+  recovery:
+    max_attempts: 3
+    cooldown_minutes: 5
+    auto_restart_services:
+      - pepper
+      - pepper-watchdog
+
+# Deployment Configuration
+deploy:
+  versions_dir: "/root/.pepper/versions"
+  max_local_versions: 10
+  retention_days: 90
+
+  pre_deploy_checks:
+    - git_clean
+    - tests_pass
+    - config_valid
+    - disk_space
+
+  health_check_timeout: 10
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  file: "/var/log/pepper/pepper.log"
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+
+# Rate Limiting (Demo Mode)
+rate_limits:
+  requests_per_hour: 100
+  escalations_per_day: 5
+
+# TTS Configuration (optional)
+tts:
+  enabled: true
+  provider: edge
+  voice: "en-US-JennyNeural"
+  max_text_length: 5000
