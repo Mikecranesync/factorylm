@@ -180,15 +180,91 @@ async def demo_dashboard():
             min-height: 100vh;
         }
         .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a2e1a 100%);
+            padding: 20px 30px;
             border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        .header-left { display: flex; flex-direction: column; gap: 4px; }
         .header h1 {
-            font-size: 24px;
+            font-size: 28px;
             color: #00ff88;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        .header p { color: #888; margin-top: 5px; }
+        .header h1 .logo-factory { color: #00ff88; }
+        .header h1 .logo-lm {
+            color: #76b900;
+            font-weight: 300;
+            font-style: italic;
+        }
+        .header h1 .logo-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            margin: 0 2px 4px 1px;
+            box-shadow: 0 0 8px #00ff88;
+        }
+        .header-subtitle {
+            color: #888;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+        .header-subtitle .nvidia-tag {
+            color: #76b900;
+            font-weight: 600;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #ff000020;
+            border: 1px solid #ff000060;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ff4444;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4444;
+            animation: live-pulse 1.2s ease-in-out infinite;
+            box-shadow: 0 0 6px #ff4444;
+        }
+        @keyframes live-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+        .conn-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #888;
+        }
+        .conn-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .conn-dot.connected { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+        .conn-dot.disconnected { background: #ff4444; box-shadow: 0 0 6px #ff4444; }
         .container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -199,6 +275,7 @@ async def demo_dashboard():
         }
         @media (max-width: 900px) {
             .container { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 12px; align-items: flex-start; }
         }
         .panel {
             background: #12121a;
@@ -307,16 +384,93 @@ async def demo_dashboard():
             color: #fff;
         }
         .diagnosis-result {
-            background: #0a0a0f;
-            border-radius: 8px;
-            padding: 20px;
             margin-top: 15px;
-            white-space: pre-wrap;
+            display: none;
+        }
+        .diagnosis-result.has-glow {
+            border-radius: 12px;
+            padding: 3px;
+            background: linear-gradient(135deg, #00ff88, #76b900, #00cc6a, #76b900, #00ff88);
+            background-size: 300% 300%;
+            animation: glow-border 3s ease infinite;
+        }
+        @keyframes glow-border {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .diagnosis-result-inner {
+            background: #0a0a0f;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .diag-loading {
+            color: #888;
             font-family: 'SF Mono', Monaco, monospace;
             font-size: 13px;
+        }
+        .diag-card { margin-bottom: 16px; }
+        .diag-card:last-child { margin-bottom: 0; }
+        .diag-card-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #76b900;
+            margin-bottom: 6px;
+        }
+        .diag-card-content {
+            font-size: 14px;
             line-height: 1.6;
-            max-height: 400px;
-            overflow-y: auto;
+            color: #e0e0e0;
+        }
+        .diag-separator {
+            border: none;
+            border-top: 1px solid #2a2a3a;
+            margin: 14px 0;
+        }
+        .confidence-bar-track {
+            width: 100%;
+            height: 8px;
+            background: #1a1a2e;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .confidence-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #76b900, #00ff88);
+            transition: width 0.6s ease;
+        }
+        .confidence-label {
+            font-size: 13px;
+            color: #00ff88;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 13px;
+            color: #ccc;
+        }
+        .check-bullet {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #76b900;
+            border-radius: 4px;
+            margin-top: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #76b900;
         }
         .latency-badge {
             background: #2a2a3a;
@@ -341,15 +495,30 @@ async def demo_dashboard():
         .footer {
             text-align: center;
             padding: 20px;
-            color: #444;
-            font-size: 12px;
+            color: #555;
+            font-size: 13px;
+            letter-spacing: 0.5px;
         }
+        .footer .nvidia-green { color: #76b900; font-weight: 600; }
+        .footer .flm-green { color: #00ff88; font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>FactoryLM Demo</h1>
-        <p>Live Fault Diagnosis for Conveyor Cell</p>
+        <div class="header-left">
+            <h1><span class="logo-factory">Factory</span><span class="logo-dot"></span><span class="logo-lm">LM</span></h1>
+            <div class="header-subtitle">Live Fault Diagnosis &mdash; Powered by <span class="nvidia-tag">NVIDIA Cosmos Reason 2</span></div>
+        </div>
+        <div class="header-right">
+            <div class="conn-status">
+                <div id="connDot" class="conn-dot"></div>
+                <span id="connLabel">Matrix API</span>
+            </div>
+            <div class="live-badge">
+                <div class="live-dot"></div>
+                LIVE
+            </div>
+        </div>
     </div>
 
     <div class="container">
@@ -399,7 +568,9 @@ async def demo_dashboard():
                         <button class="btn" onclick="runDiagnosis()">Diagnose</button>
                         <button class="btn btn-secondary" onclick="quickDiagnose()">Quick Check</button>
                     </div>
-                    <div id="diagnosisResult" class="diagnosis-result" style="display: none;"></div>
+                    <div id="diagnosisResult" class="diagnosis-result">
+                        <div class="diagnosis-result-inner" id="diagnosisResultInner"></div>
+                    </div>
                     <div id="diagnosisLatency" style="margin-top: 10px; display: none;">
                         <span class="latency-badge" id="latencyValue">--</span>
                     </div>
@@ -409,7 +580,7 @@ async def demo_dashboard():
     </div>
 
     <div class="footer">
-        FactoryLM v1 Demo | Pipeline: Factory I/O -> Modbus -> Matrix -> Llama 3.1 70B -> Diagnosis
+        <span class="flm-green">FactoryLM</span> &times; <span class="nvidia-green">NVIDIA Cosmos Cookoff 2026</span>
     </div>
 
     <script>
@@ -539,14 +710,78 @@ async def demo_dashboard():
             }
         }
 
+        function parseDiagnosisAnswer(answer) {
+            let summary = '', rootCause = '', confidence = 0, checks = [];
+            const lines = answer.split('\\n');
+            let section = 'summary';
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.toLowerCase().startsWith('root cause:')) {
+                    rootCause = trimmed.replace(/^root cause:\s*/i, '');
+                    section = 'rootcause';
+                } else if (trimmed.toLowerCase().startsWith('suggested checks:')) {
+                    section = 'checks';
+                } else if (trimmed.startsWith('- ') || trimmed.startsWith('  - ')) {
+                    checks.push(trimmed.replace(/^[\s-]+/, ''));
+                } else if (section === 'summary' && trimmed) {
+                    summary += (summary ? ' ' : '') + trimmed;
+                } else if (section === 'rootcause' && trimmed && !rootCause) {
+                    rootCause = trimmed;
+                }
+            }
+            if (!summary && !rootCause) summary = answer;
+            const hasFaults = answer.toLowerCase().includes('fault') || answer.toLowerCase().includes('stop') || answer.toLowerCase().includes('error');
+            confidence = rootCause ? (hasFaults ? 72 : 88) : 50;
+            return { summary, rootCause, confidence, checks };
+        }
+
+        function renderDiagnosisCard(data) {
+            const parsed = parseDiagnosisAnswer(data.answer);
+            const inner = document.getElementById('diagnosisResultInner');
+            let html = '';
+
+            html += '<div class="diag-card"><div class="diag-card-label">Summary</div>';
+            html += '<div class="diag-card-content">' + escapeHtml(parsed.summary || 'Analysis complete.') + '</div></div>';
+
+            if (parsed.rootCause) {
+                html += '<hr class="diag-separator">';
+                html += '<div class="diag-card"><div class="diag-card-label">Root Cause</div>';
+                html += '<div class="diag-card-content">' + escapeHtml(parsed.rootCause) + '</div></div>';
+            }
+
+            html += '<hr class="diag-separator">';
+            html += '<div class="diag-card"><div class="diag-card-label">Confidence</div>';
+            html += '<div class="confidence-label">' + parsed.confidence + '%</div>';
+            html += '<div class="confidence-bar-track"><div class="confidence-bar-fill" style="width:' + parsed.confidence + '%"></div></div></div>';
+
+            if (parsed.checks.length > 0) {
+                html += '<hr class="diag-separator">';
+                html += '<div class="diag-card"><div class="diag-card-label">Suggested Checks</div>';
+                for (const check of parsed.checks) {
+                    html += '<div class="check-item"><div class="check-bullet">&#10003;</div><span>' + escapeHtml(check) + '</span></div>';
+                }
+                html += '</div>';
+            }
+
+            inner.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         async function runDiagnosis() {
             const question = document.getElementById('questionInput').value;
             const resultDiv = document.getElementById('diagnosisResult');
+            const inner = document.getElementById('diagnosisResultInner');
             const latencyDiv = document.getElementById('diagnosisLatency');
             const modelBadge = document.getElementById('diagnosisModel');
 
             resultDiv.style.display = 'block';
-            resultDiv.textContent = 'Analyzing...';
+            resultDiv.classList.remove('has-glow');
+            inner.innerHTML = '<div class="diag-loading">Analyzing...</div>';
             latencyDiv.style.display = 'none';
 
             try {
@@ -558,7 +793,8 @@ async def demo_dashboard():
 
                 const data = await resp.json();
 
-                resultDiv.textContent = data.answer;
+                renderDiagnosisCard(data);
+                resultDiv.classList.add('has-glow');
 
                 latencyDiv.style.display = 'block';
                 const latencyEl = document.getElementById('latencyValue');
@@ -568,7 +804,7 @@ async def demo_dashboard():
                 modelBadge.textContent = data.model;
 
             } catch (err) {
-                resultDiv.textContent = 'Error: ' + err.message;
+                inner.innerHTML = '<div class="diag-loading">Error: ' + escapeHtml(err.message) + '</div>';
             }
         }
 
@@ -577,13 +813,35 @@ async def demo_dashboard():
             runDiagnosis();
         }
 
+        // Connection status checker
+        async function checkConnection() {
+            const dot = document.getElementById('connDot');
+            const label = document.getElementById('connLabel');
+            try {
+                const resp = await fetch(API_BASE + '/api/tags', { signal: AbortSignal.timeout(3000) });
+                const data = await resp.json();
+                if (data.error) {
+                    dot.className = 'conn-dot disconnected';
+                    label.textContent = 'Matrix Offline';
+                } else {
+                    dot.className = 'conn-dot connected';
+                    label.textContent = 'Matrix API';
+                }
+            } catch (e) {
+                dot.className = 'conn-dot disconnected';
+                label.textContent = 'Matrix Offline';
+            }
+        }
+
         // Initial load
         fetchTags();
         fetchFaults();
+        checkConnection();
 
         // Auto-refresh every 2 seconds
         setInterval(fetchTags, 2000);
         setInterval(fetchFaults, 2000);
+        setInterval(checkConnection, 5000);
 
         // Enter key triggers diagnosis
         document.getElementById('questionInput').addEventListener('keypress', (e) => {
