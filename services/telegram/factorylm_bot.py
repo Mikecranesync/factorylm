@@ -17,6 +17,7 @@ import random
 import time
 from datetime import datetime
 from functools import wraps
+from pathlib import Path
 
 from telegram import Update, Bot
 from telegram.ext import (
@@ -26,6 +27,13 @@ from telegram.ext import (
     filters,
     ContextTypes,
 )
+
+# Unified Capabilities (shared across all bots)
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from services.capabilities import get_capabilities
+
+# Unified capabilities instance
+caps = get_capabilities()
 
 # Alerting configuration
 ALERT_POLL_INTERVAL = 5  # Check for faults every 5 seconds

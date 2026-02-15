@@ -17,6 +17,15 @@ from backend.services.command_parser import parse_command
 from backend.services.node_client import execute_on_node
 from backend.services.telemetry import get_tracer
 
+# Unified Capabilities (shared across all bots)
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent.parent.parent))
+from services.capabilities import get_capabilities
+
+# Unified capabilities instance
+caps = get_capabilities()
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 tracer = get_tracer()

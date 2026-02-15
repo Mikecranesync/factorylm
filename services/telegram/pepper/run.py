@@ -27,6 +27,10 @@ from config import load_config
 from telemetry import get_tracer
 from groq import Groq
 
+# Unified Capabilities (shared across all bots)
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+from services.capabilities import get_capabilities
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -139,6 +143,9 @@ class PepperPotts:
         self.tracer = get_tracer()
         self.conversations: dict[int, list] = {}
         self.god_users = set(config.god_users)
+
+        # Unified capabilities (memory, github, voice, nodes, telemetry, photos, factory)
+        self.caps = get_capabilities()
 
     def is_god_mode(self, user_id: int) -> bool:
         """Check if user has GOD MODE access."""

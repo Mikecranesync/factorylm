@@ -46,6 +46,11 @@ from telegram.ext import (
     ContextTypes,
 )
 
+# Unified Capabilities (shared across all bots)
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from services.capabilities import get_capabilities
+
 # Import the routing layer
 try:
     from telegram_router import NodeRouter, get_router
@@ -53,6 +58,9 @@ try:
 except ImportError:
     HAS_ROUTER = False
     print("WARNING: telegram_router not found, using fallback mode")
+
+# Unified capabilities instance
+caps = get_capabilities()
 
 # ============================================================================
 # Configuration
