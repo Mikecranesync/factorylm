@@ -10,9 +10,9 @@ import sys
 from pathlib import Path
 
 # Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from services.telegram.pepper.tools import (
+from tools import (
     get_tool_registry,
     ToolContext,
     UserMode,
@@ -160,7 +160,7 @@ async def test_guardrails():
     print("Testing Guardrail Engine")
     print("=" * 60)
 
-    from services.telegram.pepper.tools.guardrails import (
+    from tools.guardrails import (
         GuardrailEngine,
         GuardrailViolation,
     )

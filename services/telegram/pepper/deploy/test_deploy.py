@@ -11,6 +11,9 @@ import shutil
 from pathlib import Path
 import json
 
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+
 from versioning import Version, VersionManager
 from state import StateManager
 from rollback import RollbackManager
