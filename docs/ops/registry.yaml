@@ -16,6 +16,7 @@ services:
     docker: false
     linked_workflows:
       - WF-002  # start-cookoff-stack
+      - WF-008  # cosmos-r2-demo-prep
     linked_config_snapshots:
       - 2026-02-16_matrix-api.yaml
     notes: "CORS allow_origins=['*']. Tables: tag_snapshots, incidents, cosmos_insights, video_clips, video_analyses."
@@ -92,6 +93,7 @@ services:
     docker: false
     linked_workflows:
       - WF-002  # start-cookoff-stack
+      - WF-008  # cosmos-r2-demo-prep
     linked_config_snapshots:
       - 2026-02-16_cosmos-agent.yaml
     notes: "Read-only — never writes to PLCs. Model: nvidia/cosmos-reason2-8b, fallback: meta/llama-3.1-70b-instruct."
@@ -109,6 +111,7 @@ services:
     docker: false
     linked_workflows:
       - WF-002  # start-cookoff-stack
+      - WF-008  # cosmos-r2-demo-prep
     linked_config_snapshots:
       - 2026-02-16_cosmos-agent.yaml
     notes: "Polls /api/incidents?status=open every N seconds. Tracks seen incident IDs in memory."
@@ -127,6 +130,7 @@ services:
     linked_workflows:
       - WF-002  # start-cookoff-stack
       - WF-005  # trigger-diagnose-fault
+      - WF-008  # cosmos-r2-demo-prep
     linked_config_snapshots:
       - 2026-02-16_factoryio-bridge.yaml
     notes: "Modbus TCP on port 502. Error codes: 0=OK, 1=Overload, 2=Overheat, 3=Jam, 4=Sensor, 5=Comms. Falls back to built-in simulator if no Modbus connection."
