@@ -202,23 +202,25 @@ async def ingest_tag(tag: TagPayload):
         )
         tag_id = cur.lastrowid
 
-        # Auto-create incident on new fault
+        # Auto-create incident on new fault or e-stop
         incident_id = None
-        if tag.fault_alarm and tag.error_code > 0:
+        effective_error = tag.error_code if tag.error_code > 0 else (-1 if tag.e_stop else 0)
+        if tag.fault_alarm and tag.error_code > 0 or tag.e_stop:
             # Check if there's already an open incident for this node+error
             existing = conn.execute(
                 "SELECT id FROM incidents WHERE node_id=? AND error_code=? AND status='open'",
-                (tag.node_id, tag.error_code),
+                (tag.node_id, effective_error),
             ).fetchone()
             if not existing:
+                err_msg = tag.error_message or ("Emergency stop activated" if tag.e_stop else "")
                 cur2 = conn.execute(
                     """INSERT INTO incidents (timestamp, node_id, error_code, error_message, status, trigger_tag_id, tags_json)
                        VALUES (?,?,?,?,?,?,?)""",
-                    (tag.timestamp, tag.node_id, tag.error_code, tag.error_message,
+                    (tag.timestamp, tag.node_id, effective_error, err_msg,
                      "open", tag_id, json.dumps(tag.model_dump())),
                 )
                 incident_id = cur2.lastrowid
-                logger.info("Incident #%d created: %s on %s", incident_id, tag.error_message, tag.node_id)
+                logger.info("Incident #%d created: %s on %s", incident_id, err_msg, tag.node_id)
 
         conn.commit()
         return {"tag_id": tag_id, "incident_id": incident_id}
