@@ -117,5 +117,47 @@ ANTHROPIC_API_KEY=sk-ant-...
 2. Add English fallback in `en.json`
 3. Use translator in code: `t("key", param=value)`
 
+## Operational Documentation Protocol
+
+### During Work — Buffer Notes
+After completing any fix, deploy, or investigation, append brief notes to
+/tmp/ops-buffer.md. Do NOT pause work to write full documentation.
+
+Buffer format (just append lines):
+```
+[TRACE] service=plc-copilot type=fix | Added message chunking for Telegram 4096 limit
+[CONFIG] service=cosmos-agent | Changed model from 8b to 70b in cosmos.yaml
+[WORKFLOW] name=deploy-bot | Steps: git pull, systemctl restart, verify health
+```
+
+### After Work — Flush to Docs
+When a task is complete, process the buffer into proper artifacts:
+- Traces → docs/ops/traces/YYYY-MM-DD_slug.md
+- Workflows → docs/ops/workflows/slug.md (new or update existing)
+- Config snapshots → docs/ops/config-snapshots/YYYY-MM-DD_service.yaml
+- Always update docs/ops/registry.yaml if services/configs changed
+
+### Before Starting Work — Check Registry
+Before exploring the codebase for any service, first read:
+1. docs/ops/registry.yaml — service config, entry points, commands
+2. docs/ops/traces/ — recent traces for that service
+3. docs/ops/workflows/ — existing procedures
+Reference artifacts instead of re-exploring.
+
+### Commit Convention
+- Use `ops:` prefix for ops doc commits
+- Include artifact references in fix/feat commit bodies:
+  ```
+  Trace: TRC-YYYY-MM-DD-NNN
+  Workflow: WF-NNN
+  Config-Snapshot: YYYY-MM-DD_service.yaml
+  ```
+
+### Observability Tools (future integration)
+- Langfuse: LLM traces (prompts, token costs, model routing)
+- Sentry: Error tracking + crash reporting
+- Doppler: Secrets + config versioning
+- Honeycomb: Infrastructure traces (API latency, service health)
+
 ---
 *FactoryLM: Industrial AI for the real world.*

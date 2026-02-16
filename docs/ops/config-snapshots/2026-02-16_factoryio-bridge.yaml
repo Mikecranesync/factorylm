@@ -1,0 +1,68 @@
+# Config Snapshot: Factory I/O Bridge
+# Captured: 2026-02-16
+# Source: config/factoryio.yaml, sim/factoryio_bridge.py
+
+service: factoryio-bridge
+version: "post-908d358"
+snapshot_date: "2026-02-16"
+previous_snapshot: null
+
+runtime:
+  python_version: "3.11"
+  device: plc-laptop
+  ip: "100.72.2.99"
+  port: null  # Client, not server
+
+env_vars: []  # No env vars, all config-file and CLI based
+
+config_files:
+  - path: "config/factoryio.yaml"
+    sha256: null  # capture on next deploy
+
+key_settings:
+  modbus_host: "127.0.0.1"
+  modbus_port: 502
+  matrix_url: "http://localhost:8000"
+  interval_ms: 200
+  incident_source: "factoryio"
+  scene: "Sorting by Height"
+  coils:
+    0: motor_running
+    1: motor_stopped
+    2: fault_alarm
+    3: conveyor_running
+    4: sensor_1_active
+    5: sensor_2_active
+    6: e_stop_active
+  registers:
+    100: motor_speed
+    101: motor_current
+    102: temperature
+    103: pressure
+    104: conveyor_speed
+    105: error_code
+  scale:
+    motor_current: 0.1
+    temperature: 0.1
+  error_codes:
+    0: "No error"
+    1: "Motor overload"
+    2: "Temperature high"
+    3: "Conveyor jam"
+    4: "Sensor failure"
+    5: "Communication loss"
+  cli_args:
+    - "--sim: Use built-in PLC simulator"
+    - "--interval N: Poll interval in ms"
+    - "--plc-host IP: Modbus TCP host"
+
+dependencies:
+  - httpx
+  - pyyaml
+  - pymodbus
+
+health:
+  endpoint: null
+  expected: null
+
+changes_from_previous: null  # First snapshot

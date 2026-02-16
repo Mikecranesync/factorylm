@@ -1,0 +1,68 @@
+# Config Snapshot: PLC Copilot (Telegram Bot)
+# Captured: 2026-02-16
+# Source: services/plc-copilot/photo_to_cmms_bot.py lines 49-68, 73-115
+
+service: plc-copilot
+version: "post-4adac30"
+snapshot_date: "2026-02-16"
+previous_snapshot: null
+
+runtime:
+  python_version: "3.11"
+  device: vps
+  ip: "100.68.120.99"
+  port: null  # Telegram polling, no HTTP server
+
+env_vars:
+  - name: TELEGRAM_BOT_TOKEN
+    value: REDACTED
+    source: .env
+  - name: GEMINI_API_KEY
+    value: REDACTED
+    source: .env
+  - name: CMMS_BASE_URL
+    value: "http://localhost:8080"
+    source: default
+  - name: CMMS_EMAIL
+    value: REDACTED
+    source: .env
+  - name: CMMS_PASSWORD
+    value: REDACTED
+    source: .env
+  - name: ALLOWED_USERS
+    value: ""  # empty = allow all
+    source: default
+  - name: CMMS_FRONTEND_URL
+    value: "http://72.60.175.144"
+    source: default
+  - name: RATE_LIMIT_PER_HOUR
+    value: "30"
+    source: default
+  - name: LOG_DIR
+    value: "/var/log/plc-copilot"
+    source: default
+
+config_files: []  # No YAML/JSON config files, all env-based
+
+key_settings:
+  free_photo_limit: 3
+  registration_url: "http://72.60.175.144/register"
+  log_file: "/var/log/plc-copilot/plc-copilot.log"
+  log_max_bytes: 10485760  # 10MB
+  log_backup_count: 5
+  error_log_file: "/var/log/plc-copilot/plc-copilot-errors.log"
+  error_log_max_bytes: 5242880  # 5MB
+  error_log_backup_count: 3
+  message_chunk_limit: 4096  # Telegram hard limit
+  hard_truncation: 3500  # Safety net before sending
+
+dependencies:
+  - python-telegram-bot
+  - google-generativeai
+  - requests
+
+health:
+  endpoint: "/health Telegram command"
+  expected: "Bot responds with status info"
+
+changes_from_previous: null  # First snapshot

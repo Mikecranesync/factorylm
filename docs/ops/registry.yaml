@@ -1,0 +1,218 @@
+# FactoryLM Process Registry
+# Master index of all services, scripts, configs, network nodes, and observability tools.
+# Updated: 2026-02-16
+
+services:
+  matrix-api:
+    description: "Tag ingestion, incident tracking, and Cosmos insights API"
+    entry_point: "services/matrix/app.py"
+    port: 8000
+    health: "/api/health"
+    device: travel-laptop | plc-laptop
+    start_command: "uvicorn services.matrix.app:app --host 0.0.0.0 --port 8000"
+    config_source: "env vars (MATRIX_DB_PATH)"
+    logging_level: INFO
+    data_store: "SQLite (matrix.db) — WAL mode"
+    docker: false
+    linked_workflows:
+      - WF-002  # start-cookoff-stack
+    linked_config_snapshots:
+      - 2026-02-16_matrix-api.yaml
+    notes: "CORS allow_origins=['*']. Tables: tag_snapshots, incidents, cosmos_insights, video_clips, video_analyses."
+
+  plc-copilot:
+    description: "Telegram bot — receives equipment photos, identifies with Gemini Vision, creates CMMS assets/work orders"
+    entry_point: "services/plc-copilot/photo_to_cmms_bot.py"
+    port: null
+    health: "/health command in Telegram"
+    device: vps
+    start_command: "python photo_to_cmms_bot.py"
+    config_source: "env vars (TELEGRAM_BOT_TOKEN, GEMINI_API_KEY, CMMS_BASE_URL, CMMS_EMAIL, CMMS_PASSWORD, ALLOWED_USERS, CMMS_FRONTEND_URL, RATE_LIMIT_PER_HOUR, LOG_DIR)"
+    logging_level: "DEBUG (file) / INFO (console)"
+    data_store: "SQLite (user_db) for freemium tracking"
+    docker: true
+    linked_workflows:
+      - WF-001  # deploy-plc-copilot
+    linked_config_snapshots:
+      - 2026-02-16_plc-copilot.yaml
+    notes: "RotatingFileHandler (10MB/5 backups). Rate limit 30 photos/user/hour. Freemium limit 3 free photos."
+
+  plc-modbus:
+    description: "FastAPI backend for Modbus TCP network scanning and PLC communication"
+    entry_point: "services/plc-modbus/backend/main.py"
+    port: 8000
+    health: "/api/health"
+    device: plc-laptop
+    start_command: "uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
+    config_source: "pydantic-settings (FACTORYLM_ prefix, .env file)"
+    logging_level: INFO
+    data_store: null
+    docker: false
+    linked_workflows: []
+    linked_config_snapshots:
+      - 2026-02-16_plc-modbus.yaml
+    notes: "CORS origins: localhost:3000, localhost:5173, 127.0.0.1 variants. Modbus scanner defaults: port 502, timeout 0.3s, subnet 192.168.1.x."
+
+  cosmos-agent:
+    description: "NVIDIA Cosmos Reason 2 connector — bridges PLC fault/anomaly events to Cosmos for root-cause analysis"
+    entry_point: "cosmos/agent.py"
+    port: null
+    health: null
+    device: travel-laptop
+    start_command: "python -c 'from cosmos.agent import CosmosAgent; ...'"
+    config_source: "config/cosmos.yaml + env var NVIDIA_COSMOS_API_KEY"
+    logging_level: INFO
+    data_store: null
+    docker: false
+    linked_workflows:
+      - WF-002  # start-cookoff-stack
+    linked_config_snapshots:
+      - 2026-02-16_cosmos-agent.yaml
+    notes: "Read-only — never writes to PLCs. Model: nvidia/cosmos-reason2-8b, fallback: meta/llama-3.1-70b-instruct."
+
+  cosmos-watcher:
+    description: "Polls Matrix API for open incidents and triggers Cosmos analysis"
+    entry_point: "cosmos/watcher.py"
+    port: null
+    health: null
+    device: travel-laptop
+    start_command: "python -m cosmos.watcher --matrix-url http://localhost:8000 --interval 5"
+    config_source: "CLI args (--matrix-url, --interval)"
+    logging_level: INFO
+    data_store: null
+    docker: false
+    linked_workflows:
+      - WF-002  # start-cookoff-stack
+    linked_config_snapshots:
+      - 2026-02-16_cosmos-agent.yaml
+    notes: "Polls /api/incidents?status=open every N seconds. Tracks seen incident IDs in memory."
+
+  factoryio-bridge:
+    description: "Reads PLC tags via Modbus TCP (Factory I/O or real PLC) and posts to Matrix API"
+    entry_point: "sim/factoryio_bridge.py"
+    port: null
+    health: null
+    device: plc-laptop
+    start_command: "python sim/factoryio_bridge.py --plc-host 100.72.2.99 --interval 1000"
+    config_source: "config/factoryio.yaml + CLI args (--sim, --interval, --plc-host)"
+    logging_level: INFO
+    data_store: null
+    docker: false
+    linked_workflows:
+      - WF-002  # start-cookoff-stack
+      - WF-005  # trigger-diagnose-fault
+    linked_config_snapshots:
+      - 2026-02-16_factoryio-bridge.yaml
+    notes: "Modbus TCP on port 502. Error codes: 0=OK, 1=Overload, 2=Overheat, 3=Jam, 4=Sensor, 5=Comms. Falls back to built-in simulator if no Modbus connection."
+
+  fault-diagnosis:
+    description: "Conveyor fault detection library — maps PLC tags to fault conditions with technician-friendly explanations"
+    entry_point: "diagnosis/conveyor_faults.py"
+    port: null
+    health: null
+    device: library
+    start_command: null
+    config_source: null
+    logging_level: null
+    data_store: null
+    docker: false
+    linked_workflows:
+      - WF-005  # trigger-diagnose-fault
+    linked_config_snapshots: []
+    notes: "Pure library. FaultSeverity enum (info/warning/critical/emergency). detect_faults() returns List[FaultDiagnosis]. Designed for Allen-Bradley Micro820 + conveyor cell."
+
+scripts:
+  plc-remote:
+    path: "scripts/plc_remote.ps1"
+    description: "Remote management for PLC laptop — status, sync, deps, start/stop services, logs"
+    device: travel-laptop (runs against plc-laptop)
+    commands: "status, sync, deps, start-matrix, start-bridge, start-watcher, start-all, stop-all, logs, check-factoryio"
+    linked_workflows:
+      - WF-003  # remote-plc-management
+
+  start-cookoff:
+    path: "start_cookoff.py"
+    description: "Starts full Cosmos Cookoff demo stack — Docker/Postgres, Factory I/O bridge, live test"
+    device: travel-laptop
+    commands: "--live-only, --check, --no-bridge"
+    linked_workflows:
+      - WF-002  # start-cookoff-stack
+
+  start-cookoff-remote:
+    path: "start_cookoff_remote.py"
+    description: "Remote version of start_cookoff — orchestrates PLC laptop services from travel laptop"
+    device: travel-laptop (orchestrates plc-laptop)
+    commands: null
+    linked_workflows:
+      - WF-002  # start-cookoff-stack
+
+config_files:
+  cosmos-yaml:
+    path: "config/cosmos.yaml"
+    description: "NVIDIA Cosmos Reason 2 settings — model, trigger conditions, tag history, video, storage"
+    services:
+      - cosmos-agent
+      - cosmos-watcher
+
+  factoryio-yaml:
+    path: "config/factoryio.yaml"
+    description: "Factory I/O bridge settings — Modbus host/port, Matrix URL, poll interval, tag map"
+    services:
+      - factoryio-bridge
+
+  plc-modbus-settings:
+    path: "services/plc-modbus/backend/config.py"
+    description: "Pydantic-settings config — API title/version, CORS origins, scanner defaults"
+    services:
+      - plc-modbus
+
+network:
+  travel-laptop:
+    hostname: "Miguelomaniac"
+    tailscale_ip: "100.83.251.23"
+    role: "Development, testing, presentation backup"
+    services:
+      - matrix-api
+      - cosmos-agent
+      - cosmos-watcher
+
+  plc-laptop:
+    hostname: "LAPTOP-0KA3C70H"
+    tailscale_ip: "100.72.2.99"
+    role: "Factory I/O simulation, Micro 820 PLC connection, real hardware"
+    services:
+      - matrix-api
+      - plc-modbus
+      - factoryio-bridge
+
+  vps:
+    hostname: "Jarvis"
+    tailscale_ip: "100.68.120.99"
+    role: "Telegram gateway, diagnosis service, orchestration"
+    services:
+      - plc-copilot
+
+observability:
+  langfuse:
+    purpose: "LLM tracing — prompts, completions, token costs, model routing"
+    priority: high
+    status: "planned — was in old Node.js config, reintegrate next"
+    maps_to: "traces/"
+
+  sentry:
+    purpose: "Error tracking, crash reporting, release health"
+    priority: medium
+    status: future
+    maps_to: "incidents/"
+
+  doppler:
+    purpose: "Secrets management + config versioning"
+    priority: medium
+    status: future
+    maps_to: "config-snapshots/"
+
+  honeycomb:
+    purpose: "Infrastructure traces — API latency, service health"
+    priority: low
+    status: future
+    maps_to: "traces/ + registry"

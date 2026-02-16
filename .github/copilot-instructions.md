@@ -35,6 +35,14 @@ factorylm/
 - Reference GitHub issues: `Fixes #14`
 - Write tests for new functionality
 
+### Operational Documentation
+- Use `ops:` prefix for operational doc commits
+- Reference traces in fix/feat commits: `Trace: TRC-YYYY-MM-DD-NNN`
+- Reference workflows: `Workflow: WF-NNN`
+- Reference config snapshots: `Config-Snapshot: YYYY-MM-DD_service.yaml`
+- Before work: check docs/ops/registry.yaml for service details
+- After work: flush /tmp/ops-buffer.md into docs/ops/ artifacts
+
 ## Domain Terms
 
 - **VFD** = Variable Frequency Drive (motor controller)

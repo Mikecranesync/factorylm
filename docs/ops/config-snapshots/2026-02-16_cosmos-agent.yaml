@@ -1,0 +1,51 @@
+# Config Snapshot: Cosmos Agent + Watcher
+# Captured: 2026-02-16
+# Source: config/cosmos.yaml, cosmos/agent.py, cosmos/watcher.py
+
+service: cosmos-agent
+version: "post-908d358"
+snapshot_date: "2026-02-16"
+previous_snapshot: null
+
+runtime:
+  python_version: "3.11"
+  device: travel-laptop
+  ip: "100.83.251.23"
+  port: null  # No HTTP server
+
+env_vars:
+  - name: NVIDIA_COSMOS_API_KEY
+    value: REDACTED
+    source: .env
+
+config_files:
+  - path: "config/cosmos.yaml"
+    sha256: null  # capture on next deploy
+
+key_settings:
+  cosmos_enabled: true
+  model: "nvidia/cosmos-reason2-8b"
+  fallback_model: "meta/llama-3.1-70b-instruct"
+  api_base_url: "https://integrate.api.nvidia.com/v1"
+  trigger_on_fault_alarm: true
+  trigger_on_anomaly_detected: true
+  trigger_on_manual_request: true
+  tag_history_default_window_seconds: 60
+  tag_history_max_window_seconds: 300
+  video_enabled: false
+  video_max_clip_seconds: 30
+  video_format: "mp4"
+  insight_storage_backend: "postgres"
+  insight_storage_table: "cosmos_insights"
+  watcher_default_matrix_url: "http://localhost:8000"
+  watcher_default_interval: 5.0
+
+dependencies:
+  - httpx
+  - pyyaml
+
+health:
+  endpoint: null
+  expected: null
+
+changes_from_previous: null  # First snapshot
