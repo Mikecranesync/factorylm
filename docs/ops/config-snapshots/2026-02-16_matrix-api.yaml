@@ -1,0 +1,46 @@
+# Config Snapshot: Matrix API
+# Captured: 2026-02-16
+# Source: services/matrix/app.py
+
+service: matrix-api
+version: "0.1.0"
+snapshot_date: "2026-02-16"
+previous_snapshot: null
+
+runtime:
+  python_version: "3.11"
+  device: travel-laptop | plc-laptop
+  ip: "100.83.251.23 or 100.72.2.99"
+  port: 8000
+
+env_vars:
+  - name: MATRIX_DB_PATH
+    value: "matrix.db"
+    source: default
+
+config_files: []  # No YAML/JSON config files, all in-code
+
+key_settings:
+  db_engine: "SQLite"
+  db_journal_mode: "WAL"
+  cors_allow_origins: ["*"]
+  cors_allow_credentials: true
+  cors_allow_methods: ["*"]
+  cors_allow_headers: ["*"]
+  tables:
+    - tag_snapshots
+    - incidents
+    - cosmos_insights
+    - video_clips
+    - video_analyses
+
+dependencies:
+  - fastapi
+  - pydantic
+  - uvicorn
+
+health:
+  endpoint: "/api/health"
+  expected: '{"status": "ok"}'
+
+changes_from_previous: null  # First snapshot

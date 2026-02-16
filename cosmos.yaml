@@ -1,0 +1,29 @@
+# FactoryLM Cosmos Reason 2 Configuration
+# NVIDIA Cosmos Cookoff 2026
+
+cosmos:
+  enabled: true
+  model: "nvidia/cosmos-reason2-8b"
+  fallback_model: "meta/llama-3.1-70b-instruct"
+  api_base_url: "https://integrate.api.nvidia.com/v1"
+
+  # API key is read from env: NVIDIA_COSMOS_API_KEY
+  # Never put secrets in this file.
+
+  trigger:
+    on_fault_alarm: true
+    on_anomaly_detected: true
+    on_manual_request: true
+
+  tag_history:
+    default_window_seconds: 60
+    max_window_seconds: 300
+
+  video:
+    enabled: false
+    max_clip_seconds: 30
+    format: "mp4"
+
+  insight_storage:
+    backend: "postgres"
+    table: "cosmos_insights"

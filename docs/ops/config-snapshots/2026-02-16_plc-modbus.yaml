@@ -1,0 +1,75 @@
+# Config Snapshot: PLC Modbus Backend
+# Captured: 2026-02-16
+# Source: services/plc-modbus/backend/config.py, services/plc-modbus/backend/main.py
+
+service: plc-modbus
+version: "0.1.0"
+snapshot_date: "2026-02-16"
+previous_snapshot: null
+
+runtime:
+  python_version: "3.11"
+  device: plc-laptop
+  ip: "100.72.2.99"
+  port: 8000
+
+env_vars:
+  # All prefixed with FACTORYLM_ (pydantic-settings)
+  - name: FACTORYLM_API_TITLE
+    value: "FactoryLM PLC API"
+    source: default
+  - name: FACTORYLM_API_VERSION
+    value: "0.1.0"
+    source: default
+  - name: FACTORYLM_API_PREFIX
+    value: "/api"
+    source: default
+  - name: FACTORYLM_CORS_ORIGINS
+    value: '["http://localhost:3000","http://localhost:5173","http://127.0.0.1:3000","http://127.0.0.1:5173"]'
+    source: default
+  - name: FACTORYLM_SCANNER_DEFAULT_TIMEOUT
+    value: "0.3"
+    source: default
+  - name: FACTORYLM_SCANNER_DEFAULT_PORT
+    value: "502"
+    source: default
+  - name: FACTORYLM_SCANNER_MAX_WORKERS
+    value: "50"
+    source: default
+  - name: FACTORYLM_SCANNER_DEFAULT_SUBNET
+    value: "192.168.1"
+    source: default
+  - name: FACTORYLM_SCANNER_DEFAULT_START
+    value: "1"
+    source: default
+  - name: FACTORYLM_SCANNER_DEFAULT_END
+    value: "254"
+    source: default
+
+config_files:
+  - path: "services/plc-modbus/backend/config.py"
+    sha256: null  # pydantic-settings class
+
+key_settings:
+  config_framework: "pydantic-settings"
+  env_prefix: "FACTORYLM_"
+  env_file: ".env"
+  docs_url: "/api/docs"
+  redoc_url: "/api/redoc"
+  openapi_url: "/api/openapi.json"
+  routers:
+    - setup_router (/api)
+    - plc_router (/api)
+    - ws_router (root level WebSocket)
+
+dependencies:
+  - fastapi
+  - pydantic-settings
+  - uvicorn
+  - pymodbus
+
+health:
+  endpoint: "/api/health"
+  expected: '{"status": "healthy", "version": "0.1.0"}'
+
+changes_from_previous: null  # First snapshot

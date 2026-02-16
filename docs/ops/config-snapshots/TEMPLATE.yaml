@@ -1,0 +1,42 @@
+# Config Snapshot Template
+# Copy this file and fill in for each service snapshot.
+# Naming convention: YYYY-MM-DD_service-name.yaml
+
+service: service-name
+version: "0.1.0"
+snapshot_date: "YYYY-MM-DD"
+previous_snapshot: null  # path to previous snapshot if exists
+
+runtime:
+  python_version: "3.11"
+  device: travel-laptop | plc-laptop | vps
+  ip: "100.x.x.x"
+  port: 8000
+
+env_vars:
+  - name: ENV_VAR_NAME
+    value: "default-value"  # use REDACTED for secrets
+    source: default | .env | runtime
+
+config_files:
+  - path: "config/example.yaml"
+    sha256: "hash-here"
+
+key_settings:
+  setting_name: value
+  another_setting: value
+
+dependencies:
+  - fastapi>=0.100.0
+  - pydantic>=2.0
+
+health:
+  endpoint: "/api/health"
+  expected: '{"status": "healthy"}'
+
+changes_from_previous:
+  # Only populated when updating an existing snapshot
+  # - field: setting_name
+  #   old: old-value
+  #   new: new-value
+  #   reason: why it changed
