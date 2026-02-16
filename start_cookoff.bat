@@ -4,10 +4,9 @@ REM Double-click this file or run from command line
 
 cd /d "%~dp0"
 
-REM Set API key if not already set (get from Doppler or set manually)
+REM Set API key if not already set
 if "%NVIDIA_COSMOS_API_KEY%"=="" (
-    echo [!] NVIDIA_COSMOS_API_KEY not set. Run: set NVIDIA_COSMOS_API_KEY=your-key-here
-    echo     Or configure via Doppler. Falling back to stub responses.
+    set NVIDIA_COSMOS_API_KEY=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
 )
 
 echo.

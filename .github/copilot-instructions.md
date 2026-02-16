@@ -1,3 +1,10 @@
+## ⚠️ READ FIRST: The Vision
+
+Before doing ANY work, read the FactoryLM Vision:
+**https://github.com/Mikecranesync/factorylm/blob/main/README.md**
+
+---
+
 # GitHub Copilot Instructions for FactoryLM
 
 ## Project Overview

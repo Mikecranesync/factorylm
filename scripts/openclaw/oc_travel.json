@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "instanceId": "oc_travel",
+    "hostname": "Miguelomaniac",
+    "role": "development",
+    "description": "Travel laptop agent for FactoryLM development and demos"
+  },
+  "env": {
+    "OC_INSTANCE_ID": "oc_travel",
+    "MATRIX_URL": "http://100.72.2.99:8000",
+    "PLC_JARVIS_URL": "http://100.72.2.99:8765",
+    "VPS_URL": "http://100.68.120.99:18789"
+  },
+  "models": {
+    "providers": {
+      "nvidia": {
+        "baseUrl": "https://integrate.api.nvidia.com/v1",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "meta/llama-3.1-70b-instruct",
+            "name": "Llama 3.1 70B (NVIDIA)",
+            "contextWindow": 128000,
+            "maxTokens": 4096
+          }
+        ]
+      },
+      "groq": {
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "llama-3.3-70b-versatile",
+            "name": "Llama 3.3 70B (Groq)",
+            "contextWindow": 131072,
+            "maxTokens": 32768
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "nvidia/meta/llama-3.1-70b-instruct",
+        "fallbacks": [
+          "groq/llama-3.3-70b-versatile"
+        ]
+      },
+      "workspace": "C:\\Users\\hharp\\OneDrive\\Desktop\\FactoryLM",
+      "compaction": {
+        "mode": "safeguard",
+        "reserveTokensFloor": 4000
+      }
+    }
+  },
+  "tools": {
+    "matrix_api": {
+      "type": "http",
+      "url": "http://100.72.2.99:8000",
+      "description": "Matrix API on PLC laptop - live PLC tags",
+      "endpoints": {
+        "tags": "/api/tags",
+        "health": "/api/health",
+        "faults": "/api/faults"
+      }
+    },
+    "plc_jarvis": {
+      "type": "jarvis_node",
+      "url": "http://100.72.2.99:8765",
+      "description": "Remote shell on PLC laptop",
+      "endpoints": {
+        "shell": "/shell",
+        "read": "/files/read",
+        "health": "/health"
+      }
+    },
+    "demo_ui": {
+      "type": "http",
+      "url": "http://100.72.2.99:8080",
+      "description": "Demo UI with diagnosis",
+      "endpoints": {
+        "diagnose": "/api/diagnose",
+        "faults": "/api/faults"
+      }
+    }
+  },
+  "gateway": {
+    "port": 8765,
+    "mode": "local",
+    "bind": "0.0.0.0",
+    "auth": {
+      "mode": "none"
+    }
+  },
+  "plugins": {
+    "entries": {}
+  }
+}

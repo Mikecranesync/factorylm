@@ -1,0 +1,18 @@
+# Byte-compiled files
+__pycache__/
+*.pyc
+
+# Distribution
+*.egg-info/
+
+# Environments
+.venv
+
+# Sphinx documentation
+docs/source/_build/
+docs/source/auto_examples/
+docs/source/drive_examples/
+docs/source/grid_examples/
+docs/build/
+docs/source/autoapi/
+docs/source/sg_execution_times.rst

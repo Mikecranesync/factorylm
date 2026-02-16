@@ -1,27 +1,22 @@
 # FactoryLM Core Dependencies
-# Python 3.11+
 
-# Data validation
-pydantic>=2.0
-pydantic-settings>=2.0
+# Core dependencies
+python-dotenv==1.0.0
+groq==0.14.0
+openai==1.6.1          # For DeepSeek (OpenAI-compatible API)
+anthropic==0.28.1
 
-# Async HTTP
-httpx>=0.25.0
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-asyncio==0.21.1
 
-# Database
-asyncpg>=0.29.0
+# Development / Code Quality
+black==23.12.0
+flake8==6.1.0
+mypy==1.7.1
+isort==5.13.2
 
-# AI/LLM
-anthropic>=0.18.0
-openai>=1.10.0
-groq>=0.4.0
-
-# Twilio (WhatsApp)
-twilio>=8.10.0
-
-# Utilities
-python-dotenv>=1.0.0
-
-# Optional: OCR/Vision
-# pillow>=10.0.0
-# sentence-transformers>=2.2.0
+# Type stubs
+types-requests==2.31.0.10

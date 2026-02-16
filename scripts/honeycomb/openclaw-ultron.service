@@ -1,0 +1,25 @@
+[Unit]
+Description=OpenClaw Gateway (Ultron VPS - 24/7)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/openclaw gateway --port 18789
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=HOME=/root
+Environment=HONEYCOMB_API_KEY=qd3lCxbN4ah1tXTO8MOiMB
+Environment=OTEL_SERVICE_NAME=openclaw-ultron
+Environment=OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io:443
+Environment=OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+Environment=OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=qd3lCxbN4ah1tXTO8MOiMB
+Environment=OTEL_INSTANCE_NAME=ultron
+Environment=OTEL_DEPLOYMENT_ENVIRONMENT=production
+Environment="NODE_OPTIONS=-r /root/.openclaw/tracing.js"
+Environment=NODE_PATH=/usr/lib/node_modules
+WorkingDirectory=/root
+
+[Install]
+WantedBy=multi-user.target

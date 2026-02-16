@@ -1,0 +1,19 @@
+name: "write_spec"
+description: "Create a specification document"
+extends: "_base.yaml"
+
+prompt:
+  system: |
+    You are writing a technical specification.
+    A good spec includes:
+    1. Clear problem statement
+    2. Proposed solution
+    3. Acceptance criteria (testable)
+    4. Success metrics (measurable)
+    
+  user: |
+    ## REQUIREMENT
+    {requirement}
+    
+    ## OUTPUT
+    Write a complete specification.

@@ -1,0 +1,15 @@
+# FactoryLM PLC Client Dependencies
+
+# From core
+factorylm-core>=0.1.0
+
+# Modbus TCP
+pymodbus==3.6.1
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+
+# Development
+python-dotenv==1.0.0

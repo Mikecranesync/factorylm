@@ -1,0 +1,130 @@
+# FactoryLM PLC Client - Ralph Progress Log
+
+## Codebase Patterns
+- Use pymodbus for Modbus TCP communication
+- All PLC clients must implement BasePLCClient abstract class
+- MachineState is the standardized response format for all PLC reads
+- MockPLC enables testing without real hardware
+- Follow patterns from core/ for abstractions and factory functions
+- Temperature values from Micro820 are scaled 10x (divide by 10)
+
+---
+
+## Progress
+
+## 2025-01-25 - PLC-001
+- Created plc-client/ directory structure per PRD-003
+- Files: __init__.py, config.py, models.py, plc/base.py, modbus/__init__.py
+- requirements.txt with pymodbus==3.6.1
+- pytest.ini, setup.py, .env.example, .gitignore
+- Commit: d76a77f
+- **Learnings:**
+  - Directory structure follows core/ patterns
+  - Placeholder files allow incremental development
+---
+
+## 2025-01-25 - PLC-002
+- Implemented BasePLCClient abstract class in plc/base.py
+- Abstract methods: connect, disconnect, is_connected, read_state, write_register, write_coil
+- Added context manager support (__enter__, __exit__)
+- Complete docstrings with Args, Returns, Raises
+- Updated __init__.py with try/except for MachineState import
+- Commit: 1ab0d1a
+- **Learnings:**
+  - Use TYPE_CHECKING for forward references to avoid circular imports
+  - Graceful import handling needed for incremental development
+---
+
+## 2025-01-25 - PLC-003
+- Implemented MachineState dataclass in models.py
+- Fields: motor_speed, motor_current, temperature, pressure, motor_running, motor_stopped, fault_alarm, timestamp, raw_registers
+- to_dict() and from_dict() for serialization
+- is_healthy() helper, __str__ for human-readable output
+- Commit: b443d3e
+- **Learnings:**
+  - Use field(default_factory=...) for mutable defaults
+  - timestamp defaults to time.time() for automatic timestamping
+---
+
+## 2025-01-25 - PLC-004
+- Implemented ModbusTCPClient wrapper in modbus/client.py
+- Uses pymodbus ModbusTcpClient under the hood
+- read_registers(), read_coils(), write_register(), write_coil()
+- Retry logic with configurable attempts (default 3)
+- Timeout handling (default 5s)
+- Logging via Python logging module
+- Commit: 4a05d56
+- **Learnings:**
+  - pymodbus uses slave= parameter for unit ID
+  - result.isError() checks for Modbus errors
+  - result.registers for holding register values
+  - result.bits for coil values (slice to count)
+---
+
+## 2025-01-25 - PLC-005
+- Implemented Micro820PLC in plc/micro820.py
+- Extends BasePLCClient, uses ModbusTCPClient internally
+- Register mapping: REG_MOTOR_SPEED=100, REG_MOTOR_CURRENT=101, REG_TEMPERATURE=102, REG_PRESSURE=103
+- Coil mapping: COIL_MOTOR_RUNNING=0, COIL_MOTOR_STOPPED=1, COIL_FAULT_ALARM=2
+- Temperature scaled 10x in PLC, divided by 10 in read_state()
+- Convenience methods: set_motor_speed(), start_motor(), stop_motor()
+- Commit: aa18172
+- **Learnings:**
+  - Batch reads (4 registers, 3 coils) are efficient
+  - Store raw_registers for debugging
+---
+
+## 2025-01-25 - PLC-006
+- Implemented MockPLC in plc/mock_plc.py
+- In-memory PLC simulator implementing BasePLCClient
+- Simulates realistic behavior: temperature rises when motor running (0.5°C/sec)
+- Motor current varies with speed (base 5A + speed/20)
+- Temperature falls when motor stopped (0.2°C/sec)
+- Convenience methods: start_motor(), stop_motor(), trigger_fault(), clear_fault(), reset()
+- Updated plc/__init__.py to export MockPLC
+- Commit: 6ec12f8
+- **Learnings:**
+  - Use time.time() for elapsed time calculations
+  - Constrain simulated values (min 20°C, max 80°C)
+  - Motor running/stopped coils are mutually exclusive
+---
+
+## 2025-01-25 - PLC-007
+- Created 4 test files with 68 total tests
+- test_mock_plc.py: 22 tests for MockPLC (connection, reads, writes, simulation)
+- test_micro820.py: 19 tests for Micro820PLC with mocked Modbus client
+- test_modbus_client.py: 16 tests for ModbusTCPClient wrapper
+- test_models.py: 11 tests for MachineState serialization/helpers
+- All tests pass without requiring real PLC hardware
+- Commit: 6e71cc8
+- **Learnings:**
+  - Use unittest.mock.patch for pymodbus dependencies
+  - Mock at the module import level (factorylm_plc.modbus.client.ModbusTcpClient)
+  - time.sleep must be patched at 'time.sleep' not at module level
+---
+
+## 2025-01-25 - PLC-008
+- Added integration tests in tests/integration/test_end_to_end.py (11 tests)
+- Tests cover: factory function, full workflow, context manager, fault detection, serialization
+- Created README.md with usage examples and API documentation
+- Total: 79 tests passing, 87% code coverage
+- Commit: e88b32e
+- **Learnings:**
+  - Integration tests use real MockPLC, unit tests use mocks
+  - json.dumps/loads roundtrip validates serialization
+  - Multiple MockPLC instances are independent (no shared state)
+---
+
+## PRD-003 COMPLETE
+All 8 stories pass:
+- PLC-001: Directory structure ✓
+- PLC-002: BasePLCClient ✓
+- PLC-003: MachineState ✓
+- PLC-004: ModbusTCPClient ✓
+- PLC-005: Micro820PLC ✓
+- PLC-006: MockPLC ✓
+- PLC-007: Unit tests (68) ✓
+- PLC-008: Integration tests + README ✓
+
+Total: 79 tests, 87% coverage, 8 commits on ralph/prd-003-plc-client
+
