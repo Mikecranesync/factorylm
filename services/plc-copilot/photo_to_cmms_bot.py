@@ -24,7 +24,6 @@ import logging
 import logging.handlers
 import requests
 import time
-import traceback
 import asyncio
 from io import BytesIO
 from datetime import datetime, timedelta
@@ -142,24 +141,30 @@ vision_model = genai.GenerativeModel("gemini-2.5-flash")
 
 ANALYSIS_PROMPT = """You are an industrial equipment identification expert for a CMMS system.
 
-Analyze this photo and provide a JSON response with:
+Analyze this photo and provide a JSON response. Keep ALL text values SHORT and concise.
+The total JSON response MUST be under 2000 characters.
+
+Required JSON format:
 {
-  "equipment_type": "type of equipment (e.g., Motor, Pump, Conveyor, PLC, VFD, Valve, etc.)",
-  "manufacturer": "manufacturer if visible (e.g., Allen-Bradley, Siemens, ABB)",
+  "equipment_type": "type (e.g., Motor, Pump, Conveyor, PLC, VFD, Valve)",
+  "manufacturer": "manufacturer if visible",
   "model_number": "model number if visible",
-  "description": "brief description of what you see",
+  "description": "1-2 sentence description",
   "condition": "GOOD | FAIR | POOR | CRITICAL",
-  "visible_issues": ["list of any visible issues, damage, wear, etc."],
-  "recommended_action": "recommended maintenance action",
-  "work_order_title": "suggested work order title",
-  "work_order_description": "detailed work order description for a maintenance technician",
+  "visible_issues": ["short issue descriptions, max 3 items"],
+  "recommended_action": "1 sentence recommended action",
+  "work_order_title": "short title (under 60 chars)",
+  "work_order_description": "1-2 sentence work order description",
   "priority": "NONE | LOW | MEDIUM | HIGH",
-  "asset_name": "suggested asset name for CMMS (short, descriptive)"
+  "asset_name": "short asset name for CMMS"
 }
 
-Be specific and practical. If you can't identify something, say so.
-Focus on actionable maintenance information a technician would need.
-Return ONLY valid JSON, no markdown fences."""
+Rules:
+1. Be specific and practical — focus on what a maintenance tech needs
+2. Keep description fields to 1-2 sentences max
+3. visible_issues: max 3 items, each under 50 chars
+4. If you can't identify something, say "Unknown"
+5. Return ONLY valid JSON, no markdown fences"""
 
 # Valid CMMS priorities - used for validation
 VALID_PRIORITIES = {"NONE", "LOW", "MEDIUM", "HIGH"}
@@ -440,6 +445,82 @@ class Stats:
 stats = Stats()
 
 # ════════════════════════════════════════════════════════════════════════
+# TELEGRAM MESSAGE HELPERS — long message chunking + Markdown fallback
+# ════════════════════════════════════════════════════════════════════════
+TELEGRAM_MAX_LEN = 4096
+
+
+def _chunk_text(text: str, max_len: int = TELEGRAM_MAX_LEN) -> list[str]:
+    """Split text into chunks that fit Telegram's message limit.
+
+    Split strategy: prefer \\n\\n boundaries, then \\n, then hard cut.
+    """
+    if len(text) <= max_len:
+        return [text]
+
+    chunks: list[str] = []
+    while text:
+        if len(text) <= max_len:
+            chunks.append(text)
+            break
+
+        # Try to split on paragraph break
+        cut = text.rfind("\n\n", 0, max_len)
+        if cut == -1:
+            # Try line break
+            cut = text.rfind("\n", 0, max_len)
+        if cut == -1:
+            # Hard cut
+            cut = max_len
+
+        chunks.append(text[:cut])
+        text = text[cut:].lstrip("\n")
+
+    log.debug(f"_chunk_text: {sum(len(c) for c in chunks)} chars -> {len(chunks)} chunk(s)")
+    return chunks
+
+
+async def send_long(message, text: str, parse_mode: str = "Markdown", **kwargs):
+    """Send a potentially long message, chunking if needed.
+
+    Triple fallback: Markdown -> plain text -> error message.
+    """
+    chunks = _chunk_text(text)
+    for i, chunk in enumerate(chunks):
+        try:
+            await message.reply_text(chunk, parse_mode=parse_mode, **kwargs)
+        except Exception:
+            # Fallback: strip markdown and retry as plain text
+            try:
+                plain = chunk.replace("*", "").replace("_", "").replace("`", "")
+                await message.reply_text(plain, **kwargs)
+            except Exception as e:
+                log.error(f"Failed to send chunk {i + 1}/{len(chunks)}: {e}")
+                try:
+                    await message.reply_text("⚠️ Response too long to display. Check logs.")
+                except Exception:
+                    pass
+                break
+
+
+async def edit_long(status_msg, text: str, parse_mode: str = "Markdown"):
+    """Edit a status message with long text support + Markdown fallback.
+
+    If text exceeds Telegram limit, truncates with note.
+    """
+    if len(text) > TELEGRAM_MAX_LEN:
+        text = text[: TELEGRAM_MAX_LEN - 40] + "\n\n_...message truncated_"
+    try:
+        await status_msg.edit_text(text, parse_mode=parse_mode)
+    except Exception:
+        try:
+            plain = text.replace("*", "").replace("_", "").replace("`", "")
+            await status_msg.edit_text(plain)
+        except Exception as e:
+            log.error(f"Failed to edit message: {e}")
+
+
+# ════════════════════════════════════════════════════════════════════════
 # AUTH CHECK
 # ════════════════════════════════════════════════════════════════════════
 def check_freemium_access(telegram_id: str) -> dict:
@@ -474,97 +555,106 @@ def track_photo_usage(telegram_id: str) -> dict:
 # TELEGRAM HANDLERS
 # ════════════════════════════════════════════════════════════════════════
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    tg_id = str(update.effective_user.id)
-    access = check_freemium_access(tg_id)
+    try:
+        tg_id = str(update.effective_user.id)
+        access = check_freemium_access(tg_id)
 
-    if access["is_verified"]:
-        plan_line = "✅ *Registered* — unlimited photo analysis"
-    else:
-        remaining = access["remaining"]
-        plan_line = f"🆓 *Free Trial* — {remaining} scans remaining"
+        if access["is_verified"]:
+            plan_line = "✅ *Registered* — unlimited photo analysis"
+        else:
+            remaining = access["remaining"]
+            plan_line = f"🆓 *Free Trial* — {remaining} scans remaining"
 
-    await update.message.reply_text(
-        "🏭 *FactoryLM* — Industrial AI for Maintenance Teams\n\n"
-        f"{plan_line}\n\n"
-        "📸 Send me a photo of any equipment and I'll:\n"
-        "1️⃣ Identify it with AI vision\n"
-        "2️⃣ Create an asset in CMMS\n"
-        "3️⃣ Generate a work order\n\n"
-        "Just snap a photo and send it!\n\n"
-        "Commands:\n"
-        "/status — Account status & stats\n"
-        "/register — Create free account\n"
-        "/assets — List CMMS assets\n"
-        "/recent — Recent work orders",
-        parse_mode="Markdown",
-    )
+        await update.message.reply_text(
+            "🏭 *FactoryLM* — Industrial AI for Maintenance Teams\n\n"
+            f"{plan_line}\n\n"
+            "📸 Send me a photo of any equipment and I'll:\n"
+            "1️⃣ Identify it with AI vision\n"
+            "2️⃣ Create an asset in CMMS\n"
+            "3️⃣ Generate a work order\n\n"
+            "Just snap a photo and send it!\n\n"
+            "Commands:\n"
+            "/status — Account status & stats\n"
+            "/register — Create free account\n"
+            "/assets — List CMMS assets\n"
+            "/recent — Recent work orders",
+            parse_mode="Markdown",
+        )
+    except Exception:
+        log.exception("Unhandled error in cmd_start")
 
 
 async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    tg_id = str(update.effective_user.id)
-    access = check_freemium_access(tg_id)
-    cmms_ok = cmms.health_check()
+    try:
+        tg_id = str(update.effective_user.id)
+        access = check_freemium_access(tg_id)
+        cmms_ok = cmms.health_check()
 
-    if access["is_verified"]:
-        try:
-            user = user_db.get_user_by_telegram_id(tg_id)
+        if access["is_verified"]:
+            try:
+                user = user_db.get_user_by_telegram_id(tg_id)
+                plan_info = (
+                    f"👤 *Account*\n"
+                    f"  Name: {user['first_name']} {user['last_name']}\n"
+                    f"  Plan: ✅ Unlimited\n"
+                )
+            except Exception:
+                plan_info = "👤 *Account:* ✅ Registered (Unlimited)\n"
+        else:
             plan_info = (
-                f"👤 *Account*\n"
-                f"  Name: {user['first_name']} {user['last_name']}\n"
-                f"  Plan: ✅ Unlimited\n"
+                f"👤 *Account:* 🆓 Free Trial\n"
+                f"  Photos used: {access['photo_count']}/{FREE_PHOTO_LIMIT}\n"
+                f"  Remaining: {access['remaining']}\n"
             )
-        except Exception:
-            plan_info = "👤 *Account:* ✅ Registered (Unlimited)\n"
-    else:
-        plan_info = (
-            f"👤 *Account:* 🆓 Free Trial\n"
-            f"  Photos used: {access['photo_count']}/{FREE_PHOTO_LIMIT}\n"
-            f"  Remaining: {access['remaining']}\n"
-        )
 
-    await update.message.reply_text(
-        f"🏭 *FactoryLM Status*\n\n"
-        f"{plan_info}\n"
-        f"🤖 Bot: ✅ Online\n"
-        f"🔍 Gemini Vision: ✅ Ready\n"
-        f"🏗️ CMMS: {'✅ Connected' if cmms_ok else '❌ Offline'}\n\n"
-        f"📊 *Session Stats:*\n"
-        f"⏱ Uptime: {stats.uptime()}\n"
-        f"📸 Photos: {stats.photos_processed}\n"
-        f"📦 Assets: {stats.assets_created}\n"
-        f"🔧 Work orders: {stats.work_orders_created}",
-        parse_mode="Markdown",
-    )
+        await update.message.reply_text(
+            f"🏭 *FactoryLM Status*\n\n"
+            f"{plan_info}\n"
+            f"🤖 Bot: ✅ Online\n"
+            f"🔍 Gemini Vision: ✅ Ready\n"
+            f"🏗️ CMMS: {'✅ Connected' if cmms_ok else '❌ Offline'}\n\n"
+            f"📊 *Session Stats:*\n"
+            f"⏱ Uptime: {stats.uptime()}\n"
+            f"📸 Photos: {stats.photos_processed}\n"
+            f"📦 Assets: {stats.assets_created}\n"
+            f"🔧 Work orders: {stats.work_orders_created}",
+            parse_mode="Markdown",
+        )
+    except Exception:
+        log.exception("Unhandled error in cmd_status")
 
 
 async def cmd_register(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Handle /register command."""
-    tg_id = str(update.effective_user.id)
-    access = check_freemium_access(tg_id)
+    try:
+        tg_id = str(update.effective_user.id)
+        access = check_freemium_access(tg_id)
 
-    if access["is_verified"]:
+        if access["is_verified"]:
+            await update.message.reply_text(
+                "✅ *You're already registered!*\n\n"
+                f"You have unlimited access.\n"
+                f"🔗 Dashboard: {CMMS_FRONTEND_URL}/app",
+                parse_mode="Markdown",
+            )
+            return
+
+        reg_url = f"{REGISTRATION_URL}?tg={tg_id}"
+        keyboard = [[InlineKeyboardButton("📝 Register Now (Free)", url=reg_url)]]
+
         await update.message.reply_text(
-            "✅ *You're already registered!*\n\n"
-            f"You have unlimited access.\n"
-            f"🔗 Dashboard: {CMMS_FRONTEND_URL}/app",
+            "🚀 *Register for FactoryLM*\n\n"
+            "Get unlimited access to:\n"
+            "✅ Photo analysis\n"
+            "✅ Equipment tracking\n"
+            "✅ Work order management\n"
+            "✅ Full CMMS integration\n\n"
+            "📱 Takes less than 2 minutes!",
             parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup(keyboard),
         )
-        return
-
-    reg_url = f"{REGISTRATION_URL}?tg={tg_id}"
-    keyboard = [[InlineKeyboardButton("📝 Register Now (Free)", url=reg_url)]]
-
-    await update.message.reply_text(
-        "🚀 *Register for FactoryLM*\n\n"
-        "Get unlimited access to:\n"
-        "✅ Photo analysis\n"
-        "✅ Equipment tracking\n"
-        "✅ Work order management\n"
-        "✅ Full CMMS integration\n\n"
-        "📱 Takes less than 2 minutes!",
-        parse_mode="Markdown",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-    )
+    except Exception:
+        log.exception("Unhandled error in cmd_register")
 
 
 async def cmd_assets(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -576,12 +666,15 @@ async def cmd_assets(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                 lines.append(f"• {a.get('name', 'Unknown')} (#{a.get('id')})")
             if len(assets) > 20:
                 lines.append(f"\n_...and {len(assets) - 20} more_")
-            await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
+            await send_long(update.message, "\n".join(lines))
         else:
             await update.message.reply_text("📦 No assets found in CMMS yet.")
-    except Exception as e:
-        log.error(f"Asset listing failed: {e}")
-        await update.message.reply_text("❌ Could not retrieve assets. CMMS may be temporarily unavailable.")
+    except Exception:
+        log.exception("Unhandled error in cmd_assets")
+        try:
+            await update.message.reply_text("❌ Could not retrieve assets. CMMS may be temporarily unavailable.")
+        except Exception:
+            pass
 
 
 async def cmd_recent(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -596,16 +689,32 @@ async def cmd_recent(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                 if len(title) > 50:
                     title = title[:47] + "..."
                 lines.append(f"{p_emoji} WO#{wo.get('id')} — {title}")
-            await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
+            await send_long(update.message, "\n".join(lines))
         else:
             await update.message.reply_text("🔧 No work orders found.")
-    except Exception as e:
-        log.error(f"WO listing failed: {e}")
-        await update.message.reply_text("❌ Could not retrieve work orders.")
+    except Exception:
+        log.exception("Unhandled error in cmd_recent")
+        try:
+            await update.message.reply_text("❌ Could not retrieve work orders.")
+        except Exception:
+            pass
 
 
 async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Main flow: Photo → Gemini → CMMS Asset → Work Order → Reply."""
+    try:
+        await _handle_photo_inner(update, ctx)
+    except Exception:
+        log.exception("Unhandled error in handle_photo")
+        stats.errors += 1
+        try:
+            await update.message.reply_text("⚠️ Something went wrong processing your photo. Please try again.")
+        except Exception:
+            pass
+
+
+async def _handle_photo_inner(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Inner photo handler — all business logic."""
     msg = update.message
     user = update.effective_user
     user_id = user.id
@@ -775,14 +884,12 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         f"⚡ _Powered by FactoryLM_"
     )
 
-    try:
-        await status_msg.edit_text(response, parse_mode="Markdown")
-    except Exception:
-        # Fallback without markdown if formatting breaks
-        try:
-            await status_msg.edit_text(response.replace("*", "").replace("_", ""))
-        except Exception as e:
-            log.error(f"Failed to send response: {e}")
+    # Hard truncation safety — if response still too long despite prompt limits
+    if len(response) > 3500:
+        log.warning(f"Response truncated: {len(response)} chars -> 3500")
+        response = response[:3500] + "\n\n...[truncated]"
+
+    await edit_long(status_msg, response)
 
     log.info(f"Complete: WO #{wo_id} for {equip_type} (user: {user_name})")
 
@@ -815,11 +922,14 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 async def handle_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Handle non-command text messages."""
-    await update.message.reply_text(
-        "📸 Send me a *photo* of equipment to analyze it!\n\n"
-        "Or use /status, /assets, or /recent",
-        parse_mode="Markdown",
-    )
+    try:
+        await update.message.reply_text(
+            "📸 Send me a *photo* of equipment to analyze it!\n\n"
+            "Or use /status, /assets, or /recent",
+            parse_mode="Markdown",
+        )
+    except Exception:
+        log.exception("Unhandled error in handle_text")
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -828,8 +938,7 @@ async def handle_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     """Global error handler — log and continue, never crash."""
     err = context.error
-    log.error(f"Unhandled exception: {err}")
-    log.debug(traceback.format_exc())
+    log.exception(f"Unhandled exception in dispatcher: {err}")
     stats.errors += 1
 
     if isinstance(err, Conflict):
