@@ -10,6 +10,8 @@ docs/ops/
 ├── traces/                    # Activity logs (deploys, fixes, investigations)
 ├── workflows/                 # Repeatable procedures with verification steps
 ├── config-snapshots/          # Point-in-time service configuration captures
+├── baselines/                 # Frozen known-good behavioral state snapshots
+├── tests/                     # Golden test cases linked to baselines
 └── incidents/                 # Post-incident reviews
 ```
 
@@ -39,6 +41,20 @@ An incident review documents a **production issue** — timeline, root cause, re
 
 **Create an incident review when**: something breaks in production and you want to prevent it from happening again.
 
+### Baselines (`baselines/YYYY-MM-DD_service_baseline.md`)
+
+A baseline captures the **known-good behavioral state** of a service — not just config, but expected input/output behavior, code-to-behavior mapping, and personality characteristics (for AI services). Each baseline links to golden test cases and a verification workflow.
+
+**Create a baseline when**: a major feature milestone is verified working, before a risky refactor, or after restoring a service from a broken state.
+
+See [baselines/README.md](baselines/README.md) for full documentation.
+
+### Tests (`tests/TESTS_service_baseline.md`)
+
+Golden test cases linked to a baseline. Each test specifies input type, example input, expected qualitative behavior, which code files it validates, and pass criteria. Tests are run manually to verify a service matches its baseline.
+
+**Create tests when**: creating a new baseline, or when adding forward-looking test cases for planned features.
+
 ## File Naming Conventions
 
 | Type | Pattern | Example |
@@ -47,6 +63,9 @@ An incident review documents a **production issue** — timeline, root cause, re
 | Workflow | `slug.md` | `deploy-plc-copilot.md` |
 | Config Snapshot | `YYYY-MM-DD_service.yaml` | `2026-02-16_plc-copilot.yaml` |
 | Incident | `INC-YYYY-MM-DD-NNN.md` | `INC-2026-02-16-001.md` |
+| Baseline | `YYYY-MM-DD_service_baseline.md` | `2026-02-16_openclaw_jarvis_baseline.md` |
+| Behavior Map | `YYYY-MM-DD_service_behavior_to_code.md` | `2026-02-16_jarvis_behavior_to_code.md` |
+| Tests | `TESTS_service_baseline.md` | `TESTS_jarvis_baseline.md` |
 
 ## Querying
 

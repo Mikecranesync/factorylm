@@ -20,6 +20,32 @@ services:
       - 2026-02-16_matrix-api.yaml
     notes: "CORS allow_origins=['*']. Tables: tag_snapshots, incidents, cosmos_insights, video_clips, video_analyses."
 
+  openclaw:
+    description: "Industrial AI gateway — Jarvis Telegram bot, multi-provider LLM routing, PLC diagnosis"
+    entry_point: "/opt/openclaw/openclaw/app.py"
+    port: 8340
+    health: "/"
+    device: vps
+    ip: "100.68.120.99"
+    start_command: "doppler run --project openclaw --config dev_bot -- /opt/openclaw/.venv/bin/python -m openclaw"
+    config_source: "openclaw.yaml + Doppler env vars"
+    logging_level: INFO
+    data_store: null
+    docker: false
+    service_manager: systemd (openclaw.service)
+    linked_workflows:
+      - WF-006  # restore-jarvis-openclaw
+      - WF-007  # check-jarvis-baseline
+    linked_config_snapshots:
+      - 2026-02-16_openclaw.yaml
+    linked_baselines:
+      - 2026-02-16_openclaw_jarvis_baseline.md
+    notes: >
+      Primary Jarvis instance. Python OpenClaw replaces old Node.js Clawdbot.
+      Providers: Groq (primary), Anthropic (diagnose), Gemini (vision).
+      Skills: diagnose, status, photo, work_order, admin, search, chat.
+      Telegram polling, edge-tts voice replies, Groq Whisper STT.
+
   plc-copilot:
     description: "Telegram bot — receives equipment photos, identifies with Gemini Vision, creates CMMS assets/work orders"
     entry_point: "services/plc-copilot/photo_to_cmms_bot.py"
