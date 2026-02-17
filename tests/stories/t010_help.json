@@ -5,8 +5,8 @@
   "steps": [
     {
       "user": "help",
-      "expect_contains": [],
-      "expect_not_contains": ["error", "exception", "An error occurred", "budget"]
+      "expect_contains": ["Diagnose", "Photo", "Status"],
+      "expect_not_contains": ["exception", "An error occurred", "unhealthy"]
     }
   ]
 }
