@@ -1,0 +1,90 @@
+id: cmms-gist-monitor
+name: "Feature 002 — CMMS Gist Monitor"
+version: 1
+description: >
+  Antfarm monitor workflow for Feature 002. Scans existing Jarvis Work Order
+  Gists, validates file structure and CSV schema, and produces a status report.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: scanner
+    name: Gist Scanner
+    role: analysis
+    description: Lists recent Gists and filters by Jarvis Work Order description
+    workspace:
+      files:
+        AGENTS.md: agents/scanner/AGENTS.md
+
+  - id: validator
+    name: File Validator
+    role: coding
+    description: Checks each Gist for required files and validates CSV columns
+    workspace:
+      files:
+        AGENTS.md: agents/validator/AGENTS.md
+
+  - id: reporter
+    name: Status Reporter
+    role: analysis
+    description: Produces summary report of work order Gist health
+    workspace:
+      files:
+        AGENTS.md: agents/reporter/AGENTS.md
+
+steps:
+  - id: scan_gists
+    agent: scanner
+    input: |
+      List recent Gists and filter by Jarvis Work Order description.
+
+      Run: gh gist list --limit 50
+      Filter: lines containing "[Jarvis Work Order]"
+
+      Extract for each match:
+        - Gist ID (first column)
+        - Description (contains work order ID and title)
+        - Created date
+
+      Reply with:
+      GIST_COUNT: <number>
+      GIST_IDS: <comma-separated IDs>
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: validate_files
+    agent: validator
+    input: |
+      Validate each Jarvis Work Order Gist.
+
+      For each Gist ID from the scan step:
+        1. Run: gh gist view <id>
+        2. Check work-order.md exists and contains sections: Summary, Details, Attachments
+        3. Check work-order.csv exists and has 25 columns
+        4. Check attachments.txt exists and lines are parseable as type,description,url
+
+      Reply with:
+      VALID_COUNT: <number>
+      INVALID_COUNT: <number>
+      ERRORS: <list of issues or "none">
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: report_status
+    agent: reporter
+    input: |
+      Produce a summary report of all Jarvis Work Order Gists.
+
+      Include:
+        - Total work orders scanned
+        - Valid count and invalid count
+        - List of issues found (missing files, wrong column count, broken URLs)
+        - Overall health: HEALTHY (all valid) or DEGRADED (some invalid)
+
+      Reply with:
+      TOTAL_WOS: <number>
+      VALID: <number>
+      INVALID: <number>
+      HEALTH: HEALTHY | DEGRADED
+      ISSUES: <summary or "none">
+      STATUS: done
+    expects: "STATUS: done"
