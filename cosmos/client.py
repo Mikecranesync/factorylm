@@ -204,7 +204,24 @@ Format your response as JSON with keys: summary, root_cause, confidence, reasoni
 
         # Build a realistic stub response based on the tags provided
         fault_type = tags.get("error_code", 0)
+        if fault_type == 0 and tags.get("e_stop"):
+            fault_type = -1
         stub_responses = {
+            -1: {
+                "summary": "Emergency stop activated. All motion halted.",
+                "root_cause": "Operator or safety system triggered e-stop",
+                "confidence": 0.95,
+                "reasoning": (
+                    "E-stop signal is active. All motors de-energized and conveyors stopped. "
+                    "This is either a manual operator action or an automated safety interlock response."
+                ),
+                "suggested_checks": [
+                    "Identify who pressed the e-stop and why",
+                    "Inspect work area for personnel safety hazards",
+                    "Check for jammed material or mechanical failure that triggered the stop",
+                    "Reset e-stop, verify safe conditions, then restart in controlled sequence",
+                ],
+            },
             0: {
                 "summary": "No active fault detected. System operating within normal parameters.",
                 "root_cause": "N/A — no fault present",
