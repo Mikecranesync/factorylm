@@ -271,8 +271,10 @@ if __name__ == "__main__":
     result = assemble_shorts_video(images, audio, output)
 
     if result["success"]:
-        print(f"\n✅ Success! Video saved to: {result['output_path']}")
-        print(f"   Size: {result['metadata'].get('file_size_mb', 0):.2f} MB")
+        print(f"\n[OK] Success! Video saved to: {result['output_path']}")
+        print(f"     Size: {result['metadata'].get('file_size_mb', 0):.2f} MB")
+        print(f"     Images used: {result['metadata'].get('image_count', 0)}")
+        print(f"     Duration: {result['metadata'].get('audio_duration', 0):.1f}s")
     else:
-        print(f"\n❌ Failed: {result['error']}")
+        print(f"\n[FAIL] Error: {result['error']}")
         sys.exit(1)
