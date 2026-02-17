@@ -24,10 +24,32 @@ import subprocess
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Callable
 import httpx
 
 logger = logging.getLogger(__name__)
+
+
+# Retry decorator with exponential backoff
+def with_retry(max_attempts: int = 3, base_delay: float = 1.0, max_delay: float = 30.0):
+    """Decorator for retrying async functions with exponential backoff."""
+    def decorator(func: Callable):
+        async def wrapper(*args, **kwargs):
+            last_exception = None
+            for attempt in range(max_attempts):
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    if attempt < max_attempts - 1:
+                        delay = min(base_delay * (2 ** attempt), max_delay)
+                        logger.warning(f"{func.__name__} failed (attempt {attempt + 1}/{max_attempts}): {e}. Retrying in {delay}s...")
+                        await asyncio.sleep(delay)
+                    else:
+                        logger.error(f"{func.__name__} failed after {max_attempts} attempts: {e}")
+            raise last_exception
+        return wrapper
+    return decorator
 
 
 class MediaOffloadAgent:
@@ -44,13 +66,21 @@ class MediaOffloadAgent:
         gdrive_remote: str = "gdrive:factorylm-archives/media",
         staging_dir: Optional[str] = None,
         poll_interval: int = 60,
-        jarvis_plc_url: str = "http://100.72.2.99:8765"
+        jarvis_plc_url: str = "http://100.72.2.99:8765",
+        telegram_notify: bool = False,
+        telegram_bot_token: Optional[str] = None,
+        telegram_chat_id: Optional[str] = None
     ):
         """Initialize media offload agent."""
         self.gdrive_remote = gdrive_remote
         self.staging_dir = Path(staging_dir) if staging_dir else Path.home() / ".openclaw" / "media-staging"
         self.poll_interval = poll_interval
         self.jarvis_plc_url = jarvis_plc_url
+
+        # Telegram notification settings
+        self.telegram_notify = telegram_notify
+        self.telegram_bot_token = telegram_bot_token or os.environ.get("TELEGRAM_BOT_TOKEN")
+        self.telegram_chat_id = telegram_chat_id or os.environ.get("TELEGRAM_ADMIN_CHAT_ID")
 
         # Create staging directory
         self.staging_dir.mkdir(parents=True, exist_ok=True)
@@ -92,10 +122,59 @@ class MediaOffloadAgent:
         # HTTP client for Jarvis Node
         self.http = httpx.AsyncClient(timeout=30)
 
+        # Stats tracking
+        self.stats = {
+            "start_time": datetime.now().isoformat(),
+            "polls": 0,
+            "files_staged": 0,
+            "files_synced": 0,
+            "errors": 0,
+            "last_poll": None,
+            "last_error": None
+        }
+
         logger.info(f"Media Offload Agent initialized")
         logger.info(f"  Staging: {self.staging_dir}")
         logger.info(f"  GDrive: {self.gdrive_remote}")
         logger.info(f"  Poll interval: {self.poll_interval}s")
+
+    def get_health(self) -> Dict[str, Any]:
+        """Get agent health status for monitoring."""
+        return {
+            "status": "healthy",
+            "uptime_seconds": (datetime.now() - datetime.fromisoformat(self.stats["start_time"])).total_seconds(),
+            "stats": self.stats,
+            "devices": list(self.devices.keys()),
+            "staging_dir": str(self.staging_dir),
+            "gdrive_remote": self.gdrive_remote
+        }
+
+    async def send_telegram_notification(self, message: str) -> bool:
+        """Send notification via Telegram bot."""
+        if not self.telegram_notify or not self.telegram_bot_token or not self.telegram_chat_id:
+            return False
+
+        try:
+            url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
+            resp = await self.http.post(url, json={
+                "chat_id": self.telegram_chat_id,
+                "text": message,
+                "parse_mode": "HTML"
+            }, timeout=10)
+            return resp.status_code == 200
+        except Exception as e:
+            logger.warning(f"Telegram notification failed: {e}")
+            return False
+
+    async def notify_sync_complete(self, device_name: str, file_count: int, total_mb: float):
+        """Notify when files are synced to Google Drive."""
+        message = (
+            f"[Sync] {file_count} files from {device_name}\n"
+            f"Size: {total_mb:.2f} MB\n"
+            f"Destination: {self.gdrive_remote}/{device_name}/\n"
+            f"Time: {datetime.now().strftime('%H:%M:%S')}"
+        )
+        await self.send_telegram_notification(message)
 
     async def check_device_online(self, device_name: str) -> bool:
         """Check if a device is online and accessible."""
@@ -236,9 +315,20 @@ class MediaOffloadAgent:
             )
 
             if result.returncode == 0:
-                # Count synced files
-                file_count = sum(1 for _ in staging_device_dir.rglob("*") if _.is_file())
+                # Count synced files and total size
+                file_count = 0
+                total_bytes = 0
+                for f in staging_device_dir.rglob("*"):
+                    if f.is_file():
+                        file_count += 1
+                        total_bytes += f.stat().st_size
+
                 logger.info(f"Synced {file_count} files from {device_name} to {gdrive_path}")
+
+                # Send Telegram notification
+                if file_count > 0:
+                    total_mb = total_bytes / (1024 * 1024)
+                    await self.notify_sync_complete(device_name, file_count, total_mb)
 
                 # Clean staging after successful sync
                 # shutil.rmtree(staging_device_dir)  # Uncomment to auto-clean
@@ -330,14 +420,29 @@ class MediaOffloadAgent:
             try:
                 results = await self.run_once()
 
+                # Update stats
+                self.stats["polls"] += 1
+                self.stats["last_poll"] = datetime.now().isoformat()
+
                 # Log summary
                 total_new = sum(d.get("new_files", 0) for d in results["devices"].values() if isinstance(d, dict))
                 total_synced = sum(s.get("synced", 0) for s in results["synced"].values())
 
+                self.stats["files_staged"] += total_new
+                self.stats["files_synced"] += total_synced
+
                 if total_new > 0 or total_synced > 0:
                     logger.info(f"Poll complete: {total_new} new files, {total_synced} synced")
 
+                # Check for sync errors
+                for device, sync_result in results.get("synced", {}).items():
+                    if sync_result.get("error"):
+                        self.stats["errors"] += 1
+                        self.stats["last_error"] = f"{device}: {sync_result['error']}"
+
             except Exception as e:
+                self.stats["errors"] += 1
+                self.stats["last_error"] = str(e)
                 logger.error(f"Poll error: {e}")
 
             await asyncio.sleep(self.poll_interval)
@@ -363,6 +468,28 @@ class MediaOffloadAgent:
         return removed
 
 
+# Simple HTTP health server
+async def run_health_server(agent: MediaOffloadAgent, port: int = 8766):
+    """Run a simple HTTP server for health checks."""
+    from aiohttp import web
+
+    async def health_handler(request):
+        return web.json_response(agent.get_health())
+
+    async def stats_handler(request):
+        return web.json_response(agent.stats)
+
+    app = web.Application()
+    app.router.add_get("/health", health_handler)
+    app.router.add_get("/stats", stats_handler)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    logger.info(f"Health server running on http://0.0.0.0:{port}")
+
+
 # CLI interface
 async def main():
     """Run media offload agent."""
@@ -377,7 +504,17 @@ async def main():
     if "--once" in sys.argv:
         results = await agent.run_once()
         print(json.dumps(results, indent=2))
+    elif "--health" in sys.argv:
+        print(json.dumps(agent.get_health(), indent=2))
     else:
+        # Start health server if aiohttp available
+        try:
+            await run_health_server(agent)
+        except ImportError:
+            logger.warning("aiohttp not installed - health endpoint disabled")
+        except Exception as e:
+            logger.warning(f"Health server failed to start: {e}")
+
         # Continuous loop
         await agent.run()
 

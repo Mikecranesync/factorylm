@@ -38,7 +38,7 @@ class TelegramMediaHandler:
         ~/.openclaw/media-inbox/telegram/<date>/<filename>.json
     """
 
-    def __init__(self, inbox_dir: Optional[str] = None):
+    def __init__(self, inbox_dir: Optional[str] = None, notify_sync: bool = True):
         """Initialize media handler."""
         if inbox_dir:
             self.inbox_dir = Path(inbox_dir)
@@ -46,6 +46,17 @@ class TelegramMediaHandler:
             self.inbox_dir = Path.home() / ".openclaw" / "media-inbox" / "telegram"
 
         self.inbox_dir.mkdir(parents=True, exist_ok=True)
+        self.notify_sync = notify_sync
+
+        # Stats
+        self.stats = {
+            "photos_received": 0,
+            "videos_received": 0,
+            "documents_received": 0,
+            "total_bytes": 0,
+            "last_received": None
+        }
+
         logger.info(f"Media inbox: {self.inbox_dir}")
 
         # Track session for grouping related media
@@ -161,14 +172,28 @@ class TelegramMediaHandler:
             result["metadata_path"] = str(metadata_path)
             result["metadata"] = metadata
 
+            # Update stats
+            if media_type == "photo":
+                self.stats["photos_received"] += 1
+            elif media_type == "video":
+                self.stats["videos_received"] += 1
+            else:
+                self.stats["documents_received"] += 1
+            self.stats["total_bytes"] += len(file_bytes)
+            self.stats["last_received"] = datetime.now().isoformat()
+
             logger.info(f"Saved media: {file_path.name} ({len(file_bytes)} bytes)")
 
-            # Send confirmation
+            # Send confirmation with sync status
             size_kb = len(file_bytes) / 1024
-            response = f"📸 Got it! Saved {media_type} ({size_kb:.1f} KB)"
+            total_files = self.stats["photos_received"] + self.stats["videos_received"] + self.stats["documents_received"]
+            total_mb = self.stats["total_bytes"] / (1024 * 1024)
+
+            response = f"[OK] Saved {media_type} ({size_kb:.1f} KB)"
             if caption:
                 response += f"\nCaption: \"{caption[:50]}{'...' if len(caption) > 50 else ''}\""
-            response += "\n\nThis will be synced to Google Drive and available for content production."
+            response += f"\n\nSession: {total_files} files ({total_mb:.1f} MB total)"
+            response += "\nWill sync to Google Drive automatically."
 
             await update.message.reply_text(response)
 

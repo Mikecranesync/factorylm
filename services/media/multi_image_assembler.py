@@ -23,32 +23,75 @@ from typing import List, Optional, Dict, Any
 logger = logging.getLogger(__name__)
 
 
+class VideoAssemblyError(Exception):
+    """Raised when video assembly fails."""
+    pass
+
+
+def check_ffmpeg_installed() -> bool:
+    """Check if FFmpeg is installed and accessible."""
+    try:
+        result = subprocess.run(
+            ["ffmpeg", "-version"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
 def get_audio_duration(audio_path: str) -> float:
     """Get duration of audio file in seconds using ffprobe."""
+    if not Path(audio_path).exists():
+        raise VideoAssemblyError(f"Audio file not found: {audio_path}")
+
     try:
         result = subprocess.run([
             "ffprobe", "-v", "quiet",
             "-show_entries", "format=duration",
             "-of", "json",
             audio_path
-        ], capture_output=True, text=True)
+        ], capture_output=True, text=True, timeout=30)
+
+        if result.returncode != 0:
+            logger.warning(f"ffprobe warning: {result.stderr}")
 
         data = json.loads(result.stdout)
-        return float(data["format"]["duration"])
-    except Exception as e:
-        logger.error(f"Failed to get audio duration: {e}")
-        return 60.0  # Default to 60 seconds
+        duration = float(data["format"]["duration"])
+
+        if duration <= 0:
+            raise VideoAssemblyError(f"Invalid audio duration: {duration}")
+
+        return duration
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse ffprobe output: {e}")
+        raise VideoAssemblyError(f"Could not parse audio metadata: {e}")
+    except KeyError:
+        raise VideoAssemblyError("Audio file has no duration information")
+    except subprocess.TimeoutExpired:
+        raise VideoAssemblyError("ffprobe timed out reading audio file")
 
 
 def validate_images(images: List[str]) -> List[Path]:
     """Validate and return list of existing image paths."""
+    SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff']
     valid = []
+    invalid = []
+
     for img in images:
         p = Path(img)
-        if p.exists() and p.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-            valid.append(p)
+        if not p.exists():
+            invalid.append(f"{img} (file not found)")
+        elif p.suffix.lower() not in SUPPORTED_FORMATS:
+            invalid.append(f"{img} (unsupported format: {p.suffix})")
         else:
-            logger.warning(f"Invalid or missing image: {img}")
+            valid.append(p)
+
+    if invalid:
+        logger.warning(f"Skipped {len(invalid)} invalid images: {', '.join(invalid[:3])}{'...' if len(invalid) > 3 else ''}")
+
     return valid
 
 
@@ -83,18 +126,42 @@ def assemble_multi_image_video(
         "metadata": {}
     }
 
+    # Pre-flight checks
+    if not check_ffmpeg_installed():
+        result["error"] = "FFmpeg not found. Install FFmpeg and ensure it's in PATH."
+        logger.error(result["error"])
+        return result
+
     # Validate inputs
+    if not images:
+        result["error"] = "No images provided"
+        return result
+
     valid_images = validate_images(images)
     if len(valid_images) < 2:
-        result["error"] = f"Need at least 2 valid images, got {len(valid_images)}"
+        result["error"] = f"Need at least 2 valid images, got {len(valid_images)} from {len(images)} provided"
         return result
 
     if not Path(audio_path).exists():
         result["error"] = f"Audio file not found: {audio_path}"
         return result
 
+    # Ensure output directory exists
+    output_dir = Path(output_path).parent
+    if not output_dir.exists():
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Created output directory: {output_dir}")
+        except OSError as e:
+            result["error"] = f"Cannot create output directory: {e}"
+            return result
+
     # Calculate timing
-    audio_duration = get_audio_duration(audio_path)
+    try:
+        audio_duration = get_audio_duration(audio_path)
+    except VideoAssemblyError as e:
+        result["error"] = str(e)
+        return result
     num_images = len(valid_images)
 
     # Account for transitions overlapping
