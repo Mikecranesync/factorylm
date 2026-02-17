@@ -142,6 +142,7 @@ def create_work_order_gist(metadata: dict, attachments: list[dict] | None = None
 def update_work_order_gist(gist_id: str, metadata: dict, attachments: list[dict] | None = None) -> dict:
     """Update an existing work order Gist.
 
+    Uses gh api PATCH to replace file contents in-place.
     Returns dict with gist_id and gist_url.
     """
     if attachments:
@@ -154,26 +155,23 @@ def update_work_order_gist(gist_id: str, metadata: dict, attachments: list[dict]
     csv_content = render_work_order_csv(metadata)
     att_content = render_attachments_txt(attachments or [])
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        md_path = os.path.join(tmpdir, "work-order.md")
-        csv_path = os.path.join(tmpdir, "work-order.csv")
-        att_path = os.path.join(tmpdir, "attachments.txt")
+    import json
+    payload = json.dumps({
+        "files": {
+            "work-order.md": {"content": md_content},
+            "work-order.csv": {"content": csv_content},
+            "attachments.txt": {"content": att_content},
+        }
+    })
 
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(md_content)
-        with open(csv_path, "w", encoding="utf-8") as f:
-            f.write(csv_content)
-        with open(att_path, "w", encoding="utf-8") as f:
-            f.write(att_content)
+    result = subprocess.run(
+        ["gh", "api", "--method", "PATCH", f"/gists/{gist_id}",
+         "--input", "-"],
+        input=payload, capture_output=True, text=True,
+    )
 
-        result = subprocess.run(
-            ["gh", "gist", "edit", gist_id,
-             "-a", md_path, "-a", csv_path, "-a", att_path],
-            capture_output=True, text=True,
-        )
+    if result.returncode != 0:
+        raise RuntimeError(f"gh gist edit failed: {result.stderr}")
 
-        if result.returncode != 0:
-            raise RuntimeError(f"gh gist edit failed: {result.stderr}")
-
-        gist_url = f"https://gist.github.com/{gist_id}"
-        return {"gist_id": gist_id, "gist_url": gist_url}
+    gist_url = f"https://gist.github.com/{gist_id}"
+    return {"gist_id": gist_id, "gist_url": gist_url}
