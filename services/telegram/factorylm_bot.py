@@ -19,6 +19,10 @@ from datetime import datetime
 from functools import wraps
 from pathlib import Path
 
+# Load .env file (if exists) before anything else
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
+
 from telegram import Update, Bot
 from telegram.ext import (
     Application,
@@ -27,6 +31,10 @@ from telegram.ext import (
     filters,
     ContextTypes,
 )
+
+# Media handling for content pipeline
+from services.media import TelegramMediaHandler
+media_handler = TelegramMediaHandler()
 
 # Unified Capabilities (shared across all bots)
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -166,29 +174,49 @@ def gus_says(options):
 
 
 # ============================================================================
-# Logging Decorator
+# Sentry-Traced Interaction Decorator
 # ============================================================================
 
 def log_interaction(handler_name):
-    """Decorator to log user messages and bot responses with timing."""
+    """Decorator to trace user messages with Sentry spans."""
     def decorator(func):
         @wraps(func)
         async def wrapper(update: Update, context, *args, **kwargs):
-            start = time.time()
             user = update.effective_user
             msg = update.message.text if update.message else "[no text]"
 
-            logger.info(f"[IN] @{user.username or user.id} ({handler_name}): {msg[:100]}")
+            # Set user context for Sentry
+            caps.telemetry.set_user(user.id, user.username or user.first_name)
+            caps.telemetry.set_tag("handler", handler_name)
+            caps.telemetry.set_tag("bot", "gus")
 
-            try:
-                result = await func(update, context, *args, **kwargs)
-                elapsed = (time.time() - start) * 1000
-                logger.info(f"[OK] ({elapsed:.0f}ms) {handler_name} completed")
-                return result
-            except Exception as e:
-                elapsed = (time.time() - start) * 1000
-                logger.error(f"[ERR] ({elapsed:.0f}ms) {handler_name}: {e}")
-                raise
+            # Add breadcrumb for the incoming message
+            caps.telemetry.add_breadcrumb(
+                message=f"User message: {msg[:100]}",
+                category="telegram",
+                level="info",
+                data={"user_id": user.id, "chat_id": update.effective_chat.id}
+            )
+
+            # Trace the handler execution
+            with caps.telemetry.span(f"telegram.{handler_name}", {
+                "user_id": user.id,
+                "username": user.username or user.first_name,
+                "message": msg[:200],
+                "chat_id": update.effective_chat.id,
+            }) as span:
+                logger.info(f"[IN] @{user.username or user.id} ({handler_name}): {msg[:100]}")
+
+                try:
+                    result = await func(update, context, *args, **kwargs)
+                    span.set_attribute("status", "success")
+                    return result
+                except Exception as e:
+                    span.set_attribute("status", "error")
+                    span.set_attribute("error", str(e))
+                    caps.telemetry.capture_exception(e, {"handler": handler_name, "message": msg})
+                    logger.error(f"[ERR] {handler_name}: {e}")
+                    raise
         return wrapper
     return decorator
 
@@ -327,9 +355,11 @@ async def cmd_io(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(gus_says(CHECKING_IO))
 
     try:
-        resp = http.get(f"{MATRIX_API}/api/tags?limit=1", timeout=10)
-        resp.raise_for_status()
-        tags_list = resp.json()
+        with caps.telemetry.span("matrix_api.get_tags", {"endpoint": "/api/tags"}) as span:
+            resp = http.get(f"{MATRIX_API}/api/tags?limit=1", timeout=10)
+            resp.raise_for_status()
+            tags_list = resp.json()
+            span.set_attribute("tag_count", len(tags_list))
 
         if not tags_list:
             await update.message.reply_text(
@@ -401,18 +431,23 @@ async def cmd_diagnose(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(gus_says(CHECKING_DIAGNOSIS))
 
     try:
-        resp = http.post(
-            f"{DEMO_UI}/api/diagnose",
-            json={"question": question},
-            timeout=60
-        )
-        resp.raise_for_status()
-        data = resp.json()
+        with caps.telemetry.span("diagnosis_api.diagnose", {"question": question[:100]}) as span:
+            resp = http.post(
+                f"{DEMO_UI}/api/diagnose",
+                json={"question": question},
+                timeout=60
+            )
+            resp.raise_for_status()
+            data = resp.json()
 
-        latency = data.get('latency_ms', 0)
-        model = data.get('model', 'AI')
-        answer = data.get('answer', 'No diagnosis available.')
-        faults = data.get('faults_detected', [])
+            latency = data.get('latency_ms', 0)
+            model = data.get('model', 'AI')
+            answer = data.get('answer', 'No diagnosis available.')
+            faults = data.get('faults_detected', [])
+
+            span.set_attribute("latency_ms", latency)
+            span.set_attribute("model", model)
+            span.set_attribute("faults_count", len(faults))
 
         lines = [f"Here's what I found ({latency}ms):\n"]
         lines.append(answer)
@@ -616,6 +651,31 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ============================================================================
+# Media Handler (for content pipeline)
+# ============================================================================
+
+@log_interaction("media")
+async def handle_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Handle incoming media (photos, videos, documents).
+    Saves to local inbox for sync to Google Drive and content production.
+    """
+    if not is_allowed(update):
+        return
+
+    result = await media_handler.handle_media(update, context)
+
+    if result.get("success"):
+        # Log for telemetry
+        caps.telemetry.add_breadcrumb(
+            message=f"Media saved: {result.get('file_path')}",
+            category="media",
+            level="info",
+            data=result.get("metadata", {})
+        )
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -640,6 +700,12 @@ def main():
 
     # Natural language handler (must be last)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Media handler for photos, videos, documents (feeds content pipeline)
+    app.add_handler(MessageHandler(
+        filters.PHOTO | filters.VIDEO | filters.Document.ALL,
+        handle_media
+    ))
 
     # Set up background alerting job
     job_queue = app.job_queue
