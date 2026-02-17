@@ -122,7 +122,7 @@ class CosmosVideoGenerator:
             "https://integrate.api.nvidia.com/v1"
         )
 
-        self.output_dir = Path(output_dir) if output_dir else Path(tempfile.gettempdir()) / "factorylm_videos"
+        self.output_dir = Path(output_dir).resolve() if output_dir else Path(tempfile.gettempdir()) / "factorylm_videos"
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         self._client: Optional[httpx.AsyncClient] = None
@@ -521,11 +521,13 @@ class CosmosVideoGenerator:
         transition_duration = 0.5
         final_path = self.output_dir / "final_output.mp4"
 
-        # Create concat file
+        # Create concat file with absolute paths
         concat_file = self.output_dir / "concat.txt"
         with open(concat_file, "w") as f:
             for path in clip_paths:
-                f.write(f"file '{path}'\n")
+                # Use absolute path and forward slashes for FFmpeg compatibility
+                abs_path = Path(path).resolve().as_posix()
+                f.write(f"file '{abs_path}'\n")
 
         # Use concat demuxer for simple joining (crossfade requires complex filter)
         cmd = [
