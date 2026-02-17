@@ -9,6 +9,11 @@ cosmos:
 
   # API key is read from env: NVIDIA_COSMOS_API_KEY
   # Never put secrets in this file.
+  #
+  # Self-hosted NIM: set COSMOS_NIM_URL env var to point at a RunPod
+  # (or other) NIM container, e.g. http://<runpod-ip>:8000/v1
+  # When set, COSMOS_NIM_URL overrides api_base_url and uses the local
+  # NIM model (nvidia/Cosmos-Reason2-2B). No API key required.
 
   trigger:
     on_fault_alarm: true
