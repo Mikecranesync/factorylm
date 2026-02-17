@@ -1,0 +1,129 @@
+id: wiring-telegram
+name: Wiring Photo Pipeline
+version: 1
+description: >
+  Classifies incoming Telegram photos, enriches the KB with component data,
+  runs wiring reconstruction if a project is active, and notifies the tech.
+
+agents:
+  - id: classifier
+    name: Photo Classifier
+    role: analysis
+    description: Classifies photo intent and extracts routing metadata
+    workspace:
+      files:
+        AGENTS.md: agents/classifier/AGENTS.md
+
+  - id: kb-enricher
+    name: KB Enrichment Agent
+    role: coding
+    description: Runs the 4-stage KB enrichment pipeline on a component photo
+    workspace:
+      files:
+        AGENTS.md: agents/kb-enricher/AGENTS.md
+
+  - id: reconstructor
+    name: Wiring Reconstructor
+    role: coding
+    description: Runs the 6-stage reconstruction pipeline and produces diagrams
+    workspace:
+      files:
+        AGENTS.md: agents/reconstructor/AGENTS.md
+
+  - id: notifier
+    name: Tech Notifier
+    role: coding
+    description: Sends results back to the tech via Telegram
+    workspace:
+      files:
+        AGENTS.md: agents/notifier/AGENTS.md
+
+steps:
+  - id: classify_photo
+    agent: classifier
+    input: |
+      Classify this Telegram photo.
+      Photo path: {{photo_path}}
+      Caption: {{caption}}
+      Chat ID: {{chat_id}}
+      Active project: {{project_id}}
+
+      Determine intent: KB_ENRICH_COMPONENT, WIRING_RECONSTRUCT, or BOTH.
+      If there's an active project, always include WIRING_RECONSTRUCT.
+      Extract: visible tags, component type, manufacturer hints.
+
+      Reply with:
+      INTENT: <intent>
+      TAGS: <comma-separated tags or "none">
+      COMPONENT_TYPE: <type or "unknown">
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: kb_enrich_component
+    agent: kb-enricher
+    input: |
+      Run KB enrichment on this photo.
+      Photo: {{photo_path}}
+      Tags: {{tags}}
+      Component type: {{component_type}}
+
+      Call: python -c "
+      from openclaw.wiring.kb_enrichment import enrich_from_photo
+      result = enrich_from_photo('{{photo_path}}', tags='{{tags}}')
+      print(f'ATOM_ID: {result.atom_id}')
+      print(f'COMPONENT_SUMMARY: {result.summary}')
+      "
+
+      Reply with:
+      ENRICHMENT_STATUS: done
+      ATOM_ID: <id or "new">
+      COMPONENT_SUMMARY: <1-line summary>
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: wiring_reconstruct
+    agent: reconstructor
+    input: |
+      Run wiring reconstruction on this photo.
+      Photo: {{photo_path}}
+      Project ID: {{project_id}}
+      Focus tag: {{tags}}
+
+      Call: python -c "
+      from openclaw.wiring.pipeline import process_photo
+      from openclaw.wiring.store import load_project, save_project
+      project = load_project('{{project_id}}')
+      result = process_photo(project, '{{photo_path}}', focus_tag='{{tags}}')
+      save_project(result.project)
+      print(f'COMPLETENESS: {result.completeness:.0f}')
+      print(f'NEXT_QUESTION: {result.next_question or \"none\"}')
+      print(f'DIAGRAM_READY: {result.diagram_ready}')
+      print(result.summary)
+      "
+
+      Reply with:
+      RECONSTRUCTION_STATUS: done
+      COMPLETENESS: <percentage>
+      NEXT_QUESTION: <question or "none">
+      DIAGRAM_READY: <true or false>
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: notify_tech
+    agent: notifier
+    input: |
+      Send results to the tech.
+      Chat ID: {{chat_id}}
+      Enrichment summary: {{component_summary}}
+      Reconstruction completeness: {{completeness}}
+      Next question: {{next_question}}
+      Diagram ready: {{diagram_ready}}
+      Project ID: {{project_id}}
+
+      If diagram_ready, render PNG and send via Telegram.
+      Always send a text summary of what was learned.
+
+      Reply with:
+      NOTIFICATION_STATUS: done
+      STATUS: done
+    expects: "STATUS: done"
