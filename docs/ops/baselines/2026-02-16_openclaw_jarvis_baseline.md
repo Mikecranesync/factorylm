@@ -166,6 +166,19 @@ openclaw:
 | **Main branch** | `8dce07d` (1 commit behind active branch) |
 | **Remote** | origin/feat/tts-emoji-ack pushed |
 
+## Experimental (Not Yet Deployed)
+
+Branch `feat/kb-maint-llm` (PR #2) adds:
+
+| Connector | Purpose | Flag | Default |
+|-----------|---------|------|---------|
+| Knowledge Base | Query 4,617 atoms in rivet PostgreSQL via full-text search | `kb_enabled` | `false` |
+| Maintenance LLM | Ollama on PLC laptop (100.72.2.99:11434) | `maint_llm_enabled` | `false` |
+
+Both are behind feature flags, OFF by default. Rollback tag: `v0.9.0-jarvis-baseline`.
+
+See trace: [TRC-2026-02-16-005](../traces/2026-02-16_kb-maint-llm-wiring.md)
+
 ## Known Issues at Baseline Time
 
 1. `feat/tts-emoji-ack` not yet merged to main (PR pending)

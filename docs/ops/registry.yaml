@@ -220,6 +220,7 @@ network:
     tailscale_ip: "100.68.120.99"
     role: "Telegram gateway, diagnosis service, orchestration"
     services:
+      - openclaw
       - plc-copilot
 
 observability:
