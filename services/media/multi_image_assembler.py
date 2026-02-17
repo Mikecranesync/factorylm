@@ -143,11 +143,12 @@ def assemble_multi_image_video(
         scaled_w = int(width * scale_factor)
         scaled_h = int(height * scale_factor)
 
+        # IMPORTANT: format=yuv420p ensures compatibility with all players
         filter_parts.append(
             f"[{i}:v]scale={scaled_w}:{scaled_h}:force_original_aspect_ratio=increase,"
             f"crop={scaled_w}:{scaled_h},"
             f"zoompan=z='1+{zoom_rate:.6f}*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-            f"d={frames}:s={width}x{height}:fps={fps}[v{i}]"
+            f"d={frames}:s={width}x{height}:fps={fps},format=yuv420p[v{i}]"
         )
         zoompan_outputs.append(f"[v{i}]")
 
@@ -187,6 +188,9 @@ def assemble_multi_image_video(
         "-map", "[vout]",
         "-map", f"{audio_index}:a",
         "-c:v", "libx264",
+        "-profile:v", "high",
+        "-level", "4.0",
+        "-pix_fmt", "yuv420p",
         "-preset", "fast",
         "-crf", "23",
         "-c:a", "aac",
