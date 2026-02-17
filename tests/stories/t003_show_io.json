@@ -1,0 +1,12 @@
+{
+  "id": "T-003",
+  "name": "Equipment IO Request — returns structured tag data",
+  "type": "chat",
+  "steps": [
+    {
+      "user": "show me io",
+      "expect_contains": [],
+      "expect_not_contains": ["error", "exception", "An error occurred"]
+    }
+  ]
+}

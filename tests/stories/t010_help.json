@@ -1,0 +1,12 @@
+{
+  "id": "T-010",
+  "name": "Help Routing — human-readable capabilities list",
+  "type": "chat",
+  "steps": [
+    {
+      "user": "help",
+      "expect_contains": [],
+      "expect_not_contains": ["error", "exception", "An error occurred", "budget"]
+    }
+  ]
+}

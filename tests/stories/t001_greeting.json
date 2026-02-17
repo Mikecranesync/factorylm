@@ -1,0 +1,13 @@
+{
+  "id": "T-001",
+  "name": "Basic Greeting — concise industrial response",
+  "type": "chat",
+  "steps": [
+    {
+      "user": "hello",
+      "expect_contains": ["Mike"],
+      "expect_not_contains": ["error", "exception", "An error occurred"],
+      "max_length": 800
+    }
+  ]
+}

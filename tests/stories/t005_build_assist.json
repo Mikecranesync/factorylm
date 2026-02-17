@@ -1,0 +1,12 @@
+{
+  "id": "T-005",
+  "name": "Build Assistance — conveyor component guidance",
+  "type": "chat",
+  "steps": [
+    {
+      "user": "I am building the conveyor still",
+      "expect_contains": [],
+      "expect_not_contains": ["error", "exception", "An error occurred"]
+    }
+  ]
+}

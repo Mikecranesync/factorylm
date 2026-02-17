@@ -1,0 +1,13 @@
+{
+  "id": "T-002",
+  "name": "Self-Description — mentions FactoryLM identity",
+  "type": "chat",
+  "steps": [
+    {
+      "user": "talk to me about yourself",
+      "expect_contains": ["FactoryLM"],
+      "expect_not_contains": ["error", "exception"],
+      "max_length": 2000
+    }
+  ]
+}
