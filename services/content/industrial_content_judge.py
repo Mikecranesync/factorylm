@@ -748,6 +748,120 @@ class IndustrialContentJudge:
         else:
             return hooks[2]
 
+    def format_for_cosmos(
+        self,
+        evaluation: Dict[str, Any],
+        images: List[str],
+        script: str,
+        audio_duration: float = 60.0
+    ) -> Dict[str, Any]:
+        """
+        Format Content Judge output for Cosmos-Predict2 video generation.
+
+        Creates a standardized package that CosmosVideoGenerator expects.
+
+        Args:
+            evaluation: Result from evaluate_full_production()
+            images: List of image file paths
+            script: Narration script
+            audio_duration: Target audio duration in seconds
+
+        Returns:
+            Dict formatted for CosmosVideoGenerator.generate_from_judge_output()
+        """
+        # Extract scores
+        production_scores = evaluation.get("production_scores", {})
+        overall_score = production_scores.get("overall_production", 0)
+        ready = evaluation.get("ready_for_production", False)
+
+        # Build image analysis from visual evaluation
+        visual_eval = evaluation.get("visual_evaluation", {})
+        image_analysis = visual_eval.get("image_analysis", [])
+
+        # Ensure image paths are included
+        for i, img_path in enumerate(images):
+            if i < len(image_analysis):
+                image_analysis[i]["path"] = img_path
+            else:
+                image_analysis.append({
+                    "index": i,
+                    "path": img_path,
+                    "inferred_type": self._infer_image_type(Path(img_path).name)
+                })
+
+        # Build script evaluation for Cosmos
+        script_eval = evaluation.get("script_evaluation", {})
+
+        cosmos_package = {
+            # Required fields for CosmosVideoGenerator
+            "overall_score": overall_score,
+            "ready_for_production": ready and overall_score >= 8.0,
+
+            # Script information
+            "script_evaluation": {
+                "original_script": script,
+                "revised_script": None,  # Set if revision was done
+                "word_count": len(script.split()),
+                "content_type": evaluation.get("topic", "industrial_training"),
+                "scores": script_eval.get("scores", {})
+            },
+
+            # Visual information
+            "visual_evaluation": {
+                "image_analysis": image_analysis,
+                "image_count": len(images),
+                "presentation_flow": visual_eval.get("presentation_flow", []),
+                "scores": visual_eval.get("scores", {})
+            },
+
+            # Timing
+            "audio_duration": audio_duration,
+            "estimated_segments": max(1, int(audio_duration / 5)),  # 5 sec per segment
+
+            # Generation hints
+            "generation_hints": {
+                "topic": evaluation.get("topic", ""),
+                "style": "industrial_educational",
+                "target_audience": "maintenance_technicians",
+                "differentiators_to_highlight": evaluation.get(
+                    "script_evaluation", {}
+                ).get("factorylm_advantages_highlighted", []),
+                "blocking_issues": evaluation.get("blocking_issues", []),
+            },
+
+            # Metadata
+            "metadata": {
+                "evaluated_at": datetime.now().isoformat(),
+                "judge_version": "1.0",
+                "production_scores": production_scores
+            }
+        }
+
+        return cosmos_package
+
+    def evaluate_and_format(
+        self,
+        script: str,
+        images: List[str],
+        audio_duration: float,
+        topic: str = ""
+    ) -> Dict[str, Any]:
+        """
+        One-shot evaluation and Cosmos formatting.
+
+        Convenience method that combines evaluate_full_production()
+        and format_for_cosmos() into a single call.
+
+        Returns package ready for CosmosVideoGenerator.
+        """
+        # Run full evaluation
+        evaluation = self.evaluate_full_production(script, images, audio_duration, topic)
+
+        # Format for Cosmos
+        cosmos_package = self.format_for_cosmos(evaluation, images, script, audio_duration)
+
+        return cosmos_package
+
     def get_repo_highlights(self) -> Dict[str, Any]:
         """Get repository files that demonstrate FactoryLM capabilities."""
         highlights = {
