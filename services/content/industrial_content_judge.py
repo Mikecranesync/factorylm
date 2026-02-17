@@ -169,12 +169,46 @@ class IndustrialContentJudge:
     """
     Evaluates content quality and competitive positioning against
     top industrial automation channels.
+
+    Supports:
+    - Script evaluation (text)
+    - Visual evaluation (images)
+    - Video evaluation (assembled content)
+    - Presentation flow analysis
     """
 
     def __init__(self, model_provider: str = "anthropic"):
         self.model_provider = model_provider
         self.channels = TOP_CHANNELS
         self.capabilities = FACTORYLM_CAPABILITIES
+
+        # Visual content standards for industrial content
+        self.visual_standards = {
+            "image_types": {
+                "plc_panel": {"weight": 10, "description": "PLC/control panel shots - high value"},
+                "hmi_screen": {"weight": 10, "description": "HMI/SCADA screens - high value"},
+                "wiring": {"weight": 8, "description": "Electrical wiring - good for troubleshooting"},
+                "motor": {"weight": 8, "description": "Motors/VFDs - common fault source"},
+                "conveyor": {"weight": 7, "description": "Conveyor systems - relatable"},
+                "sensor": {"weight": 7, "description": "Sensors/instrumentation"},
+                "diagram": {"weight": 6, "description": "Ladder logic/wiring diagrams"},
+                "person": {"weight": 5, "description": "Technician at work - adds authenticity"},
+                "factory_floor": {"weight": 5, "description": "Wide factory shots - context"},
+                "generic": {"weight": 2, "description": "Stock/generic images - avoid"}
+            },
+            "composition": {
+                "close_up": "Good for detail shots (wiring, error codes)",
+                "medium": "Good for equipment context",
+                "wide": "Good for establishing shots, use sparingly"
+            },
+            "quality_factors": [
+                "resolution (min 1080p)",
+                "lighting (visible details)",
+                "focus (sharp on subject)",
+                "relevance (matches narration)",
+                "authenticity (real equipment, not stock)"
+            ]
+        }
 
     def get_competitive_landscape(self) -> Dict[str, Any]:
         """Return summary of competitive landscape."""
@@ -373,6 +407,324 @@ class IndustrialContentJudge:
 
         return recommendations
 
+    def evaluate_visuals(
+        self,
+        images: List[str],
+        script: Optional[str] = None,
+        audio_duration: Optional[float] = None
+    ) -> Dict[str, Any]:
+        """
+        Evaluate visual content selection and presentation.
+
+        Args:
+            images: List of image file paths
+            script: Optional script to check image-narration alignment
+            audio_duration: Optional audio length for timing analysis
+
+        Returns:
+            Visual evaluation scores and recommendations
+        """
+        from pathlib import Path
+        import subprocess
+        import json as json_module
+
+        evaluation = {
+            "image_count": len(images),
+            "scores": {
+                "diversity": 0,
+                "quality": 0,
+                "relevance": 0,
+                "pacing": 0,
+                "authenticity": 0,
+                "overall": 0
+            },
+            "image_analysis": [],
+            "recommendations": [],
+            "presentation_flow": []
+        }
+
+        if not images:
+            evaluation["recommendations"].append("No images provided - need 3-10 for effective Shorts")
+            return evaluation
+
+        # Analyze each image
+        for i, img_path in enumerate(images):
+            img = Path(img_path)
+            if not img.exists():
+                evaluation["image_analysis"].append({
+                    "index": i,
+                    "path": str(img),
+                    "error": "File not found"
+                })
+                continue
+
+            analysis = {
+                "index": i,
+                "path": str(img),
+                "filename": img.name,
+                "size_kb": img.stat().st_size / 1024,
+                "extension": img.suffix.lower(),
+                "inferred_type": self._infer_image_type(img.name),
+                "position_recommendation": self._get_position_recommendation(i, len(images))
+            }
+
+            # Get image dimensions using ffprobe
+            try:
+                result = subprocess.run([
+                    "ffprobe", "-v", "quiet",
+                    "-select_streams", "v:0",
+                    "-show_entries", "stream=width,height",
+                    "-of", "json",
+                    str(img)
+                ], capture_output=True, text=True, timeout=10)
+
+                if result.returncode == 0:
+                    data = json_module.loads(result.stdout)
+                    if data.get("streams"):
+                        stream = data["streams"][0]
+                        analysis["width"] = stream.get("width", 0)
+                        analysis["height"] = stream.get("height", 0)
+                        analysis["is_vertical"] = analysis["height"] > analysis["width"]
+                        analysis["resolution_ok"] = analysis["width"] >= 1080 or analysis["height"] >= 1080
+            except:
+                pass
+
+            evaluation["image_analysis"].append(analysis)
+
+        # Score diversity (variety of image types)
+        types_used = set(a.get("inferred_type", "generic") for a in evaluation["image_analysis"])
+        high_value_types = {"plc_panel", "hmi_screen", "wiring", "motor"}
+        has_high_value = bool(types_used & high_value_types)
+
+        if len(types_used) >= 4 and has_high_value:
+            evaluation["scores"]["diversity"] = 10
+        elif len(types_used) >= 3 and has_high_value:
+            evaluation["scores"]["diversity"] = 8
+        elif len(types_used) >= 2:
+            evaluation["scores"]["diversity"] = 6
+        else:
+            evaluation["scores"]["diversity"] = 4
+            evaluation["recommendations"].append(
+                f"Low image diversity - only {len(types_used)} type(s). Mix PLC panels, HMI screens, wiring, motors."
+            )
+
+        # Score quality (resolution, format)
+        quality_scores = []
+        for a in evaluation["image_analysis"]:
+            if a.get("resolution_ok"):
+                quality_scores.append(10)
+            elif a.get("width", 0) >= 720:
+                quality_scores.append(7)
+            else:
+                quality_scores.append(4)
+        evaluation["scores"]["quality"] = sum(quality_scores) // len(quality_scores) if quality_scores else 5
+
+        # Score authenticity (real equipment vs generic)
+        authentic_types = {"plc_panel", "hmi_screen", "wiring", "motor", "sensor", "conveyor"}
+        authentic_count = sum(1 for a in evaluation["image_analysis"] if a.get("inferred_type") in authentic_types)
+        evaluation["scores"]["authenticity"] = min(10, 4 + (authentic_count * 2))
+
+        if authentic_count < len(images) // 2:
+            evaluation["recommendations"].append(
+                "More authentic equipment shots needed. Use real PLC panels, HMI screens, wiring - not stock images."
+            )
+
+        # Score pacing (number of images vs duration)
+        if audio_duration:
+            per_image = audio_duration / len(images)
+            if 4 <= per_image <= 10:  # 4-10 seconds per image is ideal
+                evaluation["scores"]["pacing"] = 10
+            elif 3 <= per_image <= 15:
+                evaluation["scores"]["pacing"] = 7
+            else:
+                evaluation["scores"]["pacing"] = 4
+                if per_image < 3:
+                    evaluation["recommendations"].append(
+                        f"Too many images ({len(images)}) for {audio_duration:.0f}s audio. "
+                        f"Each image only gets {per_image:.1f}s. Reduce to {int(audio_duration/6)}-{int(audio_duration/4)} images."
+                    )
+                else:
+                    evaluation["recommendations"].append(
+                        f"Too few images ({len(images)}) for {audio_duration:.0f}s audio. "
+                        f"Each image shows for {per_image:.1f}s. Add more images or shorten audio."
+                    )
+        else:
+            # Without duration, check reasonable count
+            if 3 <= len(images) <= 8:
+                evaluation["scores"]["pacing"] = 8
+            else:
+                evaluation["scores"]["pacing"] = 5
+                evaluation["recommendations"].append(f"Image count ({len(images)}) may be off. 3-8 images ideal for 30-60s Short.")
+
+        # Score relevance (if script provided)
+        if script:
+            evaluation["scores"]["relevance"] = self._score_image_script_alignment(
+                evaluation["image_analysis"], script
+            )
+        else:
+            evaluation["scores"]["relevance"] = 7  # Neutral without script
+
+        # Generate presentation flow
+        evaluation["presentation_flow"] = self._generate_presentation_flow(
+            evaluation["image_analysis"], script, audio_duration
+        )
+
+        # Calculate overall
+        scores = evaluation["scores"]
+        evaluation["scores"]["overall"] = (
+            scores["diversity"] * 0.2 +
+            scores["quality"] * 0.15 +
+            scores["relevance"] * 0.25 +
+            scores["pacing"] * 0.2 +
+            scores["authenticity"] * 0.2
+        )
+
+        return evaluation
+
+    def _infer_image_type(self, filename: str) -> str:
+        """Infer image type from filename."""
+        name_lower = filename.lower()
+
+        type_keywords = {
+            "plc_panel": ["plc", "panel", "micro820", "logix", "s7", "controller"],
+            "hmi_screen": ["hmi", "scada", "screen", "display", "panelview", "factorytalk"],
+            "wiring": ["wire", "wiring", "terminal", "cable", "electrical"],
+            "motor": ["motor", "vfd", "drive", "pump", "fan"],
+            "conveyor": ["conveyor", "belt", "line", "production"],
+            "sensor": ["sensor", "probe", "switch", "proximity", "photoelectric"],
+            "diagram": ["diagram", "ladder", "logic", "schematic", "drawing"],
+            "person": ["tech", "worker", "person", "operator", "maintenance"],
+            "factory_floor": ["factory", "floor", "plant", "facility", "wide"]
+        }
+
+        for img_type, keywords in type_keywords.items():
+            if any(kw in name_lower for kw in keywords):
+                return img_type
+
+        return "generic"
+
+    def _get_position_recommendation(self, index: int, total: int) -> str:
+        """Get recommendation for image position in sequence."""
+        if index == 0:
+            return "OPENING: Use attention-grabbing shot (equipment close-up, error screen)"
+        elif index == total - 1:
+            return "CLOSING: Use resolution shot (working equipment) or CTA visual"
+        elif index == 1:
+            return "CONTEXT: Establish the problem (fault indicator, alarm)"
+        else:
+            return "PROGRESSION: Show troubleshooting steps or equipment details"
+
+    def _score_image_script_alignment(self, images: List[Dict], script: str) -> int:
+        """Score how well images align with script content."""
+        script_lower = script.lower()
+        alignment_score = 5  # Start neutral
+
+        # Check if image types match script topics
+        script_topics = {
+            "plc": ["plc_panel", "diagram"],
+            "motor": ["motor"],
+            "hmi": ["hmi_screen"],
+            "wire": ["wiring"],
+            "fault": ["hmi_screen", "plc_panel"],
+            "sensor": ["sensor"],
+            "conveyor": ["conveyor"]
+        }
+
+        for topic, relevant_types in script_topics.items():
+            if topic in script_lower:
+                if any(img.get("inferred_type") in relevant_types for img in images):
+                    alignment_score += 1
+
+        return min(10, alignment_score)
+
+    def _generate_presentation_flow(
+        self,
+        images: List[Dict],
+        script: Optional[str],
+        duration: Optional[float]
+    ) -> List[Dict]:
+        """Generate recommended presentation flow."""
+        flow = []
+        per_image = duration / len(images) if duration and images else 6.0
+
+        for i, img in enumerate(images):
+            entry = {
+                "position": i + 1,
+                "image": img.get("filename", f"Image {i+1}"),
+                "type": img.get("inferred_type", "unknown"),
+                "duration_seconds": round(per_image, 1),
+                "effect": "ken_burns_zoom_in" if i % 2 == 0 else "ken_burns_zoom_out",
+                "transition": "xfade_0.5s" if i < len(images) - 1 else "none",
+                "purpose": img.get("position_recommendation", "content")
+            }
+            flow.append(entry)
+
+        return flow
+
+    def evaluate_full_production(
+        self,
+        script: str,
+        images: List[str],
+        audio_duration: float,
+        topic: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Evaluate complete production package (script + visuals + timing).
+
+        Returns combined evaluation with overall production score.
+        """
+        # Evaluate script
+        script_eval = self.evaluate_content(script)
+
+        # Evaluate visuals
+        visual_eval = self.evaluate_visuals(images, script, audio_duration)
+
+        # Combined evaluation
+        combined = {
+            "topic": topic,
+            "script_evaluation": script_eval,
+            "visual_evaluation": visual_eval,
+            "production_scores": {
+                "script_quality": script_eval["scores"]["overall"],
+                "visual_quality": visual_eval["scores"]["overall"],
+                "script_visual_alignment": visual_eval["scores"]["relevance"],
+                "competitive_positioning": script_eval["scores"].get("differentiation", 5),
+                "overall_production": 0
+            },
+            "ready_for_production": False,
+            "blocking_issues": [],
+            "recommendations": []
+        }
+
+        # Calculate overall production score
+        ps = combined["production_scores"]
+        ps["overall_production"] = (
+            ps["script_quality"] * 0.35 +
+            ps["visual_quality"] * 0.30 +
+            ps["script_visual_alignment"] * 0.15 +
+            ps["competitive_positioning"] * 0.20
+        )
+
+        # Check for blocking issues
+        if ps["script_quality"] < 5:
+            combined["blocking_issues"].append("Script quality too low - needs rewrite")
+        if ps["visual_quality"] < 5:
+            combined["blocking_issues"].append("Visual quality too low - need better images")
+        if ps["competitive_positioning"] < 6:
+            combined["blocking_issues"].append("Insufficient differentiation - add FactoryLM advantages")
+        if len(images) < 3:
+            combined["blocking_issues"].append("Need at least 3 images for effective Short")
+
+        combined["ready_for_production"] = len(combined["blocking_issues"]) == 0
+
+        # Combine recommendations
+        combined["recommendations"] = (
+            script_eval.get("recommendations", []) +
+            visual_eval.get("recommendations", [])
+        )
+
+        return combined
+
     def generate_competitive_hook(self, topic: str) -> str:
         """Generate a hook that positions against competitors."""
         hooks = [
@@ -493,6 +845,30 @@ if __name__ == "__main__":
             script = " ".join(sys.argv[2:])
             result = judge.evaluate_content(script)
             print(json.dumps(result, indent=2))
+        elif sys.argv[1] == "--visuals":
+            # Evaluate images: --visuals img1.jpg img2.jpg ...
+            images = sys.argv[2:]
+            if not images:
+                print("Error: Provide image paths")
+                sys.exit(1)
+            result = judge.evaluate_visuals(images)
+            print(json.dumps(result, indent=2, default=str))
+        elif sys.argv[1] == "--full":
+            # Full evaluation: --full <audio_duration> <script> -- <images>
+            # Example: --full 45 "My script text" -- img1.jpg img2.jpg
+            if "--" in sys.argv:
+                sep_idx = sys.argv.index("--")
+                duration = float(sys.argv[2])
+                script = " ".join(sys.argv[3:sep_idx])
+                images = sys.argv[sep_idx + 1:]
+            else:
+                print("Usage: --full <duration> <script> -- <img1> <img2> ...")
+                sys.exit(1)
+            result = judge.evaluate_full_production(script, images, duration)
+            print(json.dumps(result, indent=2, default=str))
+        elif sys.argv[1] == "--standards":
+            # Show visual standards
+            print(json.dumps(judge.visual_standards, indent=2))
         elif sys.argv[1] == "--prompt":
             topic = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "PLC troubleshooting"
             print(create_competitive_analysis_prompt(topic))
@@ -500,13 +876,24 @@ if __name__ == "__main__":
         print("Industrial Content Judge - FactoryLM")
         print("=" * 50)
         print()
-        print("Usage:")
-        print("  --landscape     Show competitive landscape")
-        print("  --highlights    Show repo capability highlights")
-        print("  --hook <topic>  Generate competitive hook")
-        print("  --evaluate <script>  Evaluate content script")
-        print("  --prompt <topic>     Generate LLM prompt for topic")
+        print("SCRIPT EVALUATION:")
+        print("  --evaluate <script>    Evaluate text script")
+        print("  --hook <topic>         Generate competitive hook")
+        print("  --prompt <topic>       Generate LLM prompt for topic")
         print()
-        print("Example:")
+        print("VISUAL EVALUATION:")
+        print("  --visuals <img1> <img2> ...    Evaluate images")
+        print("  --standards                    Show visual quality standards")
+        print()
+        print("FULL PRODUCTION:")
+        print("  --full <duration> <script> -- <img1> <img2> ...")
+        print("      Evaluate complete script + visuals package")
+        print()
+        print("COMPETITIVE INTEL:")
+        print("  --landscape     Show competitive landscape (top 8 channels)")
+        print("  --highlights    Show FactoryLM repo capability highlights")
+        print()
+        print("Examples:")
         print("  python industrial_content_judge.py --hook 'motor troubleshooting'")
-        print("  python industrial_content_judge.py --landscape")
+        print("  python industrial_content_judge.py --visuals plc_panel.jpg hmi_error.png")
+        print("  python industrial_content_judge.py --full 45 'My script' -- img1.jpg img2.jpg")
