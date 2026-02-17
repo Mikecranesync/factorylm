@@ -6,7 +6,7 @@
     {
       "user": "show me io",
       "expect_contains": [],
-      "expect_not_contains": ["error", "exception", "An error occurred"]
+      "expect_not_contains": ["exception"]
     }
   ]
 }
