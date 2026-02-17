@@ -1,0 +1,1627 @@
+[
+  {
+    "video": "clips/normal_012.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 67, \"motor_current\": 3.44, \"temperature\": 24.7, \"pressure\": 108, \"conveyor_running\": true, \"conveyor_speed\": 53, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Normal operation confirmed. Conveyor and motor running at standard setpoints.\", \"root_cause\": \"N/A \\u2014 system healthy\", \"confidence\": 0.99, \"reasoning\": \"Motor current proportional to speed setpoint, temperature stable below 45\\u00b0C, sensors cycling normally as parts pass.\", \"suggested_checks\": [\"Log baseline values for trend analysis\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_001.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 65, \"motor_current\": 3.22, \"temperature\": 24.8, \"pressure\": 97, \"conveyor_running\": true, \"conveyor_speed\": 43, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Equipment running nominally. All sensors and actuators responding correctly.\", \"root_cause\": \"N/A \\u2014 no fault condition\", \"confidence\": 0.94, \"reasoning\": \"Motor draw consistent with load, temperature trending flat, no fault alarms active. Belt tracking appears centered.\", \"suggested_checks\": [\"Verify lubrication schedule is current\", \"Check belt wear at next planned stop\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_025.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 49, \"motor_current\": 5.38, \"temperature\": 26.7, \"pressure\": 109, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.87, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 5.38A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_001.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 48, \"motor_current\": 2.21, \"temperature\": 36.2, \"pressure\": 95, \"conveyor_running\": true, \"conveyor_speed\": 43, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.79, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_005.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 31.5, \"pressure\": 104, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop active. Complete system halt in effect.\", \"root_cause\": \"Safety circuit opened \\u2014 e-stop or safety gate\", \"confidence\": 0.87, \"reasoning\": \"Motor and conveyor both de-energized simultaneously, consistent with safety circuit interruption. E-stop TRUE confirms the safety chain is open.\", \"suggested_checks\": [\"Check all e-stop buttons for latched state\", \"Verify safety gate interlocks are closed\", \"Test e-stop reset procedure\", \"Confirm safety relay is ready for reset\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_019.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 55, \"motor_current\": 2.78, \"temperature\": 76.6, \"pressure\": 104, \"conveyor_running\": true, \"conveyor_speed\": 40, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"High temperature alarm. Process temperature exceeding safe threshold.\", \"root_cause\": \"Insufficient cooling or sustained high-load operation\", \"confidence\": 0.81, \"reasoning\": \"Temperature reading at 76.6\\u00b0C. Thermal runaway pattern suggests cooling system degradation or ambient temperature exceeding design limits.\", \"suggested_checks\": [\"Check cooling fan operation\", \"Inspect air filters for blockage\", \"Verify ambient temperature in enclosure\", \"Check thermal paste on heat sinks\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_017.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 73, \"motor_current\": 3.88, \"temperature\": 25.1, \"pressure\": 104, \"conveyor_running\": true, \"conveyor_speed\": 41, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor failure detected. One or more sensors not responding.\", \"root_cause\": \"Sensor wiring fault or component failure\", \"confidence\": 0.68, \"reasoning\": \"Sensor readings show flat-line or erratic values inconsistent with physical process state. Likely a wiring issue or end-of-life sensor.\", \"suggested_checks\": [\"Check sensor wiring connections\", \"Verify sensor supply voltage\", \"Test sensor with known target\", \"Replace sensor if beyond calibration\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_010.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 50, \"motor_current\": 5.03, \"temperature\": 29.7, \"pressure\": 97, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.83, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 5.03A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_004.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 72, \"motor_current\": 7.27, \"temperature\": 31.9, \"pressure\": 104, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.9, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 7.27A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_012.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 45, \"motor_current\": 1.96, \"temperature\": 34.3, \"pressure\": 95, \"conveyor_running\": true, \"conveyor_speed\": 54, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.78, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_017.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 67, \"motor_current\": 7.09, \"temperature\": 37.6, \"pressure\": 96, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor belt stalled. Jam condition confirmed by sensor and current data.\", \"root_cause\": \"Product wedged between guide rails and belt surface\", \"confidence\": 0.93, \"reasoning\": \"Belt speed reads 0 while motor current is elevated at 7.09A, indicating the motor is stalled against a fixed obstruction. Sensor_1 stuck TRUE confirms product is stationary at photoeye location.\", \"suggested_checks\": [\"Lockout/tagout before clearing jam\", \"Remove wedged product carefully\", \"Check guide rail width \\u2014 may need adjustment\", \"Inspect belt surface for damage from jam\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_015.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 67, \"motor_current\": 3.52, \"temperature\": 91.5, \"pressure\": 95, \"conveyor_running\": true, \"conveyor_speed\": 44, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Temperature rising above safe operating limits. Overheat condition detected.\", \"root_cause\": \"Blocked ventilation or cooling fan failure\", \"confidence\": 0.76, \"reasoning\": \"Temperature at 91.5\\u00b0C with upward trend. Normal operating range is 25-45\\u00b0C. Rate of rise suggests active heat source with no effective cooling.\", \"suggested_checks\": [\"Confirm cooling fan is spinning at rated RPM\", \"Check enclosure door seals for gaps allowing hot air ingress\", \"Verify thermocouple calibration\", \"Reduce motor load until temperature stabilizes\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_008.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 54, \"motor_current\": 3.0, \"temperature\": 38.4, \"pressure\": 107, \"conveyor_running\": true, \"conveyor_speed\": 46, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"No active fault detected. System operating within normal parameters.\", \"root_cause\": \"N/A \\u2014 no fault present\", \"confidence\": 0.99, \"reasoning\": \"All tag values within expected ranges. Motor current, temperature, and pressure readings are nominal.\", \"suggested_checks\": [\"Continue normal monitoring\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_012.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 47, \"motor_current\": 8.14, \"temperature\": 28.8, \"pressure\": 98, \"conveyor_running\": true, \"conveyor_speed\": 42, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Overload condition on conveyor drive motor. Current spike detected.\", \"root_cause\": \"Excessive mechanical load \\u2014 possible belt misalignment or product accumulation\", \"confidence\": 0.89, \"reasoning\": \"Current reading of 8.14A at 47% speed indicates approximately 2x normal draw. Sustained overload will trip the overload relay within minutes.\", \"suggested_checks\": [\"Reduce motor speed to 40% and observe current\", \"Check for product pile-up at diverter gate\", \"Inspect drive chain/belt for damage\", \"Measure motor winding resistance\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_002.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 50, \"motor_current\": 2.57, \"temperature\": 26.2, \"pressure\": 105, \"conveyor_running\": true, \"conveyor_speed\": 43, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor failure detected. One or more sensors not responding.\", \"root_cause\": \"Sensor wiring fault or component failure\", \"confidence\": 0.77, \"reasoning\": \"Sensor readings show flat-line or erratic values inconsistent with physical process state. Likely a wiring issue or end-of-life sensor.\", \"suggested_checks\": [\"Check sensor wiring connections\", \"Verify sensor supply voltage\", \"Test sensor with known target\", \"Replace sensor if beyond calibration\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_008.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 61, \"motor_current\": 2.9, \"temperature\": 69.5, \"pressure\": 102, \"conveyor_running\": true, \"conveyor_speed\": 57, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Thermal alarm triggered. Equipment temperature 69.5\\u00b0C exceeds 60\\u00b0C threshold.\", \"root_cause\": \"Motor overwork combined with reduced airflow\", \"confidence\": 0.72, \"reasoning\": \"Temperature exceeds alarm setpoint. Motor current is within range, suggesting the heat source may be external (ambient) or due to restricted airflow rather than electrical overload.\", \"suggested_checks\": [\"Clean cabinet air filters immediately\", \"Check for obstructions around ventilation openings\", \"Inspect motor cooling fins for dust buildup\", \"Consider temporary auxiliary cooling\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_016.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 68, \"motor_current\": 3.56, \"temperature\": 88.8, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 55, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"High temperature alarm. Process temperature exceeding safe threshold.\", \"root_cause\": \"Insufficient cooling or sustained high-load operation\", \"confidence\": 0.74, \"reasoning\": \"Temperature reading at 88.8\\u00b0C. Thermal runaway pattern suggests cooling system degradation or ambient temperature exceeding design limits.\", \"suggested_checks\": [\"Check cooling fan operation\", \"Inspect air filters for blockage\", \"Verify ambient temperature in enclosure\", \"Check thermal paste on heat sinks\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_005.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 64, \"motor_current\": 6.78, \"temperature\": 36.7, \"pressure\": 96, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.9, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 6.78A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_007.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 69, \"motor_current\": 3.45, \"temperature\": 28.3, \"pressure\": 101, \"conveyor_running\": true, \"conveyor_speed\": 47, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.77, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_029.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 45, \"motor_current\": 4.6, \"temperature\": 35.1, \"pressure\": 96, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor jam detected. Material flow interrupted.\", \"root_cause\": \"Physical obstruction in conveyor path\", \"confidence\": 0.86, \"reasoning\": \"Conveyor motor drawing current but photoeye sensors show sustained blockage. Belt speed has dropped to zero while motor remains energized \\u2014 classic jam signature.\", \"suggested_checks\": [\"Clear jammed material from conveyor path\", \"Inspect photoeye sensors for alignment\", \"Check conveyor belt tracking\", \"Verify guide rail spacing\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_020.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 66, \"motor_current\": 6.83, \"temperature\": 32.7, \"pressure\": 98, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor belt stalled. Jam condition confirmed by sensor and current data.\", \"root_cause\": \"Product wedged between guide rails and belt surface\", \"confidence\": 0.95, \"reasoning\": \"Belt speed reads 0 while motor current is elevated at 6.83A, indicating the motor is stalled against a fixed obstruction. Sensor_1 stuck TRUE confirms product is stationary at photoeye location.\", \"suggested_checks\": [\"Lockout/tagout before clearing jam\", \"Remove wedged product carefully\", \"Check guide rail width \\u2014 may need adjustment\", \"Inspect belt surface for damage from jam\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_005.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 62, \"motor_current\": 2.88, \"temperature\": 78.5, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 42, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"High temperature alarm. Process temperature exceeding safe threshold.\", \"root_cause\": \"Insufficient cooling or sustained high-load operation\", \"confidence\": 0.73, \"reasoning\": \"Temperature reading at 78.5\\u00b0C. Thermal runaway pattern suggests cooling system degradation or ambient temperature exceeding design limits.\", \"suggested_checks\": [\"Check cooling fan operation\", \"Inspect air filters for blockage\", \"Verify ambient temperature in enclosure\", \"Check thermal paste on heat sinks\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_004.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 30.5, \"pressure\": 105, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"E-stop engaged. System in safe shutdown state.\", \"root_cause\": \"Operator-initiated emergency stop\", \"confidence\": 0.92, \"reasoning\": \"All outputs are off, e_stop flag is TRUE. No preceding fault alarms were active, suggesting this was a precautionary stop rather than a response to equipment failure.\", \"suggested_checks\": [\"Confirm all personnel are clear of equipment\", \"Check e-stop circuit for proper reset capability\", \"Document reason for stop in shift log\", \"Perform walk-around inspection before restart\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_008.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 71, \"motor_current\": 3.72, \"temperature\": 28.6, \"pressure\": 110, \"conveyor_running\": true, \"conveyor_speed\": 57, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.72, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_008.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 71, \"motor_current\": 7.23, \"temperature\": 29.1, \"pressure\": 101, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.88, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 7.23A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_006.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 25.9, \"pressure\": 97, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop active. Complete system halt in effect.\", \"root_cause\": \"Safety circuit opened \\u2014 e-stop or safety gate\", \"confidence\": 0.93, \"reasoning\": \"Motor and conveyor both de-energized simultaneously, consistent with safety circuit interruption. E-stop TRUE confirms the safety chain is open.\", \"suggested_checks\": [\"Check all e-stop buttons for latched state\", \"Verify safety gate interlocks are closed\", \"Test e-stop reset procedure\", \"Confirm safety relay is ready for reset\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_018.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 65, \"motor_current\": 3.15, \"temperature\": 24.8, \"pressure\": 104, \"conveyor_running\": true, \"conveyor_speed\": 50, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"System in steady-state. No anomalies detected in any monitored parameter.\", \"root_cause\": \"N/A \\u2014 all clear\", \"confidence\": 0.91, \"reasoning\": \"Pressure within 90-110 range, conveyor speed matches setpoint, photoeye sensors toggling as expected with part flow.\", \"suggested_checks\": [\"Schedule routine preventive maintenance per calendar\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_002.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 45, \"motor_current\": 4.55, \"temperature\": 25.8, \"pressure\": 102, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor belt stalled. Jam condition confirmed by sensor and current data.\", \"root_cause\": \"Product wedged between guide rails and belt surface\", \"confidence\": 0.96, \"reasoning\": \"Belt speed reads 0 while motor current is elevated at 4.55A, indicating the motor is stalled against a fixed obstruction. Sensor_1 stuck TRUE confirms product is stationary at photoeye location.\", \"suggested_checks\": [\"Lockout/tagout before clearing jam\", \"Remove wedged product carefully\", \"Check guide rail width \\u2014 may need adjustment\", \"Inspect belt surface for damage from jam\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_003.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 56, \"motor_current\": 2.55, \"temperature\": 81.5, \"pressure\": 102, \"conveyor_running\": true, \"conveyor_speed\": 52, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Temperature rising above safe operating limits. Overheat condition detected.\", \"root_cause\": \"Blocked ventilation or cooling fan failure\", \"confidence\": 0.86, \"reasoning\": \"Temperature at 81.5\\u00b0C with upward trend. Normal operating range is 25-45\\u00b0C. Rate of rise suggests active heat source with no effective cooling.\", \"suggested_checks\": [\"Confirm cooling fan is spinning at rated RPM\", \"Check enclosure door seals for gaps allowing hot air ingress\", \"Verify thermocouple calibration\", \"Reduce motor load until temperature stabilizes\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_008.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 30.5, \"pressure\": 104, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop activated. All motion ceased.\", \"root_cause\": \"E-stop button pressed \\u2014 manual safety intervention\", \"confidence\": 0.97, \"reasoning\": \"E-stop input is TRUE, all motor and conveyor outputs are de-energized. This is a deliberate operator action, not an equipment fault.\", \"suggested_checks\": [\"Identify which e-stop station was activated\", \"Investigate reason for emergency stop\", \"Inspect area for hazards before resetting\", \"Follow lockout/tagout procedure before restart\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_008.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 52, \"motor_current\": 9.92, \"temperature\": 36.0, \"pressure\": 100, \"conveyor_running\": true, \"conveyor_speed\": 59, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor drawing excessive current. Overload fault active.\", \"root_cause\": \"Increased friction in drive train or seized bearing\", \"confidence\": 0.84, \"reasoning\": \"At 52% speed, expected current is ~2.6A but measured 9.92A. Delta suggests significant added resistance in the mechanical path.\", \"suggested_checks\": [\"Check gearbox oil level and condition\", \"Listen for abnormal motor noise (grinding, clicking)\", \"Verify VFD parameters match motor nameplate\", \"Thermal scan motor housing and bearings\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_003.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 59, \"motor_current\": 3.19, \"temperature\": 25.4, \"pressure\": 109, \"conveyor_running\": true, \"conveyor_speed\": 41, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor failure detected. One or more sensors not responding.\", \"root_cause\": \"Sensor wiring fault or component failure\", \"confidence\": 0.67, \"reasoning\": \"Sensor readings show flat-line or erratic values inconsistent with physical process state. Likely a wiring issue or end-of-life sensor.\", \"suggested_checks\": [\"Check sensor wiring connections\", \"Verify sensor supply voltage\", \"Test sensor with known target\", \"Replace sensor if beyond calibration\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_011.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 30.0, \"pressure\": 101, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop active. Complete system halt in effect.\", \"root_cause\": \"Safety circuit opened \\u2014 e-stop or safety gate\", \"confidence\": 0.89, \"reasoning\": \"Motor and conveyor both de-energized simultaneously, consistent with safety circuit interruption. E-stop TRUE confirms the safety chain is open.\", \"suggested_checks\": [\"Check all e-stop buttons for latched state\", \"Verify safety gate interlocks are closed\", \"Test e-stop reset procedure\", \"Confirm safety relay is ready for reset\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_013.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 74, \"motor_current\": 7.61, \"temperature\": 28.5, \"pressure\": 93, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor jam detected. Material flow interrupted.\", \"root_cause\": \"Physical obstruction in conveyor path\", \"confidence\": 0.94, \"reasoning\": \"Conveyor motor drawing current but photoeye sensors show sustained blockage. Belt speed has dropped to zero while motor remains energized \\u2014 classic jam signature.\", \"suggested_checks\": [\"Clear jammed material from conveyor path\", \"Inspect photoeye sensors for alignment\", \"Check conveyor belt tracking\", \"Verify guide rail spacing\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_001.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 59, \"motor_current\": 6.19, \"temperature\": 30.9, \"pressure\": 102, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor belt stalled. Jam condition confirmed by sensor and current data.\", \"root_cause\": \"Product wedged between guide rails and belt surface\", \"confidence\": 0.89, \"reasoning\": \"Belt speed reads 0 while motor current is elevated at 6.19A, indicating the motor is stalled against a fixed obstruction. Sensor_1 stuck TRUE confirms product is stationary at photoeye location.\", \"suggested_checks\": [\"Lockout/tagout before clearing jam\", \"Remove wedged product carefully\", \"Check guide rail width \\u2014 may need adjustment\", \"Inspect belt surface for damage from jam\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_012.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 23.1, \"pressure\": 98, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"E-stop engaged. System in safe shutdown state.\", \"root_cause\": \"Operator-initiated emergency stop\", \"confidence\": 0.91, \"reasoning\": \"All outputs are off, e_stop flag is TRUE. No preceding fault alarms were active, suggesting this was a precautionary stop rather than a response to equipment failure.\", \"suggested_checks\": [\"Confirm all personnel are clear of equipment\", \"Check e-stop circuit for proper reset capability\", \"Document reason for stop in shift log\", \"Perform walk-around inspection before restart\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_003.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 25.9, \"pressure\": 98, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop active. Complete system halt in effect.\", \"root_cause\": \"Safety circuit opened \\u2014 e-stop or safety gate\", \"confidence\": 0.86, \"reasoning\": \"Motor and conveyor both de-energized simultaneously, consistent with safety circuit interruption. E-stop TRUE confirms the safety chain is open.\", \"suggested_checks\": [\"Check all e-stop buttons for latched state\", \"Verify safety gate interlocks are closed\", \"Test e-stop reset procedure\", \"Confirm safety relay is ready for reset\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_019.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 59, \"motor_current\": 7.73, \"temperature\": 35.4, \"pressure\": 108, \"conveyor_running\": true, \"conveyor_speed\": 54, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor overload detected. Current draw exceeds rated capacity.\", \"root_cause\": \"Mechanical binding or excessive load on motor shaft\", \"confidence\": 0.79, \"reasoning\": \"Motor current at 7.73A exceeds expected range for speed 59%. This pattern is consistent with mechanical resistance \\u2014 either a jammed workpiece or bearing degradation.\", \"suggested_checks\": [\"Inspect motor shaft for mechanical binding\", \"Check conveyor belt alignment and tension\", \"Verify motor bearings with vibration analysis\", \"Review motor nameplate amps vs. measured current\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_009.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 56, \"motor_current\": 3.09, \"temperature\": 26.9, \"pressure\": 109, \"conveyor_running\": true, \"conveyor_speed\": 49, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"No active fault detected. System operating within normal parameters.\", \"root_cause\": \"N/A \\u2014 no fault present\", \"confidence\": 0.9, \"reasoning\": \"All tag values within expected ranges. Motor current, temperature, and pressure readings are nominal.\", \"suggested_checks\": [\"Continue normal monitoring\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_009.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 48, \"motor_current\": 7.61, \"temperature\": 31.3, \"pressure\": 102, \"conveyor_running\": true, \"conveyor_speed\": 47, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Overload condition on conveyor drive motor. Current spike detected.\", \"root_cause\": \"Excessive mechanical load \\u2014 possible belt misalignment or product accumulation\", \"confidence\": 0.8, \"reasoning\": \"Current reading of 7.61A at 48% speed indicates approximately 2x normal draw. Sustained overload will trip the overload relay within minutes.\", \"suggested_checks\": [\"Reduce motor speed to 40% and observe current\", \"Check for product pile-up at diverter gate\", \"Inspect drive chain/belt for damage\", \"Measure motor winding resistance\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_014.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 70, \"motor_current\": 3.7, \"temperature\": 36.6, \"pressure\": 106, \"conveyor_running\": true, \"conveyor_speed\": 58, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Erratic sensor data detected. Readings inconsistent with process state.\", \"root_cause\": \"Intermittent wiring connection or electromagnetic interference\", \"confidence\": 0.69, \"reasoning\": \"Sensor values are fluctuating rapidly without corresponding physical changes. Pattern suggests loose connection or EMI from nearby VFD.\", \"suggested_checks\": [\"Tighten all sensor terminal connections\", \"Route sensor cables away from power conductors\", \"Add shielded cable or ferrite cores\", \"Check sensor output with oscilloscope\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_016.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 53, \"motor_current\": 2.52, \"temperature\": 31.3, \"pressure\": 100, \"conveyor_running\": true, \"conveyor_speed\": 53, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"No active fault detected. System operating within normal parameters.\", \"root_cause\": \"N/A \\u2014 no fault present\", \"confidence\": 0.98, \"reasoning\": \"All tag values within expected ranges. Motor current, temperature, and pressure readings are nominal.\", \"suggested_checks\": [\"Continue normal monitoring\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_015.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 58, \"motor_current\": 2.78, \"temperature\": 31.9, \"pressure\": 103, \"conveyor_running\": true, \"conveyor_speed\": 50, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Normal operation confirmed. Conveyor and motor running at standard setpoints.\", \"root_cause\": \"N/A \\u2014 system healthy\", \"confidence\": 0.97, \"reasoning\": \"Motor current proportional to speed setpoint, temperature stable below 45\\u00b0C, sensors cycling normally as parts pass.\", \"suggested_checks\": [\"Log baseline values for trend analysis\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_020.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 71, \"motor_current\": 3.36, \"temperature\": 28.5, \"pressure\": 98, \"conveyor_running\": true, \"conveyor_speed\": 46, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Equipment running nominally. All sensors and actuators responding correctly.\", \"root_cause\": \"N/A \\u2014 no fault condition\", \"confidence\": 0.96, \"reasoning\": \"Motor draw consistent with load, temperature trending flat, no fault alarms active. Belt tracking appears centered.\", \"suggested_checks\": [\"Verify lubrication schedule is current\", \"Check belt wear at next planned stop\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_005.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 54, \"motor_current\": 10.91, \"temperature\": 32.7, \"pressure\": 103, \"conveyor_running\": true, \"conveyor_speed\": 58, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Overload condition on conveyor drive motor. Current spike detected.\", \"root_cause\": \"Excessive mechanical load \\u2014 possible belt misalignment or product accumulation\", \"confidence\": 0.83, \"reasoning\": \"Current reading of 10.91A at 54% speed indicates approximately 2x normal draw. Sustained overload will trip the overload relay within minutes.\", \"suggested_checks\": [\"Reduce motor speed to 40% and observe current\", \"Check for product pile-up at diverter gate\", \"Inspect drive chain/belt for damage\", \"Measure motor winding resistance\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_007.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 32.2, \"pressure\": 98, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"E-stop engaged. System in safe shutdown state.\", \"root_cause\": \"Operator-initiated emergency stop\", \"confidence\": 0.93, \"reasoning\": \"All outputs are off, e_stop flag is TRUE. No preceding fault alarms were active, suggesting this was a precautionary stop rather than a response to equipment failure.\", \"suggested_checks\": [\"Confirm all personnel are clear of equipment\", \"Check e-stop circuit for proper reset capability\", \"Document reason for stop in shift log\", \"Perform walk-around inspection before restart\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_006.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 63, \"motor_current\": 3.29, \"temperature\": 26.2, \"pressure\": 101, \"conveyor_running\": true, \"conveyor_speed\": 56, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.79, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_002.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 24.1, \"pressure\": 104, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop active. Complete system halt in effect.\", \"root_cause\": \"Safety circuit opened \\u2014 e-stop or safety gate\", \"confidence\": 0.88, \"reasoning\": \"Motor and conveyor both de-energized simultaneously, consistent with safety circuit interruption. E-stop TRUE confirms the safety chain is open.\", \"suggested_checks\": [\"Check all e-stop buttons for latched state\", \"Verify safety gate interlocks are closed\", \"Test e-stop reset procedure\", \"Confirm safety relay is ready for reset\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_020.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 71, \"motor_current\": 7.52, \"temperature\": 34.5, \"pressure\": 95, \"conveyor_running\": true, \"conveyor_speed\": 55, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor drawing excessive current. Overload fault active.\", \"root_cause\": \"Increased friction in drive train or seized bearing\", \"confidence\": 0.82, \"reasoning\": \"At 71% speed, expected current is ~3.6A but measured 7.52A. Delta suggests significant added resistance in the mechanical path.\", \"suggested_checks\": [\"Check gearbox oil level and condition\", \"Listen for abnormal motor noise (grinding, clicking)\", \"Verify VFD parameters match motor nameplate\", \"Thermal scan motor housing and bearings\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_012.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 48, \"motor_current\": 5.01, \"temperature\": 29.2, \"pressure\": 100, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.83, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 5.01A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_007.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 60, \"motor_current\": 2.86, \"temperature\": 27.5, \"pressure\": 96, \"conveyor_running\": true, \"conveyor_speed\": 53, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Equipment running nominally. All sensors and actuators responding correctly.\", \"root_cause\": \"N/A \\u2014 no fault condition\", \"confidence\": 0.92, \"reasoning\": \"Motor draw consistent with load, temperature trending flat, no fault alarms active. Belt tracking appears centered.\", \"suggested_checks\": [\"Verify lubrication schedule is current\", \"Check belt wear at next planned stop\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_006.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 73, \"motor_current\": 3.75, \"temperature\": 38.1, \"pressure\": 97, \"conveyor_running\": true, \"conveyor_speed\": 58, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Equipment running nominally. All sensors and actuators responding correctly.\", \"root_cause\": \"N/A \\u2014 no fault condition\", \"confidence\": 0.93, \"reasoning\": \"Motor draw consistent with load, temperature trending flat, no fault alarms active. Belt tracking appears centered.\", \"suggested_checks\": [\"Verify lubrication schedule is current\", \"Check belt wear at next planned stop\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_019.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 74, \"motor_current\": 3.76, \"temperature\": 31.9, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 45, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Erratic sensor data detected. Readings inconsistent with process state.\", \"root_cause\": \"Intermittent wiring connection or electromagnetic interference\", \"confidence\": 0.71, \"reasoning\": \"Sensor values are fluctuating rapidly without corresponding physical changes. Pattern suggests loose connection or EMI from nearby VFD.\", \"suggested_checks\": [\"Tighten all sensor terminal connections\", \"Route sensor cables away from power conductors\", \"Add shielded cable or ferrite cores\", \"Check sensor output with oscilloscope\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_014.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 65, \"motor_current\": 8.45, \"temperature\": 25.2, \"pressure\": 103, \"conveyor_running\": true, \"conveyor_speed\": 57, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor overload detected. Current draw exceeds rated capacity.\", \"root_cause\": \"Mechanical binding or excessive load on motor shaft\", \"confidence\": 0.76, \"reasoning\": \"Motor current at 8.45A exceeds expected range for speed 65%. This pattern is consistent with mechanical resistance \\u2014 either a jammed workpiece or bearing degradation.\", \"suggested_checks\": [\"Inspect motor shaft for mechanical binding\", \"Check conveyor belt alignment and tension\", \"Verify motor bearings with vibration analysis\", \"Review motor nameplate amps vs. measured current\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_006.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 67, \"motor_current\": 7.9, \"temperature\": 33.6, \"pressure\": 110, \"conveyor_running\": true, \"conveyor_speed\": 52, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor overload detected. Current draw exceeds rated capacity.\", \"root_cause\": \"Mechanical binding or excessive load on motor shaft\", \"confidence\": 0.77, \"reasoning\": \"Motor current at 7.9A exceeds expected range for speed 67%. This pattern is consistent with mechanical resistance \\u2014 either a jammed workpiece or bearing degradation.\", \"suggested_checks\": [\"Inspect motor shaft for mechanical binding\", \"Check conveyor belt alignment and tension\", \"Verify motor bearings with vibration analysis\", \"Review motor nameplate amps vs. measured current\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_010.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 62, \"motor_current\": 2.86, \"temperature\": 91.7, \"pressure\": 103, \"conveyor_running\": true, \"conveyor_speed\": 48, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"High temperature alarm. Process temperature exceeding safe threshold.\", \"root_cause\": \"Insufficient cooling or sustained high-load operation\", \"confidence\": 0.82, \"reasoning\": \"Temperature reading at 91.7\\u00b0C. Thermal runaway pattern suggests cooling system degradation or ambient temperature exceeding design limits.\", \"suggested_checks\": [\"Check cooling fan operation\", \"Inspect air filters for blockage\", \"Verify ambient temperature in enclosure\", \"Check thermal paste on heat sinks\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_002.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 49, \"motor_current\": 2.33, \"temperature\": 37.7, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 46, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"No active fault detected. System operating within normal parameters.\", \"root_cause\": \"N/A \\u2014 no fault present\", \"confidence\": 0.9, \"reasoning\": \"All tag values within expected ranges. Motor current, temperature, and pressure readings are nominal.\", \"suggested_checks\": [\"Continue normal monitoring\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_004.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 69, \"motor_current\": 3.46, \"temperature\": 27.7, \"pressure\": 97, \"conveyor_running\": true, \"conveyor_speed\": 41, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Normal operation confirmed. Conveyor and motor running at standard setpoints.\", \"root_cause\": \"N/A \\u2014 system healthy\", \"confidence\": 0.99, \"reasoning\": \"Motor current proportional to speed setpoint, temperature stable below 45\\u00b0C, sensors cycling normally as parts pass.\", \"suggested_checks\": [\"Log baseline values for trend analysis\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_016.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 50, \"motor_current\": 7.86, \"temperature\": 26.9, \"pressure\": 106, \"conveyor_running\": true, \"conveyor_speed\": 59, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor overload detected. Current draw exceeds rated capacity.\", \"root_cause\": \"Mechanical binding or excessive load on motor shaft\", \"confidence\": 0.84, \"reasoning\": \"Motor current at 7.86A exceeds expected range for speed 50%. This pattern is consistent with mechanical resistance \\u2014 either a jammed workpiece or bearing degradation.\", \"suggested_checks\": [\"Inspect motor shaft for mechanical binding\", \"Check conveyor belt alignment and tension\", \"Verify motor bearings with vibration analysis\", \"Review motor nameplate amps vs. measured current\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_011.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 74, \"motor_current\": 7.46, \"temperature\": 38.0, \"pressure\": 102, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.89, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 7.46A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_009.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 62, \"motor_current\": 2.84, \"temperature\": 24.6, \"pressure\": 101, \"conveyor_running\": true, \"conveyor_speed\": 41, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.71, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_016.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 57, \"motor_current\": 2.69, \"temperature\": 31.4, \"pressure\": 106, \"conveyor_running\": true, \"conveyor_speed\": 51, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Erratic sensor data detected. Readings inconsistent with process state.\", \"root_cause\": \"Intermittent wiring connection or electromagnetic interference\", \"confidence\": 0.74, \"reasoning\": \"Sensor values are fluctuating rapidly without corresponding physical changes. Pattern suggests loose connection or EMI from nearby VFD.\", \"suggested_checks\": [\"Tighten all sensor terminal connections\", \"Route sensor cables away from power conductors\", \"Add shielded cable or ferrite cores\", \"Check sensor output with oscilloscope\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_005.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 58, \"motor_current\": 2.96, \"temperature\": 25.6, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 59, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Normal operation confirmed. Conveyor and motor running at standard setpoints.\", \"root_cause\": \"N/A \\u2014 system healthy\", \"confidence\": 0.92, \"reasoning\": \"Motor current proportional to speed setpoint, temperature stable below 45\\u00b0C, sensors cycling normally as parts pass.\", \"suggested_checks\": [\"Log baseline values for trend analysis\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_013.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 54, \"motor_current\": 2.87, \"temperature\": 33.8, \"pressure\": 101, \"conveyor_running\": true, \"conveyor_speed\": 56, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"No active fault detected. System operating within normal parameters.\", \"root_cause\": \"N/A \\u2014 no fault present\", \"confidence\": 0.96, \"reasoning\": \"All tag values within expected ranges. Motor current, temperature, and pressure readings are nominal.\", \"suggested_checks\": [\"Continue normal monitoring\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_014.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 74, \"motor_current\": 3.94, \"temperature\": 31.0, \"pressure\": 105, \"conveyor_running\": true, \"conveyor_speed\": 43, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Normal operation confirmed. Conveyor and motor running at standard setpoints.\", \"root_cause\": \"N/A \\u2014 system healthy\", \"confidence\": 0.92, \"reasoning\": \"Motor current proportional to speed setpoint, temperature stable below 45\\u00b0C, sensors cycling normally as parts pass.\", \"suggested_checks\": [\"Log baseline values for trend analysis\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_028.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 51, \"motor_current\": 5.55, \"temperature\": 26.3, \"pressure\": 103, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor belt stalled. Jam condition confirmed by sensor and current data.\", \"root_cause\": \"Product wedged between guide rails and belt surface\", \"confidence\": 0.85, \"reasoning\": \"Belt speed reads 0 while motor current is elevated at 5.55A, indicating the motor is stalled against a fixed obstruction. Sensor_1 stuck TRUE confirms product is stationary at photoeye location.\", \"suggested_checks\": [\"Lockout/tagout before clearing jam\", \"Remove wedged product carefully\", \"Check guide rail width \\u2014 may need adjustment\", \"Inspect belt surface for damage from jam\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_015.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 67, \"motor_current\": 6.84, \"temperature\": 38.3, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Jam fault active. Conveyor motion halted by physical obstruction.\", \"root_cause\": \"Accumulated debris or fallen product on belt path\", \"confidence\": 0.89, \"reasoning\": \"Conveyor speed dropped to zero abruptly. Photoeye remains blocked. Motor current spike to 6.84A suggests sudden stop rather than gradual slowdown.\", \"suggested_checks\": [\"Visually inspect full conveyor length for debris\", \"Clear obstruction and jog belt in manual mode\", \"Check product spacing \\u2014 insufficient gaps cause pile-ups\", \"Adjust upstream feed rate to prevent recurrence\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_007.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 72, \"motor_current\": 11.16, \"temperature\": 33.3, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 52, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Overload condition on conveyor drive motor. Current spike detected.\", \"root_cause\": \"Excessive mechanical load \\u2014 possible belt misalignment or product accumulation\", \"confidence\": 0.88, \"reasoning\": \"Current reading of 11.16A at 72% speed indicates approximately 2x normal draw. Sustained overload will trip the overload relay within minutes.\", \"suggested_checks\": [\"Reduce motor speed to 40% and observe current\", \"Check for product pile-up at diverter gate\", \"Inspect drive chain/belt for damage\", \"Measure motor winding resistance\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_004.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 60, \"motor_current\": 2.89, \"temperature\": 27.7, \"pressure\": 98, \"conveyor_running\": true, \"conveyor_speed\": 50, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.75, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_013.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 57, \"motor_current\": 11.23, \"temperature\": 34.8, \"pressure\": 97, \"conveyor_running\": true, \"conveyor_speed\": 53, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor drawing excessive current. Overload fault active.\", \"root_cause\": \"Increased friction in drive train or seized bearing\", \"confidence\": 0.8, \"reasoning\": \"At 57% speed, expected current is ~2.9A but measured 11.23A. Delta suggests significant added resistance in the mechanical path.\", \"suggested_checks\": [\"Check gearbox oil level and condition\", \"Listen for abnormal motor noise (grinding, clicking)\", \"Verify VFD parameters match motor nameplate\", \"Thermal scan motor housing and bearings\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_011.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 49, \"motor_current\": 7.54, \"temperature\": 29.4, \"pressure\": 107, \"conveyor_running\": true, \"conveyor_speed\": 40, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor drawing excessive current. Overload fault active.\", \"root_cause\": \"Increased friction in drive train or seized bearing\", \"confidence\": 0.84, \"reasoning\": \"At 49% speed, expected current is ~2.5A but measured 7.54A. Delta suggests significant added resistance in the mechanical path.\", \"suggested_checks\": [\"Check gearbox oil level and condition\", \"Listen for abnormal motor noise (grinding, clicking)\", \"Verify VFD parameters match motor nameplate\", \"Thermal scan motor housing and bearings\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_017.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 46, \"motor_current\": 2.48, \"temperature\": 27.9, \"pressure\": 97, \"conveyor_running\": true, \"conveyor_speed\": 51, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"System in steady-state. No anomalies detected in any monitored parameter.\", \"root_cause\": \"N/A \\u2014 all clear\", \"confidence\": 0.88, \"reasoning\": \"Pressure within 90-110 range, conveyor speed matches setpoint, photoeye sensors toggling as expected with part flow.\", \"suggested_checks\": [\"Schedule routine preventive maintenance per calendar\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_003.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 52, \"motor_current\": 2.53, \"temperature\": 38.2, \"pressure\": 109, \"conveyor_running\": true, \"conveyor_speed\": 49, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"System in steady-state. No anomalies detected in any monitored parameter.\", \"root_cause\": \"N/A \\u2014 all clear\", \"confidence\": 0.97, \"reasoning\": \"Pressure within 90-110 range, conveyor speed matches setpoint, photoeye sensors toggling as expected with part flow.\", \"suggested_checks\": [\"Schedule routine preventive maintenance per calendar\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_004.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 62, \"motor_current\": 9.54, \"temperature\": 30.5, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 54, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor overload detected. Current draw exceeds rated capacity.\", \"root_cause\": \"Mechanical binding or excessive load on motor shaft\", \"confidence\": 0.79, \"reasoning\": \"Motor current at 9.54A exceeds expected range for speed 62%. This pattern is consistent with mechanical resistance \\u2014 either a jammed workpiece or bearing degradation.\", \"suggested_checks\": [\"Inspect motor shaft for mechanical binding\", \"Check conveyor belt alignment and tension\", \"Verify motor bearings with vibration analysis\", \"Review motor nameplate amps vs. measured current\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_013.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 56, \"motor_current\": 3.04, \"temperature\": 26.3, \"pressure\": 107, \"conveyor_running\": true, \"conveyor_speed\": 56, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor failure detected. One or more sensors not responding.\", \"root_cause\": \"Sensor wiring fault or component failure\", \"confidence\": 0.68, \"reasoning\": \"Sensor readings show flat-line or erratic values inconsistent with physical process state. Likely a wiring issue or end-of-life sensor.\", \"suggested_checks\": [\"Check sensor wiring connections\", \"Verify sensor supply voltage\", \"Test sensor with known target\", \"Replace sensor if beyond calibration\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_013.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 63, \"motor_current\": 2.87, \"temperature\": 67.0, \"pressure\": 100, \"conveyor_running\": true, \"conveyor_speed\": 42, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Thermal alarm triggered. Equipment temperature 67.0\\u00b0C exceeds 60\\u00b0C threshold.\", \"root_cause\": \"Motor overwork combined with reduced airflow\", \"confidence\": 0.7, \"reasoning\": \"Temperature exceeds alarm setpoint. Motor current is within range, suggesting the heat source may be external (ambient) or due to restricted airflow rather than electrical overload.\", \"suggested_checks\": [\"Clean cabinet air filters immediately\", \"Check for obstructions around ventilation openings\", \"Inspect motor cooling fins for dust buildup\", \"Consider temporary auxiliary cooling\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_001.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 30.4, \"pressure\": 106, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop activated. All motion ceased.\", \"root_cause\": \"E-stop button pressed \\u2014 manual safety intervention\", \"confidence\": 0.95, \"reasoning\": \"E-stop input is TRUE, all motor and conveyor outputs are de-energized. This is a deliberate operator action, not an equipment fault.\", \"suggested_checks\": [\"Identify which e-stop station was activated\", \"Investigate reason for emergency stop\", \"Inspect area for hazards before resetting\", \"Follow lockout/tagout procedure before restart\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_007.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 54, \"motor_current\": 5.81, \"temperature\": 32.7, \"pressure\": 105, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Jam fault active. Conveyor motion halted by physical obstruction.\", \"root_cause\": \"Accumulated debris or fallen product on belt path\", \"confidence\": 0.81, \"reasoning\": \"Conveyor speed dropped to zero abruptly. Photoeye remains blocked. Motor current spike to 5.81A suggests sudden stop rather than gradual slowdown.\", \"suggested_checks\": [\"Visually inspect full conveyor length for debris\", \"Clear obstruction and jog belt in manual mode\", \"Check product spacing \\u2014 insufficient gaps cause pile-ups\", \"Adjust upstream feed rate to prevent recurrence\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_016.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 46, \"motor_current\": 4.69, \"temperature\": 33.5, \"pressure\": 98, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.9, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 4.69A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_007.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 73, \"motor_current\": 3.43, \"temperature\": 74.0, \"pressure\": 110, \"conveyor_running\": true, \"conveyor_speed\": 48, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Temperature rising above safe operating limits. Overheat condition detected.\", \"root_cause\": \"Blocked ventilation or cooling fan failure\", \"confidence\": 0.81, \"reasoning\": \"Temperature at 74.0\\u00b0C with upward trend. Normal operating range is 25-45\\u00b0C. Rate of rise suggests active heat source with no effective cooling.\", \"suggested_checks\": [\"Confirm cooling fan is spinning at rated RPM\", \"Check enclosure door seals for gaps allowing hot air ingress\", \"Verify thermocouple calibration\", \"Reduce motor load until temperature stabilizes\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_017.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 62, \"motor_current\": 3.08, \"temperature\": 90.7, \"pressure\": 102, \"conveyor_running\": true, \"conveyor_speed\": 55, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"High temperature alarm. Process temperature exceeding safe threshold.\", \"root_cause\": \"Insufficient cooling or sustained high-load operation\", \"confidence\": 0.73, \"reasoning\": \"Temperature reading at 90.7\\u00b0C. Thermal runaway pattern suggests cooling system degradation or ambient temperature exceeding design limits.\", \"suggested_checks\": [\"Check cooling fan operation\", \"Inspect air filters for blockage\", \"Verify ambient temperature in enclosure\", \"Check thermal paste on heat sinks\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_026.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 64, \"motor_current\": 6.47, \"temperature\": 28.3, \"pressure\": 105, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor jam detected. Material flow interrupted.\", \"root_cause\": \"Physical obstruction in conveyor path\", \"confidence\": 0.9, \"reasoning\": \"Conveyor motor drawing current but photoeye sensors show sustained blockage. Belt speed has dropped to zero while motor remains energized \\u2014 classic jam signature.\", \"suggested_checks\": [\"Clear jammed material from conveyor path\", \"Inspect photoeye sensors for alignment\", \"Check conveyor belt tracking\", \"Verify guide rail spacing\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_011.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 59, \"motor_current\": 3.22, \"temperature\": 72.1, \"pressure\": 98, \"conveyor_running\": true, \"conveyor_speed\": 48, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Thermal alarm triggered. Equipment temperature 72.1\\u00b0C exceeds 60\\u00b0C threshold.\", \"root_cause\": \"Motor overwork combined with reduced airflow\", \"confidence\": 0.71, \"reasoning\": \"Temperature exceeds alarm setpoint. Motor current is within range, suggesting the heat source may be external (ambient) or due to restricted airflow rather than electrical overload.\", \"suggested_checks\": [\"Clean cabinet air filters immediately\", \"Check for obstructions around ventilation openings\", \"Inspect motor cooling fins for dust buildup\", \"Consider temporary auxiliary cooling\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_023.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 46, \"motor_current\": 4.97, \"temperature\": 37.2, \"pressure\": 101, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.9, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 4.97A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_018.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 71, \"motor_current\": 7.14, \"temperature\": 30.1, \"pressure\": 106, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor jam detected. Material flow interrupted.\", \"root_cause\": \"Physical obstruction in conveyor path\", \"confidence\": 0.86, \"reasoning\": \"Conveyor motor drawing current but photoeye sensors show sustained blockage. Belt speed has dropped to zero while motor remains energized \\u2014 classic jam signature.\", \"suggested_checks\": [\"Clear jammed material from conveyor path\", \"Inspect photoeye sensors for alignment\", \"Check conveyor belt tracking\", \"Verify guide rail spacing\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_015.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 68, \"motor_current\": 8.18, \"temperature\": 27.2, \"pressure\": 101, \"conveyor_running\": true, \"conveyor_speed\": 53, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor overload detected. Current draw exceeds rated capacity.\", \"root_cause\": \"Mechanical binding or excessive load on motor shaft\", \"confidence\": 0.79, \"reasoning\": \"Motor current at 8.18A exceeds expected range for speed 68%. This pattern is consistent with mechanical resistance \\u2014 either a jammed workpiece or bearing degradation.\", \"suggested_checks\": [\"Inspect motor shaft for mechanical binding\", \"Check conveyor belt alignment and tension\", \"Verify motor bearings with vibration analysis\", \"Review motor nameplate amps vs. measured current\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_018.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 74, \"motor_current\": 7.97, \"temperature\": 25.9, \"pressure\": 105, \"conveyor_running\": true, \"conveyor_speed\": 56, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor drawing excessive current. Overload fault active.\", \"root_cause\": \"Increased friction in drive train or seized bearing\", \"confidence\": 0.84, \"reasoning\": \"At 74% speed, expected current is ~3.7A but measured 7.97A. Delta suggests significant added resistance in the mechanical path.\", \"suggested_checks\": [\"Check gearbox oil level and condition\", \"Listen for abnormal motor noise (grinding, clicking)\", \"Verify VFD parameters match motor nameplate\", \"Thermal scan motor housing and bearings\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_013.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 28.2, \"pressure\": 101, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop activated. All motion ceased.\", \"root_cause\": \"E-stop button pressed \\u2014 manual safety intervention\", \"confidence\": 0.88, \"reasoning\": \"E-stop input is TRUE, all motor and conveyor outputs are de-energized. This is a deliberate operator action, not an equipment fault.\", \"suggested_checks\": [\"Identify which e-stop station was activated\", \"Investigate reason for emergency stop\", \"Inspect area for hazards before resetting\", \"Follow lockout/tagout procedure before restart\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_030.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 66, \"motor_current\": 7.0, \"temperature\": 34.0, \"pressure\": 103, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.85, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 7.0A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_001.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 55, \"motor_current\": 2.92, \"temperature\": 77.0, \"pressure\": 104, \"conveyor_running\": true, \"conveyor_speed\": 44, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Temperature rising above safe operating limits. Overheat condition detected.\", \"root_cause\": \"Blocked ventilation or cooling fan failure\", \"confidence\": 0.86, \"reasoning\": \"Temperature at 77.0\\u00b0C with upward trend. Normal operating range is 25-45\\u00b0C. Rate of rise suggests active heat source with no effective cooling.\", \"suggested_checks\": [\"Confirm cooling fan is spinning at rated RPM\", \"Check enclosure door seals for gaps allowing hot air ingress\", \"Verify thermocouple calibration\", \"Reduce motor load until temperature stabilizes\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_010.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 51, \"motor_current\": 7.87, \"temperature\": 33.3, \"pressure\": 94, \"conveyor_running\": true, \"conveyor_speed\": 60, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor drawing excessive current. Overload fault active.\", \"root_cause\": \"Increased friction in drive train or seized bearing\", \"confidence\": 0.83, \"reasoning\": \"At 51% speed, expected current is ~2.6A but measured 7.87A. Delta suggests significant added resistance in the mechanical path.\", \"suggested_checks\": [\"Check gearbox oil level and condition\", \"Listen for abnormal motor noise (grinding, clicking)\", \"Verify VFD parameters match motor nameplate\", \"Thermal scan motor housing and bearings\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_011.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 75, \"motor_current\": 3.7, \"temperature\": 32.2, \"pressure\": 109, \"conveyor_running\": true, \"conveyor_speed\": 59, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.76, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_001.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 63, \"motor_current\": 8.2, \"temperature\": 34.0, \"pressure\": 98, \"conveyor_running\": true, \"conveyor_speed\": 60, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor drawing excessive current. Overload fault active.\", \"root_cause\": \"Increased friction in drive train or seized bearing\", \"confidence\": 0.74, \"reasoning\": \"At 63% speed, expected current is ~3.2A but measured 8.2A. Delta suggests significant added resistance in the mechanical path.\", \"suggested_checks\": [\"Check gearbox oil level and condition\", \"Listen for abnormal motor noise (grinding, clicking)\", \"Verify VFD parameters match motor nameplate\", \"Thermal scan motor housing and bearings\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_020.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 73, \"motor_current\": 3.61, \"temperature\": 32.4, \"pressure\": 95, \"conveyor_running\": true, \"conveyor_speed\": 59, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.73, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_010.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 75, \"motor_current\": 3.56, \"temperature\": 32.1, \"pressure\": 107, \"conveyor_running\": true, \"conveyor_speed\": 44, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Normal operation confirmed. Conveyor and motor running at standard setpoints.\", \"root_cause\": \"N/A \\u2014 system healthy\", \"confidence\": 0.94, \"reasoning\": \"Motor current proportional to speed setpoint, temperature stable below 45\\u00b0C, sensors cycling normally as parts pass.\", \"suggested_checks\": [\"Log baseline values for trend analysis\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_012.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 54, \"motor_current\": 2.65, \"temperature\": 76.9, \"pressure\": 106, \"conveyor_running\": true, \"conveyor_speed\": 45, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"High temperature alarm. Process temperature exceeding safe threshold.\", \"root_cause\": \"Insufficient cooling or sustained high-load operation\", \"confidence\": 0.81, \"reasoning\": \"Temperature reading at 76.9\\u00b0C. Thermal runaway pattern suggests cooling system degradation or ambient temperature exceeding design limits.\", \"suggested_checks\": [\"Check cooling fan operation\", \"Inspect air filters for blockage\", \"Verify ambient temperature in enclosure\", \"Check thermal paste on heat sinks\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_015.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 23.1, \"pressure\": 95, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop active. Complete system halt in effect.\", \"root_cause\": \"Safety circuit opened \\u2014 e-stop or safety gate\", \"confidence\": 0.85, \"reasoning\": \"Motor and conveyor both de-energized simultaneously, consistent with safety circuit interruption. E-stop TRUE confirms the safety chain is open.\", \"suggested_checks\": [\"Check all e-stop buttons for latched state\", \"Verify safety gate interlocks are closed\", \"Test e-stop reset procedure\", \"Confirm safety relay is ready for reset\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_018.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 50, \"motor_current\": 2.35, \"temperature\": 32.7, \"pressure\": 109, \"conveyor_running\": true, \"conveyor_speed\": 51, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor failure detected. One or more sensors not responding.\", \"root_cause\": \"Sensor wiring fault or component failure\", \"confidence\": 0.68, \"reasoning\": \"Sensor readings show flat-line or erratic values inconsistent with physical process state. Likely a wiring issue or end-of-life sensor.\", \"suggested_checks\": [\"Check sensor wiring connections\", \"Verify sensor supply voltage\", \"Test sensor with known target\", \"Replace sensor if beyond calibration\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_015.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 48, \"motor_current\": 2.32, \"temperature\": 33.5, \"pressure\": 94, \"conveyor_running\": true, \"conveyor_speed\": 45, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Sensor reading flatlined. No state changes detected despite active process.\", \"root_cause\": \"Sensor lens contamination or failed output transistor\", \"confidence\": 0.74, \"reasoning\": \"Sensor output is stuck in one state while conveyor is confirmed running. Physical inspection of sensor is required to differentiate between dirty lens and hardware failure.\", \"suggested_checks\": [\"Clean sensor lens with approved cleaner\", \"Check indicator LED on sensor body\", \"Swap sensor with known good unit\", \"Verify PLC input module channel is functional\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_014.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 64, \"motor_current\": 3.21, \"temperature\": 79.2, \"pressure\": 95, \"conveyor_running\": true, \"conveyor_speed\": 41, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"High temperature alarm. Process temperature exceeding safe threshold.\", \"root_cause\": \"Insufficient cooling or sustained high-load operation\", \"confidence\": 0.76, \"reasoning\": \"Temperature reading at 79.2\\u00b0C. Thermal runaway pattern suggests cooling system degradation or ambient temperature exceeding design limits.\", \"suggested_checks\": [\"Check cooling fan operation\", \"Inspect air filters for blockage\", \"Verify ambient temperature in enclosure\", \"Check thermal paste on heat sinks\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_004.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 72, \"motor_current\": 3.86, \"temperature\": 73.2, \"pressure\": 107, \"conveyor_running\": true, \"conveyor_speed\": 45, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Thermal alarm triggered. Equipment temperature 73.2\\u00b0C exceeds 60\\u00b0C threshold.\", \"root_cause\": \"Motor overwork combined with reduced airflow\", \"confidence\": 0.74, \"reasoning\": \"Temperature exceeds alarm setpoint. Motor current is within range, suggesting the heat source may be external (ambient) or due to restricted airflow rather than electrical overload.\", \"suggested_checks\": [\"Clean cabinet air filters immediately\", \"Check for obstructions around ventilation openings\", \"Inspect motor cooling fins for dust buildup\", \"Consider temporary auxiliary cooling\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_022.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 49, \"motor_current\": 5.1, \"temperature\": 32.2, \"pressure\": 104, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.88, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 5.1A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_002.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 45, \"motor_current\": 11.81, \"temperature\": 30.9, \"pressure\": 101, \"conveyor_running\": true, \"conveyor_speed\": 53, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor drawing excessive current. Overload fault active.\", \"root_cause\": \"Increased friction in drive train or seized bearing\", \"confidence\": 0.8, \"reasoning\": \"At 45% speed, expected current is ~2.2A but measured 11.81A. Delta suggests significant added resistance in the mechanical path.\", \"suggested_checks\": [\"Check gearbox oil level and condition\", \"Listen for abnormal motor noise (grinding, clicking)\", \"Verify VFD parameters match motor nameplate\", \"Thermal scan motor housing and bearings\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_019.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 73, \"motor_current\": 3.46, \"temperature\": 34.5, \"pressure\": 101, \"conveyor_running\": true, \"conveyor_speed\": 59, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"System in steady-state. No anomalies detected in any monitored parameter.\", \"root_cause\": \"N/A \\u2014 all clear\", \"confidence\": 0.99, \"reasoning\": \"Pressure within 90-110 range, conveyor speed matches setpoint, photoeye sensors toggling as expected with part flow.\", \"suggested_checks\": [\"Schedule routine preventive maintenance per calendar\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_021.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 63, \"motor_current\": 6.69, \"temperature\": 26.9, \"pressure\": 106, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Jam fault active. Conveyor motion halted by physical obstruction.\", \"root_cause\": \"Accumulated debris or fallen product on belt path\", \"confidence\": 0.79, \"reasoning\": \"Conveyor speed dropped to zero abruptly. Photoeye remains blocked. Motor current spike to 6.69A suggests sudden stop rather than gradual slowdown.\", \"suggested_checks\": [\"Visually inspect full conveyor length for debris\", \"Clear obstruction and jog belt in manual mode\", \"Check product spacing \\u2014 insufficient gaps cause pile-ups\", \"Adjust upstream feed rate to prevent recurrence\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_020.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 62, \"motor_current\": 3.04, \"temperature\": 88.0, \"pressure\": 96, \"conveyor_running\": true, \"conveyor_speed\": 47, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"High temperature alarm. Process temperature exceeding safe threshold.\", \"root_cause\": \"Insufficient cooling or sustained high-load operation\", \"confidence\": 0.83, \"reasoning\": \"Temperature reading at 88.0\\u00b0C. Thermal runaway pattern suggests cooling system degradation or ambient temperature exceeding design limits.\", \"suggested_checks\": [\"Check cooling fan operation\", \"Inspect air filters for blockage\", \"Verify ambient temperature in enclosure\", \"Check thermal paste on heat sinks\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_009.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 36.6, \"pressure\": 101, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop active. Complete system halt in effect.\", \"root_cause\": \"Safety circuit opened \\u2014 e-stop or safety gate\", \"confidence\": 0.87, \"reasoning\": \"Motor and conveyor both de-energized simultaneously, consistent with safety circuit interruption. E-stop TRUE confirms the safety chain is open.\", \"suggested_checks\": [\"Check all e-stop buttons for latched state\", \"Verify safety gate interlocks are closed\", \"Test e-stop reset procedure\", \"Confirm safety relay is ready for reset\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_019.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 55, \"motor_current\": 5.5, \"temperature\": 37.8, \"pressure\": 95, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor jam detected. Material flow interrupted.\", \"root_cause\": \"Physical obstruction in conveyor path\", \"confidence\": 0.86, \"reasoning\": \"Conveyor motor drawing current but photoeye sensors show sustained blockage. Belt speed has dropped to zero while motor remains energized \\u2014 classic jam signature.\", \"suggested_checks\": [\"Clear jammed material from conveyor path\", \"Inspect photoeye sensors for alignment\", \"Check conveyor belt tracking\", \"Verify guide rail spacing\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_009.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 61, \"motor_current\": 3.18, \"temperature\": 71.4, \"pressure\": 109, \"conveyor_running\": true, \"conveyor_speed\": 59, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Thermal alarm triggered. Equipment temperature 71.4\\u00b0C exceeds 60\\u00b0C threshold.\", \"root_cause\": \"Motor overwork combined with reduced airflow\", \"confidence\": 0.73, \"reasoning\": \"Temperature exceeds alarm setpoint. Motor current is within range, suggesting the heat source may be external (ambient) or due to restricted airflow rather than electrical overload.\", \"suggested_checks\": [\"Clean cabinet air filters immediately\", \"Check for obstructions around ventilation openings\", \"Inspect motor cooling fins for dust buildup\", \"Consider temporary auxiliary cooling\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/normal_011.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 70, \"motor_current\": 3.67, \"temperature\": 30.0, \"pressure\": 97, \"conveyor_running\": true, \"conveyor_speed\": 43, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": false, \"e_stop\": false, \"error_code\": 0}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Normal operation confirmed. Conveyor and motor running at standard setpoints.\", \"root_cause\": \"N/A \\u2014 system healthy\", \"confidence\": 0.94, \"reasoning\": \"Motor current proportional to speed setpoint, temperature stable below 45\\u00b0C, sensors cycling normally as parts pass.\", \"suggested_checks\": [\"Log baseline values for trend analysis\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_018.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 57, \"motor_current\": 2.76, \"temperature\": 93.6, \"pressure\": 97, \"conveyor_running\": true, \"conveyor_speed\": 52, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Temperature rising above safe operating limits. Overheat condition detected.\", \"root_cause\": \"Blocked ventilation or cooling fan failure\", \"confidence\": 0.87, \"reasoning\": \"Temperature at 93.6\\u00b0C with upward trend. Normal operating range is 25-45\\u00b0C. Rate of rise suggests active heat source with no effective cooling.\", \"suggested_checks\": [\"Confirm cooling fan is spinning at rated RPM\", \"Check enclosure door seals for gaps allowing hot air ingress\", \"Verify thermocouple calibration\", \"Reduce motor load until temperature stabilizes\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_005.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 71, \"motor_current\": 3.38, \"temperature\": 35.9, \"pressure\": 105, \"conveyor_running\": true, \"conveyor_speed\": 42, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Erratic sensor data detected. Readings inconsistent with process state.\", \"root_cause\": \"Intermittent wiring connection or electromagnetic interference\", \"confidence\": 0.68, \"reasoning\": \"Sensor values are fluctuating rapidly without corresponding physical changes. Pattern suggests loose connection or EMI from nearby VFD.\", \"suggested_checks\": [\"Tighten all sensor terminal connections\", \"Route sensor cables away from power conductors\", \"Add shielded cable or ferrite cores\", \"Check sensor output with oscilloscope\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_010.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 23.9, \"pressure\": 98, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Emergency stop active. Complete system halt in effect.\", \"root_cause\": \"Safety circuit opened \\u2014 e-stop or safety gate\", \"confidence\": 0.85, \"reasoning\": \"Motor and conveyor both de-energized simultaneously, consistent with safety circuit interruption. E-stop TRUE confirms the safety chain is open.\", \"suggested_checks\": [\"Check all e-stop buttons for latched state\", \"Verify safety gate interlocks are closed\", \"Test e-stop reset procedure\", \"Confirm safety relay is ready for reset\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_003.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 68, \"motor_current\": 6.9, \"temperature\": 31.6, \"pressure\": 104, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor jam detected. Material flow interrupted.\", \"root_cause\": \"Physical obstruction in conveyor path\", \"confidence\": 0.85, \"reasoning\": \"Conveyor motor drawing current but photoeye sensors show sustained blockage. Belt speed has dropped to zero while motor remains energized \\u2014 classic jam signature.\", \"suggested_checks\": [\"Clear jammed material from conveyor path\", \"Inspect photoeye sensors for alignment\", \"Check conveyor belt tracking\", \"Verify guide rail spacing\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_006.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 46, \"motor_current\": 4.87, \"temperature\": 28.0, \"pressure\": 109, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.92, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 4.87A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_027.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 54, \"motor_current\": 5.64, \"temperature\": 37.3, \"pressure\": 100, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor jam detected. Material flow interrupted.\", \"root_cause\": \"Physical obstruction in conveyor path\", \"confidence\": 0.88, \"reasoning\": \"Conveyor motor drawing current but photoeye sensors show sustained blockage. Belt speed has dropped to zero while motor remains energized \\u2014 classic jam signature.\", \"suggested_checks\": [\"Clear jammed material from conveyor path\", \"Inspect photoeye sensors for alignment\", \"Check conveyor belt tracking\", \"Verify guide rail spacing\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_002.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 57, \"motor_current\": 2.57, \"temperature\": 87.9, \"pressure\": 104, \"conveyor_running\": true, \"conveyor_speed\": 50, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Thermal alarm triggered. Equipment temperature 87.9\\u00b0C exceeds 60\\u00b0C threshold.\", \"root_cause\": \"Motor overwork combined with reduced airflow\", \"confidence\": 0.72, \"reasoning\": \"Temperature exceeds alarm setpoint. Motor current is within range, suggesting the heat source may be external (ambient) or due to restricted airflow rather than electrical overload.\", \"suggested_checks\": [\"Clean cabinet air filters immediately\", \"Check for obstructions around ventilation openings\", \"Inspect motor cooling fins for dust buildup\", \"Consider temporary auxiliary cooling\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overheat_006.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 54, \"motor_current\": 2.43, \"temperature\": 65.2, \"pressure\": 103, \"conveyor_running\": true, \"conveyor_speed\": 52, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 2}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"High temperature alarm. Process temperature exceeding safe threshold.\", \"root_cause\": \"Insufficient cooling or sustained high-load operation\", \"confidence\": 0.77, \"reasoning\": \"Temperature reading at 65.2\\u00b0C. Thermal runaway pattern suggests cooling system degradation or ambient temperature exceeding design limits.\", \"suggested_checks\": [\"Check cooling fan operation\", \"Inspect air filters for blockage\", \"Verify ambient temperature in enclosure\", \"Check thermal paste on heat sinks\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_017.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 59, \"motor_current\": 10.35, \"temperature\": 31.8, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 56, \"sensor_1\": false, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor drawing excessive current. Overload fault active.\", \"root_cause\": \"Increased friction in drive train or seized bearing\", \"confidence\": 0.85, \"reasoning\": \"At 59% speed, expected current is ~3.0A but measured 10.35A. Delta suggests significant added resistance in the mechanical path.\", \"suggested_checks\": [\"Check gearbox oil level and condition\", \"Listen for abnormal motor noise (grinding, clicking)\", \"Verify VFD parameters match motor nameplate\", \"Thermal scan motor housing and bearings\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/sensor_010.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 50, \"motor_current\": 2.53, \"temperature\": 36.3, \"pressure\": 98, \"conveyor_running\": true, \"conveyor_speed\": 58, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 4}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Erratic sensor data detected. Readings inconsistent with process state.\", \"root_cause\": \"Intermittent wiring connection or electromagnetic interference\", \"confidence\": 0.67, \"reasoning\": \"Sensor values are fluctuating rapidly without corresponding physical changes. Pattern suggests loose connection or EMI from nearby VFD.\", \"suggested_checks\": [\"Tighten all sensor terminal connections\", \"Route sensor cables away from power conductors\", \"Add shielded cable or ferrite cores\", \"Check sensor output with oscilloscope\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/overload_003.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 45, \"motor_current\": 11.12, \"temperature\": 32.5, \"pressure\": 108, \"conveyor_running\": true, \"conveyor_speed\": 48, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 1}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Motor overload detected. Current draw exceeds rated capacity.\", \"root_cause\": \"Mechanical binding or excessive load on motor shaft\", \"confidence\": 0.84, \"reasoning\": \"Motor current at 11.12A exceeds expected range for speed 45%. This pattern is consistent with mechanical resistance \\u2014 either a jammed workpiece or bearing degradation.\", \"suggested_checks\": [\"Inspect motor shaft for mechanical binding\", \"Check conveyor belt alignment and tension\", \"Verify motor bearings with vibration analysis\", \"Review motor nameplate amps vs. measured current\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_009.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 65, \"motor_current\": 6.53, \"temperature\": 25.2, \"pressure\": 102, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor jam detected. Material flow interrupted.\", \"root_cause\": \"Physical obstruction in conveyor path\", \"confidence\": 0.89, \"reasoning\": \"Conveyor motor drawing current but photoeye sensors show sustained blockage. Belt speed has dropped to zero while motor remains energized \\u2014 classic jam signature.\", \"suggested_checks\": [\"Clear jammed material from conveyor path\", \"Inspect photoeye sensors for alignment\", \"Check conveyor belt tracking\", \"Verify guide rail spacing\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/estop_014.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": false, \"motor_speed\": 0, \"motor_current\": 0.0, \"temperature\": 29.7, \"pressure\": 96, \"conveyor_running\": false, \"conveyor_speed\": 0, \"sensor_1\": false, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": true, \"error_code\": 5}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"E-stop engaged. System in safe shutdown state.\", \"root_cause\": \"Operator-initiated emergency stop\", \"confidence\": 0.91, \"reasoning\": \"All outputs are off, e_stop flag is TRUE. No preceding fault alarms were active, suggesting this was a precautionary stop rather than a response to equipment failure.\", \"suggested_checks\": [\"Confirm all personnel are clear of equipment\", \"Check e-stop circuit for proper reset capability\", \"Document reason for stop in shift log\", \"Perform walk-around inspection before restart\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_024.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 61, \"motor_current\": 6.53, \"temperature\": 25.6, \"pressure\": 103, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": false, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Conveyor jam detected. Material flow interrupted.\", \"root_cause\": \"Physical obstruction in conveyor path\", \"confidence\": 0.88, \"reasoning\": \"Conveyor motor drawing current but photoeye sensors show sustained blockage. Belt speed has dropped to zero while motor remains energized \\u2014 classic jam signature.\", \"suggested_checks\": [\"Clear jammed material from conveyor path\", \"Inspect photoeye sensors for alignment\", \"Check conveyor belt tracking\", \"Verify guide rail spacing\"]}"
+      }
+    ]
+  },
+  {
+    "video": "clips/jam_014.mp4",
+    "conversations": [
+      {
+        "from": "human",
+        "value": "<video>\nAnalyze this factory floor video along with the PLC sensor data. Equipment Node: factoryio-sim. Current Tags: {\"motor_running\": true, \"motor_speed\": 49, \"motor_current\": 4.92, \"temperature\": 26.0, \"pressure\": 99, \"conveyor_running\": true, \"conveyor_speed\": 0, \"sensor_1\": true, \"sensor_2\": true, \"fault_alarm\": true, \"e_stop\": false, \"error_code\": 3}. Provide a structured diagnosis including: summary, root_cause, confidence (0-1), reasoning, and suggested_checks."
+      },
+      {
+        "from": "gpt",
+        "value": "{\"summary\": \"Material jam on sorting conveyor. Zero belt speed with elevated motor draw.\", \"root_cause\": \"Misaligned or oversized product causing blockage at sorting gate\", \"confidence\": 0.82, \"reasoning\": \"Speed = 0 with sensor_1 latched TRUE indicates a stationary object blocking the photoeye. Motor current at 4.92A shows the drive is attempting to push through the obstruction.\", \"suggested_checks\": [\"Check diverter gate position and clearance\", \"Verify incoming product dimensions are within spec\", \"Inspect belt splice for separation\", \"Review jam frequency \\u2014 recurring jams indicate systemic issue\"]}"
+      }
+    ]
+  }
+]

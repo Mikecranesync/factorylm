@@ -32,7 +32,7 @@ echo "║  GPU: A100 80GB SXM  |  Base: Qwen3-VL-2B-Instruct    ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
-WORKDIR="${HOME}/cosmos-factory"
+WORKDIR="/workspace/cosmos-factory"
 mkdir -p "${WORKDIR}"
 cd "${WORKDIR}"
 info "Working directory: ${WORKDIR}"
@@ -44,8 +44,9 @@ if ! command -v nvidia-smi &>/dev/null; then
     fail "nvidia-smi not found — is this a GPU instance?"
 fi
 
-nvidia-smi --query-gpu=name,memory.total,driver_version,cuda_version \
+nvidia-smi --query-gpu=name,memory.total,driver_version \
     --format=csv,noheader
+nvidia-smi | head -4
 ok "GPU detected and driver loaded"
 
 # ── 3. System Dependencies ──────────────────────────────────────────
