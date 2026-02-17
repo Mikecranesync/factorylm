@@ -1,0 +1,689 @@
+id: cosmos-video-pipeline
+name: Cosmos Video Production & Improvement Pipeline
+version: 2
+description: |
+  End-to-end AI video production using NVIDIA Cosmos-Predict2 with
+  automated quality improvement loops. Produces competition-ready
+  industrial training content.
+
+  Pipeline: Source -> Evaluate -> Generate -> Validate -> Improve (loop) -> Process -> Distribute
+
+# Configuration
+config:
+  # Quality thresholds
+  min_content_score: 8.0
+  min_video_quality: 0.85
+  max_improvement_iterations: 3
+
+  # Model settings
+  cosmos_model_size: "14B"  # 2B (dev), 7B (balanced), 14B (competition)
+
+  # Output settings
+  output_preset: "competition"  # youtube_shorts, youtube_standard, competition
+  target_duration: 60  # seconds
+
+  # Distribution
+  auto_distribute: false
+  distribution_targets: ["competition", "youtube"]
+
+agents:
+  # ============================================
+  # PHASE 1: Content Preparation
+  # ============================================
+
+  - id: content-curator
+    name: Content Curator
+    role: scanning
+    description: Collects and organizes source materials (images, scripts, facts)
+    timeoutSeconds: 60
+    workspace:
+      baseDir: agents/content-curator
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+  - id: content-judge
+    name: Industrial Content Judge
+    role: analysis
+    description: Evaluates content against top industrial channels, ensures differentiation
+    timeoutSeconds: 90
+    workspace:
+      baseDir: agents/content-judge
+      files:
+        AGENTS.md: agents/AGENTS.md
+        industrial_content_judge.py: ../../../../factorylm/services/content/industrial_content_judge.py
+
+  - id: script-improver
+    name: Script Improver
+    role: coding
+    description: Rewrites scripts that score below threshold, adds differentiators
+    timeoutSeconds: 60
+    workspace:
+      baseDir: agents/script-improver
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+  # ============================================
+  # PHASE 2: Video Generation
+  # ============================================
+
+  - id: cosmos-generator
+    name: Cosmos Video Generator
+    role: coding
+    description: Generates video using NVIDIA Cosmos-Predict2 (Video2World/Text2World)
+    timeoutSeconds: 300  # Video generation can take time
+    workspace:
+      baseDir: agents/cosmos-generator
+      files:
+        AGENTS.md: agents/AGENTS.md
+        cosmos_generator.py: ../../../../factorylm/services/video/cosmos_generator.py
+
+  - id: quality-validator
+    name: Video Quality Validator
+    role: analysis
+    description: Validates generated video quality using Cosmos-Reason1
+    timeoutSeconds: 120
+    workspace:
+      baseDir: agents/quality-validator
+      files:
+        AGENTS.md: agents/AGENTS.md
+        quality_validator.py: ../../../../factorylm/services/video/quality_validator.py
+
+  - id: video-improver
+    name: Video Improvement Specialist
+    role: analysis
+    description: Analyzes validation failures, suggests regeneration parameters
+    timeoutSeconds: 60
+    workspace:
+      baseDir: agents/video-improver
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+  # ============================================
+  # PHASE 3: Post-Production & Distribution
+  # ============================================
+
+  - id: post-processor
+    name: Video Post-Processor
+    role: coding
+    description: Adds branding, audio mixing, captions, compression
+    timeoutSeconds: 180
+    workspace:
+      baseDir: agents/post-processor
+      files:
+        AGENTS.md: agents/AGENTS.md
+        post_processor.py: ../../../../factorylm/services/video/post_processor.py
+
+  - id: distributor
+    name: Distribution Manager
+    role: coding
+    description: Deploys to YouTube, GitHub, competition submission
+    timeoutSeconds: 120
+    workspace:
+      baseDir: agents/distributor
+      files:
+        AGENTS.md: agents/AGENTS.md
+        distribution.py: ../../../../factorylm/services/video/distribution.py
+
+  - id: pipeline-orchestrator
+    name: Pipeline Orchestrator
+    role: analysis
+    description: Manages iteration loops, tracks state, makes go/no-go decisions
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/pipeline-orchestrator
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+# ============================================
+# WORKFLOW STEPS
+# ============================================
+
+steps:
+  # ----------------------------------------
+  # STEP 1: Collect and Curate Sources
+  # ----------------------------------------
+  - id: curate-sources
+    agent: content-curator
+    input: |
+      Collect and organize source materials for video production.
+
+      Input provided:
+      {{sources}}
+
+      Requirements:
+      1. Validate we have 3-10 images (JPG/PNG)
+      2. Extract or validate script text
+      3. Identify primary topic/theme
+      4. Select strongest hook element
+      5. Order materials for narrative flow
+
+      Quality checklist:
+      - [ ] Images are high-res (1080p+)
+      - [ ] Images show real industrial equipment (not stock)
+      - [ ] Script is 50-100 words for shorts, or specified length
+      - [ ] Topic clearly identified
+
+      Output format:
+      STATUS: done
+      topic: <identified topic>
+      images: [<ordered list of image paths>]
+      script: <narration script>
+      hook: <strongest opening element>
+      word_count: <script word count>
+      estimated_duration: <seconds>
+    expects: "STATUS: done"
+    max-retries: 1
+
+  # ----------------------------------------
+  # STEP 2: Evaluate Content Quality
+  # ----------------------------------------
+  - id: evaluate-content
+    agent: content-judge
+    input: |
+      Evaluate content package against industrial automation competitors.
+
+      Topic: {{topic}}
+      Script: {{script}}
+      Images: {{images}}
+      Duration: {{estimated_duration}} seconds
+
+      Use the IndustrialContentJudge to evaluate:
+
+      ```python
+      from services.content.industrial_content_judge import IndustrialContentJudge
+
+      judge = IndustrialContentJudge()
+      result = judge.evaluate_and_format(
+          script="{{script}}",
+          images={{images}},
+          audio_duration={{estimated_duration}},
+          topic="{{topic}}"
+      )
+      ```
+
+      COMPETITIVE BENCHMARKS:
+      - RealPars (1.2M): Generic tutorials - WE BEAT with real-time AI
+      - Tim Automation: Real stories - WE BEAT with AI diagnosis
+      - Automation School: Rockwell only - WE BEAT with multi-vendor
+
+      MINIMUM THRESHOLDS:
+      - Overall score: 8.0/10
+      - Differentiation: 7.0/10
+      - Ready for production: true
+
+      Output format:
+      STATUS: done
+      overall_score: <score 1-10>
+      differentiation_score: <score 1-10>
+      ready_for_production: true|false
+      cosmos_package: <formatted output for video generation>
+      issues: [<list of blocking issues>]
+      recommendations: [<improvement suggestions>]
+    expects: "overall_score"
+    max-retries: 1
+
+  # ----------------------------------------
+  # STEP 3: Improvement Loop Decision
+  # ----------------------------------------
+  - id: check-content-quality
+    agent: pipeline-orchestrator
+    input: |
+      Evaluate if content meets quality threshold.
+
+      Overall Score: {{overall_score}}
+      Differentiation Score: {{differentiation_score}}
+      Ready for Production: {{ready_for_production}}
+      Issues: {{issues}}
+
+      DECISION LOGIC:
+
+      IF overall_score >= 8.0 AND ready_for_production == true:
+        -> Proceed to video generation
+        decision: PROCEED
+
+      ELIF improvement_iteration < 3:
+        -> Send to script improver
+        decision: IMPROVE
+        improvement_iteration: <current + 1>
+
+      ELSE:
+        -> Max iterations reached, proceed with best effort
+        decision: PROCEED_BEST_EFFORT
+
+      Output format:
+      STATUS: done
+      decision: PROCEED|IMPROVE|PROCEED_BEST_EFFORT
+      improvement_iteration: <count>
+      reason: <explanation>
+    expects: "decision"
+    max-retries: 0
+
+  # ----------------------------------------
+  # STEP 3a: Improve Script (if needed)
+  # ----------------------------------------
+  - id: improve-script
+    agent: script-improver
+    condition: "{{decision}} == 'IMPROVE'"
+    input: |
+      Rewrite script to meet quality threshold.
+
+      Current Script: {{script}}
+      Current Score: {{overall_score}}/10
+      Differentiation: {{differentiation_score}}/10
+      Issues: {{issues}}
+      Recommendations: {{recommendations}}
+
+      FACTORYLM DIFFERENTIATORS (MUST include at least 2):
+      1. REAL-TIME AI DIAGNOSIS - "Text your factory, get instant analysis"
+      2. TELEGRAM INTERFACE - "No app, works on any phone"
+      3. PHOTO TROUBLESHOOTING - "Send HMI photo, get error decoded"
+      4. LIVE PLC INTEGRATION - "Reads YOUR tags, not examples"
+      5. EDGE DEPLOYMENT - "Air-gapped on factory floor"
+      6. AUTO-GENERATED CONTENT - "Real maintenance becomes training"
+
+      REWRITE REQUIREMENTS:
+      1. Keep 50-100 words
+      2. Start with competitive hook: "Other channels show... We do..."
+      3. Include 2+ differentiators explicitly
+      4. End with "Text your factory" CTA
+
+      Output format:
+      STATUS: done
+      revised_script: <improved script>
+      changes_made: [<list of changes>]
+      differentiators_added: [<list>]
+      expected_improvement: <estimated new score>
+    expects: "revised_script"
+    max-retries: 1
+    next: evaluate-content  # Loop back
+
+  # ----------------------------------------
+  # STEP 4: Generate Video with Cosmos
+  # ----------------------------------------
+  - id: generate-video
+    agent: cosmos-generator
+    condition: "{{decision}} in ['PROCEED', 'PROCEED_BEST_EFFORT']"
+    input: |
+      Generate video using NVIDIA Cosmos-Predict2.
+
+      Cosmos Package: {{cosmos_package}}
+      Model Size: {{config.cosmos_model_size}}
+      Target Duration: {{estimated_duration}} seconds
+
+      Generation modes:
+      1. Video2World (PREFERRED): Use seed images to generate video
+      2. Text2World: Generate from text prompt if no suitable images
+
+      ```python
+      from services.video.cosmos_generator import CosmosVideoGenerator
+
+      generator = CosmosVideoGenerator(model_size="{{config.cosmos_model_size}}")
+      result = await generator.generate_from_judge_output(
+          judge_output={{cosmos_package}},
+          mode="Video2World",
+          duration={{estimated_duration}}
+      )
+      ```
+
+      SEGMENT STRATEGY:
+      - Max 5 seconds per Cosmos inference
+      - Chain segments auto-regressively
+      - Use last frame as seed for next segment
+      - Best-of-N sampling for quality
+
+      Output format:
+      STATUS: done
+      success: true|false
+      video_path: <path to generated video>
+      segments_generated: <count>
+      total_duration: <seconds>
+      model_used: <cosmos model id>
+      errors: [<any errors>]
+    expects: "video_path"
+    max-retries: 2
+    on-fail:
+      escalate-to: human
+
+  # ----------------------------------------
+  # STEP 5: Validate Video Quality
+  # ----------------------------------------
+  - id: validate-quality
+    agent: quality-validator
+    input: |
+      Validate generated video quality using Cosmos-Reason1.
+
+      Video Path: {{video_path}}
+      Original Content: {{cosmos_package}}
+
+      ```python
+      from services.video.quality_validator import VideoQualityValidator
+
+      validator = VideoQualityValidator()
+      result = await validator.validate(
+          video_path="{{video_path}}",
+          original_judge_output={{cosmos_package}}
+      )
+      ```
+
+      QUALITY THRESHOLDS:
+      - Physics consistency: 0.80 (no floating objects)
+      - Visual coherence: 0.85 (smooth transitions)
+      - Prompt alignment: 0.90 (matches input)
+      - Motion smoothness: 0.80 (natural movement)
+      - Industrial accuracy: 0.75 (realistic equipment)
+
+      Output format:
+      STATUS: done
+      passed: true|false
+      overall_quality: <0.0-1.0>
+      scores:
+        physics_consistency: <score>
+        visual_coherence: <score>
+        prompt_alignment: <score>
+        motion_smoothness: <score>
+        industrial_accuracy: <score>
+      blocking_issues: [<failed metrics>]
+      recommendation: approve|regenerate|manual_review
+    expects: "overall_quality"
+    max-retries: 1
+
+  # ----------------------------------------
+  # STEP 6: Video Improvement Decision
+  # ----------------------------------------
+  - id: check-video-quality
+    agent: pipeline-orchestrator
+    input: |
+      Evaluate if generated video meets quality threshold.
+
+      Quality Passed: {{passed}}
+      Overall Quality: {{overall_quality}}
+      Recommendation: {{recommendation}}
+      Blocking Issues: {{blocking_issues}}
+      Video Iteration: {{video_iteration | default(1)}}
+
+      DECISION LOGIC:
+
+      IF passed == true AND overall_quality >= 0.85:
+        -> Proceed to post-processing
+        decision: PROCEED
+
+      ELIF recommendation == 'regenerate' AND video_iteration < 2:
+        -> Regenerate with adjusted parameters
+        decision: REGENERATE
+        video_iteration: <current + 1>
+
+      ELIF recommendation == 'manual_review':
+        -> Flag for human review but continue
+        decision: PROCEED_WITH_WARNING
+
+      ELSE:
+        -> Accept current quality
+        decision: PROCEED_BEST_EFFORT
+
+      Output format:
+      STATUS: done
+      video_decision: PROCEED|REGENERATE|PROCEED_WITH_WARNING|PROCEED_BEST_EFFORT
+      video_iteration: <count>
+      adjustment_hints: [<parameter adjustments for regeneration>]
+    expects: "video_decision"
+    max-retries: 0
+
+  # ----------------------------------------
+  # STEP 6a: Improve Video Parameters (if needed)
+  # ----------------------------------------
+  - id: improve-video
+    agent: video-improver
+    condition: "{{video_decision}} == 'REGENERATE'"
+    input: |
+      Analyze quality failures and suggest regeneration parameters.
+
+      Failed Metrics: {{blocking_issues}}
+      Quality Scores: {{scores}}
+      Current Parameters:
+        Model: {{config.cosmos_model_size}}
+        Duration: {{estimated_duration}}
+
+      IMPROVEMENT STRATEGIES:
+
+      IF physics_consistency < 0.8:
+        - Reduce motion complexity
+        - Use more static seed images
+        - Increase guidance_scale
+
+      IF visual_coherence < 0.85:
+        - Reduce segment count
+        - Increase overlap between segments
+        - Use consistent seed image style
+
+      IF prompt_alignment < 0.9:
+        - Simplify prompt
+        - Use more descriptive seed images
+        - Reduce creative freedom (lower temperature)
+
+      IF motion_smoothness < 0.8:
+        - Reduce FPS
+        - Use slower transitions
+        - Increase inference steps
+
+      Output format:
+      STATUS: done
+      adjusted_parameters:
+        guidance_scale: <new value>
+        num_inference_steps: <new value>
+        segment_duration: <new value>
+      seed_image_strategy: <recommendation>
+      prompt_modifications: <changes>
+    expects: "adjusted_parameters"
+    max-retries: 1
+    next: generate-video  # Loop back
+
+  # ----------------------------------------
+  # STEP 7: Post-Process Video
+  # ----------------------------------------
+  - id: post-process
+    agent: post-processor
+    condition: "{{video_decision}} in ['PROCEED', 'PROCEED_WITH_WARNING', 'PROCEED_BEST_EFFORT']"
+    input: |
+      Post-process video for final output.
+
+      Video Path: {{video_path}}
+      Script: {{script}}
+      Preset: {{config.output_preset}}
+
+      ```python
+      from services.video.post_processor import VideoPostProcessor, get_preset
+
+      processor = VideoPostProcessor()
+      preset = get_preset("{{config.output_preset}}")
+
+      result = processor.process(
+          generated_video="{{video_path}}",
+          branding=preset.get("branding"),
+          compression=preset.get("compression"),
+          add_captions=True,
+          caption_script="{{script}}"
+      )
+      ```
+
+      PROCESSING STEPS:
+      1. Add branding (intro: 3s, outro: 2s, watermark)
+      2. Mix audio (narration TTS + background music)
+      3. Burn in captions from script
+      4. Compress for target platform (H.264, 8-25 Mbps)
+
+      PRESETS:
+      - youtube_shorts: CRF 20, 12M bitrate, no intro
+      - youtube_standard: CRF 18, 20M bitrate, full branding
+      - competition: CRF 16, 25M bitrate, premium quality
+
+      Output format:
+      STATUS: done
+      success: true|false
+      final_video_path: <path to processed video>
+      duration: <final duration seconds>
+      file_size_mb: <size>
+      has_captions: true|false
+      has_branding: true|false
+    expects: "final_video_path"
+    max-retries: 1
+
+  # ----------------------------------------
+  # STEP 8: Distribute (Optional)
+  # ----------------------------------------
+  - id: distribute
+    agent: distributor
+    condition: "{{config.auto_distribute}} == true"
+    input: |
+      Distribute final video to configured platforms.
+
+      Video: {{final_video_path}}
+      Topic: {{topic}}
+      Duration: {{duration}}
+      Targets: {{config.distribution_targets}}
+
+      ```python
+      from services.video.distribution import DistributionManager, VideoMetadata
+
+      manager = DistributionManager()
+
+      metadata = VideoMetadata(
+          title="FactoryLM: {{topic}}",
+          description="AI-generated industrial training. {{hook}}",
+          tags=["factorylm", "industrial", "ai", "plc", "automation"],
+          is_short={{duration}} <= 60
+      )
+
+      result = await manager.distribute(
+          video_path="{{final_video_path}}",
+          metadata=metadata,
+          targets={{config.distribution_targets}}
+      )
+      ```
+
+      PLATFORM REQUIREMENTS:
+      - YouTube: Include #Shorts for < 60s
+      - GitHub: Upload to releases if < 100MB
+      - Competition: Create submission package
+
+      Output format:
+      STATUS: done
+      distribution_complete: true|false
+      uploads:
+        youtube: {success: bool, url: <url>}
+        github_pr: {success: bool, url: <url>}
+        competition: {success: bool, path: <submission_path>}
+      summary: <overall status>
+    expects: "distribution_complete"
+    max-retries: 2
+
+  # ----------------------------------------
+  # STEP 9: Final Summary
+  # ----------------------------------------
+  - id: summarize
+    agent: pipeline-orchestrator
+    input: |
+      Generate final pipeline summary.
+
+      Input:
+        Topic: {{topic}}
+        Script Words: {{word_count}}
+        Images: {{images | length}}
+
+      Content Evaluation:
+        Score: {{overall_score}}/10
+        Iterations: {{improvement_iteration | default(1)}}
+
+      Video Generation:
+        Model: {{model_used}}
+        Segments: {{segments_generated}}
+        Quality: {{overall_quality}}
+        Iterations: {{video_iteration | default(1)}}
+
+      Output:
+        Final Video: {{final_video_path}}
+        Duration: {{duration}}s
+        Size: {{file_size_mb}}MB
+
+      Distribution:
+        {{uploads | default('Not distributed')}}
+
+      Generate summary report.
+
+      Output format:
+      STATUS: done
+      success: true
+      summary:
+        topic: {{topic}}
+        final_video: {{final_video_path}}
+        quality_score: {{overall_quality}}
+        content_score: {{overall_score}}
+        total_iterations: <content + video iterations>
+        ready_for_competition: true|false
+      next_steps: [<recommendations>]
+    expects: "success"
+    max-retries: 0
+
+# ============================================
+# TRIGGERS
+# ============================================
+
+triggers:
+  - type: manual
+    command: "/cosmos-video"
+  - type: manual
+    command: "/video"
+  - type: schedule
+    cron: "0 8,14,20 * * *"  # 3x daily at 8am, 2pm, 8pm
+
+# ============================================
+# INTEGRATION
+# ============================================
+
+integration:
+  factorylm:
+    repo: https://github.com/Mikecranesync/factorylm
+    branch: feat/cosmos-video-generation
+    modules:
+      content_judge: services.content.industrial_content_judge
+      video_generator: services.video.cosmos_generator
+      quality_validator: services.video.quality_validator
+      post_processor: services.video.post_processor
+      distribution: services.video.distribution
+
+  cosmos:
+    predict2:
+      api_base: https://integrate.api.nvidia.com/v1
+      models: [2B, 7B, 14B]
+    reason1:
+      use_for: quality_validation
+
+  tts:
+    primary: edge
+    fallback: openai
+
+  ffmpeg:
+    preset: fast
+    crf: 23
+    profile: high
+
+# ============================================
+# SUCCESS CRITERIA
+# ============================================
+
+success_criteria:
+  content_score_min: 8.0
+  video_quality_min: 0.85
+  max_content_iterations: 3
+  max_video_iterations: 2
+  final_duration_max: 120
+  file_size_max_mb: 500
+
+# ============================================
+# COMPETITION
+# ============================================
+
+competition:
+  name: NVIDIA Cosmos Cookoff 2026
+  deadline: "2026-02-26T17:00:00-08:00"
+  target_videos: 3
+  demo_duration: 60
