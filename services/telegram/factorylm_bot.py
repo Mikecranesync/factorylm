@@ -628,8 +628,31 @@ def main():
     app.add_handler(CommandHandler("diagnose", cmd_diagnose))
     app.add_handler(CommandHandler("alerts", cmd_alerts))
 
-    # Natural language handler (must be last)
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    # Photo handler (wiring reconstruction + KB enrichment)
+    try:
+        from openclaw.gateway.telegram import handle_photo, handle_wiring_answer
+
+        app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+        logger.info("Photo handler registered (wiring + KB enrichment)")
+
+        # Wrap the text handler to check for wiring project answers first
+        _original_handle_message = handle_message
+
+        @log_interaction("message")
+        async def handle_message_with_wiring(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            if not is_allowed(update):
+                return
+            # Check if this is a wiring project answer
+            handled = await handle_wiring_answer(update, context)
+            if not handled:
+                await _original_handle_message(update, context)
+
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message_with_wiring))
+        logger.info("Text handler wrapped with wiring project support")
+    except ImportError as e:
+        logger.warning("OpenClaw not available, photo handler disabled: %s", e)
+        # Fall back to text-only handler
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     # Set up background alerting job
     job_queue = app.job_queue

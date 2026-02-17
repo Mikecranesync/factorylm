@@ -275,31 +275,51 @@ def _call_text_llm(system_prompt: str, user_prompt: str) -> dict[str, Any]:
 def _kb_lookup(comp: ComponentRecord) -> Optional[dict]:
     """Search the KB for terminal layout and specs for a component.
 
-    Returns a dict with terminal_layout, ratings, etc. if found.
+    Uses KnowledgeConnector with two strategies:
+    1. Exact match by vendor + part_number (highest confidence)
+    2. Full-text search as fallback
+    3. SYMBOL_REGISTRY as last resort (terminal IDs only)
+
+    Returns a dict with terminal_layout, ratings, wiring_model, etc. if found.
     """
     if not comp.part_number and not comp.manufacturer:
-        return None
-
-    search_terms = " ".join(filter(None, [
-        comp.part_number,
-        comp.manufacturer,
-        comp.component_type,
-        "terminal wiring",
-    ]))
+        # Still try SYMBOL_REGISTRY
+        return _symbol_registry_fallback(comp)
 
     try:
-        # Try the knowledge connector if available
         from openclaw.connectors.knowledge import KnowledgeConnector
+
         kb = KnowledgeConnector()
-        results = kb.search(search_terms)
+
+        # Strategy 1: exact part lookup
+        if comp.manufacturer and comp.part_number:
+            exact = kb.find_by_part(comp.manufacturer, comp.part_number)
+            if exact:
+                exact["source"] = "knowledge_atoms_exact"
+                return exact
+
+        # Strategy 2: full-text search
+        search_terms = " ".join(filter(None, [
+            comp.part_number,
+            comp.manufacturer,
+            comp.component_type,
+            "terminal wiring",
+        ]))
+        results = kb.search(search_terms, vendor=comp.manufacturer)
         if results:
+            results[0]["source"] = "knowledge_atoms_search"
             return results[0]
+
     except ImportError:
         log.debug("KnowledgeConnector not available, using SYMBOL_REGISTRY fallback")
     except Exception as e:
         log.debug("KB search failed: %s", e)
 
-    # Fallback: use SYMBOL_REGISTRY for terminal IDs
+    return _symbol_registry_fallback(comp)
+
+
+def _symbol_registry_fallback(comp: ComponentRecord) -> Optional[dict]:
+    """Use SYMBOL_REGISTRY for terminal IDs when KB is unavailable."""
     if comp.component_type and comp.component_type in SYMBOL_REGISTRY:
         draw_fn = SYMBOL_REGISTRY[comp.component_type]
         try:
@@ -310,7 +330,6 @@ def _kb_lookup(comp: ComponentRecord) -> Optional[dict]:
             }
         except Exception:
             pass
-
     return None
 
 
