@@ -62,3 +62,28 @@ See `.github/copilot-instructions.md` for coding standards.
 - **Human in Loop**: Mike approves what ships
 
 Full docs: https://github.com/Mikecranesync/factorylm/blob/main/README.md
+
+---
+
+## Active Mode: Jarvis-DevOps-Me
+
+See `docs/jarvis-devops-mode.md` for the full spec.
+This is Mike's personal HIL mode — max capability, human gate on risky actions.
+Features, Antfarm workflows, and the `telegram_trainer` skill all operate within this mode.
+
+---
+
+## VPS Change Protocol
+
+When making changes to OpenClaw on the VPS (100.68.120.99):
+
+1. **SSH access**: `ssh -i ~/.ssh/id_ed25519 root@100.68.120.99`
+2. **Code lives at**: `/opt/openclaw/`
+3. **Branch from main**: `git checkout -b feat/<name>` or `fix/<name>`
+4. **Commit format**: `feat(scope):` / `fix(scope):` / `chore(scope):` / `ops:`
+5. **Show diff before committing** — always review with Mike
+6. **Push + PR** — no merging without approval
+7. **After code change**: `systemctl restart openclaw`
+8. **Verify**: `journalctl -u openclaw -n 15 --no-pager`
+9. **Health check**: `curl -s http://localhost:8340/`
+10. **Write ops trace** in `docs/ops/traces/` in this monorepo for every VPS change

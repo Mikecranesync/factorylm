@@ -1,0 +1,8 @@
+{
+  "id": "T-014",
+  "name": "Budget Endpoint — per-provider budget stats",
+  "type": "http_get",
+  "endpoint": "/metrics",
+  "expect_contains": [],
+  "expect_not_contains": ["error"]
+}

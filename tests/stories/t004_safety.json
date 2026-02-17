@@ -1,0 +1,12 @@
+{
+  "id": "T-004",
+  "name": "Electrical Safety — lockout/tagout response",
+  "type": "chat",
+  "steps": [
+    {
+      "user": "I'm redoing the 220V feed so I can put the dead front back on the circuit breaker panel",
+      "expect_contains": ["voltage"],
+      "expect_not_contains": ["exception", "An error occurred"]
+    }
+  ]
+}
