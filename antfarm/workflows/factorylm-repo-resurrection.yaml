@@ -1,0 +1,450 @@
+id: factorylm-repo-resurrection
+name: Repo Resurrection Pipeline (Jesus H Christ)
+version: 1
+description: Automated discovery and resurrection of abandoned code repositories using git forensics
+
+agents:
+  - id: scanner
+    name: Repo Scanner
+    role: scanning
+    description: Scans GitHub org for all repos, calculates resurrection scores based on activity and potential
+    timeoutSeconds: 300
+    workspace:
+      baseDir: agents/scanner
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        soul: agents/jesus-h-christ/SOUL.md
+
+  - id: forensics
+    name: Git Forensics Analyst
+    role: analysis
+    description: Deep git forensics - churn analysis, ghost files, dead branches, lost features
+    timeoutSeconds: 180
+    workspace:
+      baseDir: agents/forensics
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        resurrector: agents/jesus-h-christ/routines/resurrector.py
+
+  - id: treasure_hunter
+    name: Treasure Hunter
+    role: analysis
+    description: Searches for valuable patterns - APIs, DB models, CI configs, auth systems
+    timeoutSeconds: 120
+    workspace:
+      baseDir: agents/treasure_hunter
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        resurrector: agents/jesus-h-christ/routines/resurrector.py
+
+  - id: plan_generator
+    name: Resurrection Planner
+    role: coding
+    description: Generates detailed 4-phase resurrection plan with actionable steps
+    timeoutSeconds: 120
+    workspace:
+      baseDir: agents/plan_generator
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        launch_kit: agents/jesus-h-christ/LAUNCH_KIT.md
+
+  - id: report_generator
+    name: Report Generator
+    role: coding
+    description: Generates HTML dashboard and markdown reports for resurrection findings
+    timeoutSeconds: 60
+    workspace:
+      baseDir: agents/report_generator
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        resurrector: agents/jesus-h-christ/routines/resurrector.py
+
+steps:
+  - id: scan_repos
+    agent: scanner
+    input: |
+      Scan all repositories for organization: {{github_org}}
+
+      Using GitHub CLI:
+      ```bash
+      gh repo list {{github_org}} --limit 200 --json \
+        name,description,pushedAt,isArchived,languages,stargazerCount,\
+        forkCount,issues,pullRequests,defaultBranchRef,repositoryTopics,diskUsage
+      ```
+
+      For each repo, calculate resurrection_score (0-100):
+
+      POSITIVE SIGNALS:
+      - +10 for hot languages (Python, TypeScript, Go, Rust)
+      - +5 for open issues (indicates interest)
+      - +10 for open PRs (work in progress)
+      - +stars*2 (max 15 points)
+      - +forks*3 (max 10 points)
+      - +5 for good description
+      - +5 for substantial size (>500KB)
+      - +10 for CI/CD present (.github/workflows)
+
+      NEGATIVE SIGNALS:
+      - -10 for tiny repos (<10KB)
+      - -15 for >365 days dormant
+      - -10 for archived
+      - -5 for no README
+
+      VERDICT THRESHOLDS:
+      - >= 70: RESURRECT (high priority)
+      - >= 50: INVESTIGATE (worth exploring)
+      - >= 30: SALVAGE PARTS (extract value)
+      - < 30: REST IN PEACE (document only)
+
+      Output format:
+      STATUS: done
+      TOTAL_REPOS: <count>
+      RESURRECT_COUNT: <count>
+      INVESTIGATE_COUNT: <count>
+      SALVAGE_COUNT: <count>
+      RIP_COUNT: <count>
+      TOP_CANDIDATES: [<list of top 10 with scores>]
+    expects: "STATUS: done"
+    max_retries: 2
+
+  - id: clone_candidates
+    agent: scanner
+    input: |
+      Clone top {{top_n}} resurrection candidates.
+
+      Candidates to clone:
+      {{TOP_CANDIDATES}}
+
+      For each repo with score >= 50:
+      ```bash
+      # Clone as bare repo for forensics
+      gh repo clone {{github_org}}/{{repo_name}} \
+        resurrection-yard/{{repo_name}} -- --bare
+
+      # Fetch all branches including remote
+      git -C resurrection-yard/{{repo_name}} fetch --all
+      ```
+
+      Create workspace structure:
+      ```
+      resurrection-yard/
+      ├── {{repo_name}}/          # bare repo
+      ├── reports/                # generated reports
+      └── extracted/              # salvaged code
+      ```
+
+      Output format:
+      STATUS: done
+      CLONED_COUNT: <number>
+      CLONED_REPOS: [<list of repo names>]
+      WORKSPACE: <path to resurrection-yard>
+    expects: "CLONED_COUNT"
+    max_retries: 1
+
+  - id: run_forensics
+    agent: forensics
+    type: loop
+    loop:
+      over: cloned_repos
+      completion: all_done
+      fresh_session: false
+    input: |
+      Run deep forensics on: {{current_story}}
+
+      Using resurrector.py dig command:
+      ```bash
+      python agents/jesus-h-christ/routines/resurrector.py dig \
+        --repo resurrection-yard/{{current_story}}
+      ```
+
+      Analyze:
+      1. Commit archaeology:
+         - git rev-list --count HEAD (total commits)
+         - git shortlog -sn --all --no-merges (authors)
+         - First and last commit dates (span)
+
+      2. Dead branches:
+         - git branch -a --no-merged HEAD
+         - Unique commits per branch
+         - Last activity date per branch
+
+      3. File churn (top 20 most changed):
+         - git log --all --numstat
+         - High churn = potential complexity/bugs
+
+      4. Ghost files:
+         - Files added once, never modified
+         - Still present in HEAD
+         - May indicate incomplete features
+
+      5. Buried commits:
+         - Large commits that added significant code
+         - Commits with "WIP", "TODO", "FIXME" messages
+
+      Output format:
+      STATUS: done
+      REPO: {{current_story}}
+      TOTAL_COMMITS: <count>
+      AUTHOR_COUNT: <count>
+      SPAN_DAYS: <days from first to last commit>
+      DEAD_BRANCHES: [<list with commit counts>]
+      TOP_CHURN_FILES: [<list of high-churn files>]
+      GHOST_FILES: [<list of ghost files>]
+      BURIED_TREASURES: [<interesting commits>]
+    expects: "STATUS: done"
+    max_retries: 1
+
+  - id: find_treasure
+    agent: treasure_hunter
+    type: loop
+    loop:
+      over: cloned_repos
+      completion: all_done
+      fresh_session: false
+    input: |
+      Search for buried treasure in: {{current_story}}
+
+      Using resurrector.py hunt command:
+      ```bash
+      python agents/jesus-h-christ/routines/resurrector.py hunt \
+        --repo resurrection-yard/{{current_story}}
+      ```
+
+      Patterns to search for:
+
+      API ENDPOINTS:
+      - @app.(get|post|put|delete|patch)\(
+      - router\.(get|post|put|delete)
+      - Flask routes, FastAPI paths
+
+      DATABASE MODELS:
+      - class \w+\(.*Model\)
+      - CREATE TABLE
+      - SQLAlchemy, Django, Prisma models
+
+      TEST COVERAGE:
+      - def test_, class Test
+      - describe\(, it\(
+      - pytest, jest, mocha patterns
+
+      CI/CD:
+      - .github/workflows/
+      - .gitlab-ci.yml
+      - Dockerfile, docker-compose
+
+      AUTH/SECURITY:
+      - jwt, oauth, token
+      - auth, login, session
+      - bcrypt, argon2, hash
+
+      ML/AI:
+      - import (torch|tensorflow|sklearn|openai|anthropic)
+      - model.predict, embeddings
+
+      CLI TOOLS:
+      - argparse, click.command
+      - typer, fire
+
+      WEB UI:
+      - ReactDOM, Vue, Angular
+      - Flask templates, Jinja
+
+      For each pattern found, note:
+      - File path
+      - Line count / occurrence count
+      - Code quality assessment
+
+      Output format:
+      STATUS: done
+      REPO: {{current_story}}
+      TREASURE_CATEGORIES: {
+        "api_endpoints": [<files and counts>],
+        "database_models": [<files and counts>],
+        "tests": [<files and counts>],
+        "ci_cd": [<files>],
+        "auth": [<files>],
+        "ml_ai": [<files>],
+        "cli": [<files>],
+        "web_ui": [<files>]
+      }
+      TREASURE_SCORE: <0-100 based on findings>
+    expects: "STATUS: done"
+    max_retries: 1
+
+  - id: find_lost_features
+    agent: forensics
+    type: loop
+    loop:
+      over: cloned_repos
+      completion: all_done
+      fresh_session: false
+    input: |
+      Find lost features in dead branches of: {{current_story}}
+
+      For each dead branch identified earlier:
+      1. Count unique commits not in main:
+         git rev-list --count HEAD..{{branch}}
+
+      2. Get unique files:
+         git diff --name-only HEAD...{{branch}}
+
+      3. Analyze branch purpose from:
+         - Branch name (feature/, fix/, experiment/)
+         - Commit messages
+         - Changed file patterns
+
+      4. Assess recovery value:
+         - Code completeness
+         - Test coverage
+         - Documentation
+         - Merge conflict likelihood
+
+      Prioritize branches by:
+      - Number of unique commits
+      - Code quality indicators
+      - Feature completeness
+
+      Output format:
+      STATUS: done
+      REPO: {{current_story}}
+      LOST_FEATURES: [
+        {
+          "branch": "<name>",
+          "unique_commits": <count>,
+          "unique_files": [<list>],
+          "purpose": "<inferred purpose>",
+          "recovery_value": high|medium|low,
+          "merge_difficulty": easy|moderate|hard
+        }
+      ]
+      RECOVERY_CANDIDATES: [<branches worth recovering>]
+    expects: "STATUS: done"
+    max_retries: 1
+
+  - id: generate_plan
+    agent: plan_generator
+    type: loop
+    loop:
+      over: cloned_repos
+      completion: all_done
+      fresh_session: true
+    input: |
+      Generate resurrection plan for: {{current_story}}
+
+      Forensics summary:
+      - Total commits: {{TOTAL_COMMITS}}
+      - Authors: {{AUTHOR_COUNT}}
+      - Dead branches: {{DEAD_BRANCHES}}
+      - Ghost files: {{GHOST_FILES}}
+
+      Buried treasure:
+      {{TREASURE_CATEGORIES}}
+
+      Lost features:
+      {{LOST_FEATURES}}
+
+      Create 4-phase resurrection plan:
+
+      PHASE 1 - EXTRACT:
+      - [ ] Which patterns/code to pull out
+      - [ ] Which utilities are reusable
+      - [ ] API designs worth preserving
+
+      PHASE 2 - RECOVER:
+      - [ ] Which branches to cherry-pick
+      - [ ] Which lost features to resurrect
+      - [ ] Merge order and dependencies
+
+      PHASE 3 - STABILIZE:
+      - [ ] High-churn files to review
+      - [ ] Ghost files to evaluate
+      - [ ] Tests to add/fix
+
+      PHASE 4 - SHIP:
+      - [ ] Integration into monorepo vs new repo
+      - [ ] Documentation updates
+      - [ ] CI/CD setup
+
+      Output format:
+      STATUS: done
+      REPO: {{current_story}}
+      RESURRECTION_PLAN: <markdown with checkboxes>
+      ESTIMATED_EFFORT: hours|days|weeks
+      RECOMMENDED_APPROACH: integrate|standalone|archive
+    expects: "STATUS: done"
+    max_retries: 1
+
+  - id: generate_report
+    agent: report_generator
+    input: |
+      Generate HTML dashboard report for all analyzed repos.
+
+      Using resurrector.py report command:
+      ```bash
+      python agents/jesus-h-christ/routines/resurrector.py report \
+        --output resurrection-yard/reports/resurrection-report-{{date}}.html
+      ```
+
+      Report sections:
+      1. Executive Summary:
+         - Total repos scanned
+         - Resurrection/Investigate/Salvage/RIP counts
+         - Top 5 candidates
+
+      2. Ranked Table:
+         - Repo name (linked to GitHub)
+         - Resurrection score
+         - Verdict
+         - Languages
+         - Key findings
+
+      3. Per-Repo Details:
+         - Forensics summary
+         - Treasure map
+         - Lost features
+         - Resurrection plan
+
+      4. Recommendations:
+         - Immediate actions
+         - Long-term strategy
+         - Resource requirements
+
+      Styling:
+      - Dark theme
+      - NVIDIA green (#76b900) accents
+      - Gold (#ffd700) for high-value items
+      - Responsive layout
+
+      Output format:
+      STATUS: done
+      REPORT_PATH: resurrection-yard/reports/resurrection-report-{{date}}.html
+      MARKDOWN_PATH: resurrection-yard/reports/resurrection-report-{{date}}.md
+      REPOS_ANALYZED: <count>
+    expects: "REPORT_PATH"
+    max_retries: 1
+
+triggers:
+  - type: manual
+    command: "@jesus-h-christ scan-all"
+  - type: schedule
+    cron: "0 0 * * 0"  # Weekly on Sunday at midnight
+
+integration:
+  cli_tool:
+    script: agents/jesus-h-christ/routines/resurrector.py
+    commands:
+      - scan
+      - dig
+      - hunt
+      - autopsy
+      - mass-grave
+      - resurrect
+      - report
+  workspace:
+    default: "~/resurrection-yard"
+    reports: "resurrection-yard/reports/"
+  github:
+    cli: gh
+    permissions:
+      - repo:read
+      - org:read
