@@ -1,9 +1,9 @@
 /**
- * Data access layer for Conveyor Lab entities
+ * Data access layer for Conveyor Lab entities (in-memory)
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import db from './database.js';
+import { store } from './database.js';
 import type {
   User,
   Run,
@@ -21,21 +21,10 @@ import type {
 
 export const userRepo = {
   findByTelegramId(telegramId: number): User | null {
-    const row = db.prepare(`
-      SELECT * FROM users WHERE telegram_id = ?
-    `).get(telegramId) as any;
-
-    if (!row) return null;
-
-    return {
-      id: row.id,
-      telegramId: row.telegram_id,
-      username: row.username,
-      firstName: row.first_name,
-      lastName: row.last_name,
-      createdAt: row.created_at,
-      lastSeenAt: row.last_seen_at,
-    };
+    for (const user of store.users.values()) {
+      if (user.telegramId === telegramId) return user;
+    }
+    return null;
   },
 
   upsert(telegramId: number, data: Partial<User>): User {
@@ -43,25 +32,13 @@ export const userRepo = {
     const existing = this.findByTelegramId(telegramId);
 
     if (existing) {
-      db.prepare(`
-        UPDATE users SET
-          username = COALESCE(?, username),
-          first_name = COALESCE(?, first_name),
-          last_name = COALESCE(?, last_name),
-          last_seen_at = ?
-        WHERE telegram_id = ?
-      `).run(data.username, data.firstName, data.lastName, now, telegramId);
-
-      return { ...existing, ...data, lastSeenAt: now };
+      const updated = { ...existing, ...data, lastSeenAt: now };
+      store.users.set(existing.id, updated);
+      return updated;
     }
 
     const id = uuidv4();
-    db.prepare(`
-      INSERT INTO users (id, telegram_id, username, first_name, last_name, created_at, last_seen_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(id, telegramId, data.username, data.firstName, data.lastName, now, now);
-
-    return {
+    const user: User = {
       id,
       telegramId,
       username: data.username,
@@ -70,6 +47,8 @@ export const userRepo = {
       createdAt: now,
       lastSeenAt: now,
     };
+    store.users.set(id, user);
+    return user;
   },
 };
 
@@ -82,96 +61,62 @@ export const runRepo = {
     const id = uuidv4();
     const now = Date.now();
 
-    db.prepare(`
-      INSERT INTO runs (id, user_id, config_json, status, created_at)
-      VALUES (?, ?, ?, 'pending', ?)
-    `).run(id, userId, JSON.stringify(config), now);
-
-    return {
+    const run: Run = {
       id,
       userId,
       config,
       status: 'pending',
       createdAt: now,
     };
+    store.runs.set(id, run);
+    store.telemetryPoints.set(id, []);
+    store.feedback.set(id, []);
+    store.media.set(id, []);
+    return run;
   },
 
   findById(id: string): Run | null {
-    const row = db.prepare(`SELECT * FROM runs WHERE id = ?`).get(id) as any;
-    if (!row) return null;
-    return this._rowToRun(row);
+    return store.runs.get(id) || null;
   },
 
   findByUserId(userId: string, limit = 50, offset = 0): Run[] {
-    const rows = db.prepare(`
-      SELECT * FROM runs
-      WHERE user_id = ?
-      ORDER BY created_at DESC
-      LIMIT ? OFFSET ?
-    `).all(userId, limit, offset) as any[];
-
-    return rows.map((row) => this._rowToRun(row));
+    const runs = Array.from(store.runs.values())
+      .filter((run) => run.userId === userId)
+      .sort((a, b) => b.createdAt - a.createdAt);
+    return runs.slice(offset, offset + limit);
   },
 
   findAll(limit = 50, offset = 0, filters?: { tags?: string[]; dateFrom?: number; dateTo?: number }): Run[] {
-    let sql = `SELECT * FROM runs WHERE 1=1`;
-    const params: any[] = [];
+    let runs = Array.from(store.runs.values())
+      .sort((a, b) => b.createdAt - a.createdAt);
 
     if (filters?.dateFrom) {
-      sql += ` AND created_at >= ?`;
-      params.push(filters.dateFrom);
+      runs = runs.filter((run) => run.createdAt >= filters.dateFrom!);
     }
     if (filters?.dateTo) {
-      sql += ` AND created_at <= ?`;
-      params.push(filters.dateTo);
+      runs = runs.filter((run) => run.createdAt <= filters.dateTo!);
     }
-
-    sql += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
-
-    const rows = db.prepare(sql).all(...params) as any[];
-    let runs = rows.map((row) => this._rowToRun(row));
-
-    // Filter by tags in memory (SQLite JSON support is limited)
     if (filters?.tags && filters.tags.length > 0) {
       runs = runs.filter((run) =>
         filters.tags!.some((tag) => run.config.tags.includes(tag))
       );
     }
 
-    return runs;
+    return runs.slice(offset, offset + limit);
   },
 
   updateStatus(id: string, status: Run['status'], summary?: RunSummary): void {
-    const now = Date.now();
-    const endedAt = ['completed', 'stopped', 'faulted'].includes(status) ? now : null;
+    const run = store.runs.get(id);
+    if (!run) return;
 
-    db.prepare(`
-      UPDATE runs SET
-        status = ?,
-        ended_at = COALESCE(?, ended_at),
-        summary_json = COALESCE(?, summary_json)
-      WHERE id = ?
-    `).run(status, endedAt, summary ? JSON.stringify(summary) : null, id);
+    const endedAt = ['completed', 'stopped', 'faulted'].includes(status) ? Date.now() : undefined;
+    store.runs.set(id, { ...run, status, endedAt, summary: summary || run.summary });
   },
 
   start(id: string): void {
-    db.prepare(`
-      UPDATE runs SET status = 'running', started_at = ? WHERE id = ?
-    `).run(Date.now(), id);
-  },
-
-  _rowToRun(row: any): Run {
-    return {
-      id: row.id,
-      userId: row.user_id,
-      config: JSON.parse(row.config_json),
-      status: row.status,
-      startedAt: row.started_at,
-      endedAt: row.ended_at,
-      summary: row.summary_json ? JSON.parse(row.summary_json) : undefined,
-      createdAt: row.created_at,
-    };
+    const run = store.runs.get(id);
+    if (!run) return;
+    store.runs.set(id, { ...run, status: 'running', startedAt: Date.now() });
   },
 };
 
@@ -182,66 +127,24 @@ export const runRepo = {
 export const telemetryRepo = {
   insert(point: Omit<TelemetryPoint, 'id'>): TelemetryPoint {
     const id = uuidv4();
+    const telemetryPoint: TelemetryPoint = { id, ...point };
 
-    db.prepare(`
-      INSERT INTO telemetry_points
-        (id, run_id, timestamp, command_hz, actual_hz, motor_current, run_state, direction, fault_code)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id,
-      point.runId,
-      point.timestamp,
-      point.commandHz,
-      point.actualHz,
-      point.motorCurrent,
-      point.runState,
-      point.direction,
-      point.faultCode
-    );
+    const points = store.telemetryPoints.get(point.runId) || [];
+    points.push(telemetryPoint);
+    store.telemetryPoints.set(point.runId, points);
 
-    return { id, ...point };
+    return telemetryPoint;
   },
 
   findByRunId(runId: string, limit = 1000): TelemetryPoint[] {
-    const rows = db.prepare(`
-      SELECT * FROM telemetry_points
-      WHERE run_id = ?
-      ORDER BY timestamp ASC
-      LIMIT ?
-    `).all(runId, limit) as any[];
-
-    return rows.map((row) => ({
-      id: row.id,
-      runId: row.run_id,
-      timestamp: row.timestamp,
-      commandHz: row.command_hz,
-      actualHz: row.actual_hz,
-      motorCurrent: row.motor_current,
-      runState: row.run_state,
-      direction: row.direction,
-      faultCode: row.fault_code,
-    }));
+    const points = store.telemetryPoints.get(runId) || [];
+    return points.slice(0, limit);
   },
 
   getRecent(runId: string, seconds = 60): TelemetryPoint[] {
     const since = Date.now() - seconds * 1000;
-    const rows = db.prepare(`
-      SELECT * FROM telemetry_points
-      WHERE run_id = ? AND timestamp >= ?
-      ORDER BY timestamp ASC
-    `).all(runId, since) as any[];
-
-    return rows.map((row) => ({
-      id: row.id,
-      runId: row.run_id,
-      timestamp: row.timestamp,
-      commandHz: row.command_hz,
-      actualHz: row.actual_hz,
-      motorCurrent: row.motor_current,
-      runState: row.run_state,
-      direction: row.direction,
-      faultCode: row.fault_code,
-    }));
+    const points = store.telemetryPoints.get(runId) || [];
+    return points.filter((p) => p.timestamp >= since);
   },
 };
 
@@ -253,42 +156,16 @@ export const modelAnalysisRepo = {
   create(data: Omit<ModelAnalysis, 'id' | 'createdAt'>): ModelAnalysis {
     const id = uuidv4();
     const createdAt = Date.now();
-
-    db.prepare(`
-      INSERT INTO model_analyses
-        (id, run_id, cosmos_model, summary, suggested_actions_json, confidence, reasoning, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id,
-      data.runId,
-      data.cosmosModel,
-      data.summary,
-      JSON.stringify(data.suggestedActions),
-      data.confidence,
-      data.reasoning,
-      createdAt
-    );
-
-    return { id, ...data, createdAt };
+    const analysis: ModelAnalysis = { id, ...data, createdAt };
+    store.modelAnalyses.set(id, analysis);
+    return analysis;
   },
 
   findByRunId(runId: string): ModelAnalysis | null {
-    const row = db.prepare(`
-      SELECT * FROM model_analyses WHERE run_id = ? ORDER BY created_at DESC LIMIT 1
-    `).get(runId) as any;
-
-    if (!row) return null;
-
-    return {
-      id: row.id,
-      runId: row.run_id,
-      cosmosModel: row.cosmos_model,
-      summary: row.summary,
-      suggestedActions: JSON.parse(row.suggested_actions_json),
-      confidence: row.confidence,
-      reasoning: row.reasoning,
-      createdAt: row.created_at,
-    };
+    for (const analysis of store.modelAnalyses.values()) {
+      if (analysis.runId === runId) return analysis;
+    }
+    return null;
   },
 };
 
@@ -300,42 +177,17 @@ export const feedbackRepo = {
   create(data: Omit<Feedback, 'id' | 'createdAt'>): Feedback {
     const id = uuidv4();
     const createdAt = Date.now();
+    const fb: Feedback = { id, ...data, createdAt };
 
-    db.prepare(`
-      INSERT INTO feedback
-        (id, run_id, user_id, model_analysis_id, action_taken, rating, tags_json, notes, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id,
-      data.runId,
-      data.userId,
-      data.modelAnalysisId,
-      data.actionTaken,
-      data.rating,
-      JSON.stringify(data.tags),
-      data.notes,
-      createdAt
-    );
+    const feedbackList = store.feedback.get(data.runId) || [];
+    feedbackList.push(fb);
+    store.feedback.set(data.runId, feedbackList);
 
-    return { id, ...data, createdAt };
+    return fb;
   },
 
   findByRunId(runId: string): Feedback[] {
-    const rows = db.prepare(`
-      SELECT * FROM feedback WHERE run_id = ? ORDER BY created_at DESC
-    `).all(runId) as any[];
-
-    return rows.map((row) => ({
-      id: row.id,
-      runId: row.run_id,
-      userId: row.user_id,
-      modelAnalysisId: row.model_analysis_id,
-      actionTaken: row.action_taken,
-      rating: row.rating,
-      tags: JSON.parse(row.tags_json),
-      notes: row.notes,
-      createdAt: row.created_at,
-    }));
+    return store.feedback.get(runId) || [];
   },
 };
 
@@ -347,28 +199,16 @@ export const mediaRepo = {
   create(data: Omit<Media, 'id' | 'createdAt'>): Media {
     const id = uuidv4();
     const createdAt = Date.now();
+    const m: Media = { id, ...data, createdAt };
 
-    db.prepare(`
-      INSERT INTO media (id, run_id, type, url, thumbnail_url, caption, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(id, data.runId, data.type, data.url, data.thumbnailUrl, data.caption, createdAt);
+    const mediaList = store.media.get(data.runId) || [];
+    mediaList.push(m);
+    store.media.set(data.runId, mediaList);
 
-    return { id, ...data, createdAt };
+    return m;
   },
 
   findByRunId(runId: string): Media[] {
-    const rows = db.prepare(`
-      SELECT * FROM media WHERE run_id = ? ORDER BY created_at DESC
-    `).all(runId) as any[];
-
-    return rows.map((row) => ({
-      id: row.id,
-      runId: row.run_id,
-      type: row.type,
-      url: row.url,
-      thumbnailUrl: row.thumbnail_url,
-      caption: row.caption,
-      createdAt: row.created_at,
-    }));
+    return store.media.get(runId) || [];
   },
 };
