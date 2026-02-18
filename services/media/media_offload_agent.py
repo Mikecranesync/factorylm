@@ -291,20 +291,87 @@ class MediaOffloadAgent:
         shutil.copy2(file_path, staging_path)
         return staging_path
 
+    def _resolve_gdrive_path(self) -> Optional[Path]:
+        """
+        Resolve gdrive remote to a local path if it's a mounted Google Drive.
+
+        Returns local Path if mounted, None if rclone API needed.
+        """
+        # Check common Google Drive mount locations
+        gdrive_mounts = [
+            Path("G:/My Drive"),  # Windows Google Drive
+            Path("/Volumes/GoogleDrive/My Drive"),  # macOS
+            Path.home() / "Google Drive",  # Linux
+        ]
+
+        for mount in gdrive_mounts:
+            if mount.exists():
+                # Parse the remote path (e.g., "gdrive:factorylm-archives/media")
+                if ":" in self.gdrive_remote:
+                    _, rel_path = self.gdrive_remote.split(":", 1)
+                    local_path = mount / rel_path.lstrip("/")
+                    if local_path.parent.exists():
+                        return local_path
+
+        return None
+
     async def sync_to_gdrive(self, device_name: str) -> Dict[str, Any]:
-        """Sync staged files to Google Drive using rclone."""
+        """
+        Sync staged files to Google Drive.
+
+        Uses direct file copy if Google Drive is mounted locally (faster, no sector-padding issues).
+        Falls back to rclone for cloud API sync.
+        """
         staging_device_dir = self.staging_dir / device_name
         if not staging_device_dir.exists():
             return {"synced": 0, "error": None}
 
+        # Try local mount first (avoids rclone alias issues with Google Drive File Stream)
+        local_gdrive = self._resolve_gdrive_path()
+
+        if local_gdrive:
+            return await self._sync_local(staging_device_dir, local_gdrive / device_name)
+        else:
+            return await self._sync_rclone(staging_device_dir, device_name)
+
+    async def _sync_local(self, staging_dir: Path, dest_dir: Path) -> Dict[str, Any]:
+        """Sync using direct file copy to mounted Google Drive."""
+        try:
+            file_count = 0
+            total_bytes = 0
+
+            for src_file in staging_dir.rglob("*"):
+                if src_file.is_file():
+                    # Preserve folder structure
+                    rel_path = src_file.relative_to(staging_dir)
+                    dest_file = dest_dir / rel_path
+                    dest_file.parent.mkdir(parents=True, exist_ok=True)
+
+                    # Copy file
+                    shutil.copy2(src_file, dest_file)
+                    file_count += 1
+                    total_bytes += src_file.stat().st_size
+
+            if file_count > 0:
+                logger.info(f"Synced {file_count} files to {dest_dir}")
+                total_mb = total_bytes / (1024 * 1024)
+                await self.notify_sync_complete(staging_dir.name, file_count, total_mb)
+
+            return {"synced": file_count, "error": None}
+
+        except Exception as e:
+            logger.error(f"Local sync failed: {e}")
+            return {"synced": 0, "error": str(e)}
+
+    async def _sync_rclone(self, staging_dir: Path, device_name: str) -> Dict[str, Any]:
+        """Sync using rclone (for cloud API access)."""
         gdrive_path = f"{self.gdrive_remote}/{device_name}/"
 
         try:
-            # Run rclone sync
             result = subprocess.run(
                 [
                     "rclone", "copy",
-                    str(staging_device_dir),
+                    str(staging_dir),
                     gdrive_path,
                     "--progress",
                     "--log-level", "INFO"
@@ -315,23 +382,18 @@ class MediaOffloadAgent:
             )
 
             if result.returncode == 0:
-                # Count synced files and total size
                 file_count = 0
                 total_bytes = 0
-                for f in staging_device_dir.rglob("*"):
+                for f in staging_dir.rglob("*"):
                     if f.is_file():
                         file_count += 1
                         total_bytes += f.stat().st_size
 
                 logger.info(f"Synced {file_count} files from {device_name} to {gdrive_path}")
 
-                # Send Telegram notification
                 if file_count > 0:
                     total_mb = total_bytes / (1024 * 1024)
                     await self.notify_sync_complete(device_name, file_count, total_mb)
-
-                # Clean staging after successful sync
-                # shutil.rmtree(staging_device_dir)  # Uncomment to auto-clean
 
                 return {"synced": file_count, "error": None}
             else:
