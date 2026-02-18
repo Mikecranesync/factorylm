@@ -23,6 +23,7 @@ import { initializeDatabase } from './models/database.js';
 import statusRoutes from './routes/status.js';
 import runsRoutes from './routes/runs.js';
 import { telemetryWebSocket } from './services/websocket.js';
+import { initializeConveyor, getConnectionMode } from './services/conveyor.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const isDev = process.env.NODE_ENV !== 'production';
@@ -77,13 +78,20 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Initialize database
 initializeDatabase();
 
-// Create HTTP server and attach WebSocket
-const server = createServer(app);
-telemetryWebSocket.attach(server);
+// Async startup
+async function start() {
+  // Initialize conveyor (auto-detect Factory I/O or use simulator)
+  await initializeConveyor();
 
-// Start server
-server.listen(PORT, () => {
-  console.log(`
+  // Create HTTP server and attach WebSocket
+  const server = createServer(app);
+  telemetryWebSocket.attach(server);
+
+  // Start server
+  server.listen(PORT, () => {
+    const connectionMode = getConnectionMode();
+    const modeLabel = connectionMode === 'factoryio' ? 'Factory I/O' : 'Simulator';
+    console.log(`
 ╔══════════════════════════════════════════════════════════╗
 ║  🏭 Factory LM — Conveyor Lab Backend                    ║
 ╠══════════════════════════════════════════════════════════╣
@@ -91,15 +99,29 @@ server.listen(PORT, () => {
 ║  WebSocket: ws://localhost:${PORT}/ws/telemetry             ║
 ║  Health:    http://localhost:${PORT}/api/health             ║
 ║  Mode:      ${isDev ? 'Development' : 'Production'}                               ║
+║  Conveyor:  ${modeLabel.padEnd(15)}                        ║
 ╚══════════════════════════════════════════════════════════╝
-  `);
+    `);
+  });
+
+  return server;
+}
+
+const server = start().catch(err => {
+  console.error('[Server] Failed to start:', err);
+  process.exit(1);
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('[Server] Shutting down...');
-  server.close(() => {
-    console.log('[Server] Goodbye!');
+  const s = await server;
+  if (s && typeof s.close === 'function') {
+    s.close(() => {
+      console.log('[Server] Goodbye!');
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 });

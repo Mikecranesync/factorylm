@@ -7,7 +7,7 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { conveyorSimulator } from '../services/conveyor-simulator.js';
+import { getConveyor, getConnectionMode } from '../services/conveyor.js';
 import type { VFDCommand, Direction } from '../types/index.js';
 
 const router = Router();
@@ -25,8 +25,12 @@ const commandSchema = z.object({
  */
 router.get('/', (req: Request, res: Response) => {
   try {
-    const status = conveyorSimulator.getStatus();
-    res.json(status);
+    const conveyor = getConveyor();
+    const status = conveyor.getStatus();
+    res.json({
+      ...status,
+      connectionMode: getConnectionMode(),
+    });
   } catch (error) {
     console.error('[Status] Error:', error);
     res.status(500).json({ error: 'Failed to get status' });
@@ -39,7 +43,7 @@ router.get('/', (req: Request, res: Response) => {
  *
  * Body: { action: "start"|"stop"|"set_speed"|"set_direction", value?: number|string, runId?: string }
  */
-router.post('/', (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const parsed = commandSchema.safeParse(req.body);
 
@@ -51,33 +55,34 @@ router.post('/', (req: Request, res: Response) => {
     }
 
     const { action, value, runId } = parsed.data;
+    const conveyor = getConveyor();
     let status;
 
     switch (action) {
       case 'start':
-        status = conveyorSimulator.start(runId);
+        status = await conveyor.start(runId);
         break;
 
       case 'stop':
-        status = conveyorSimulator.stop();
+        status = await conveyor.stop();
         break;
 
       case 'set_speed':
         if (typeof value !== 'number') {
           return res.status(400).json({ error: 'Speed value must be a number' });
         }
-        status = conveyorSimulator.setSpeed(value);
+        status = await conveyor.setSpeed(value);
         break;
 
       case 'set_direction':
         if (value !== 'forward' && value !== 'reverse') {
           return res.status(400).json({ error: 'Direction must be "forward" or "reverse"' });
         }
-        status = conveyorSimulator.setDirection(value as Direction);
+        status = await conveyor.setDirection(value as Direction);
         break;
 
       case 'clear_fault':
-        status = conveyorSimulator.clearFault();
+        status = await conveyor.clearFault();
         break;
 
       case 'inject_fault':
@@ -85,7 +90,7 @@ router.post('/', (req: Request, res: Response) => {
         if (typeof value !== 'number') {
           return res.status(400).json({ error: 'Fault code must be a number' });
         }
-        status = conveyorSimulator.injectFault(value);
+        status = conveyor.injectFault(value);
         break;
 
       default:
@@ -95,6 +100,7 @@ router.post('/', (req: Request, res: Response) => {
     res.json({
       success: true,
       status,
+      connectionMode: getConnectionMode(),
     });
   } catch (error) {
     console.error('[Command] Error:', error);
