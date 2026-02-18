@@ -1,244 +1,310 @@
-# Conveyor Lab
+# Conveyor Lab - Industrial HMI for Factory I/O
 
-A Telegram Mini App for simulating and monitoring industrial conveyor VFD (Variable Frequency Drive) systems.
+A web-based industrial HMI (Human Machine Interface) that acts as a **second screen** for Factory I/O simulation. Control and monitor your virtual conveyor belt with an ISA-101 compliant interface.
 
-## Overview
+![HMI Screenshot](../../hmi-screenshot.png)
 
-Conveyor Lab provides:
-- Real-time VFD status monitoring
-- Speed and direction control
-- Run management with telemetry recording
-- AI-powered analysis integration (Cosmos models)
-- Feedback collection for RLHF training
+---
 
-## Architecture
+## Features
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    Telegram Mini App                          │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │                   React Frontend                        │  │
-│  │  • Status Page (VFD control + live telemetry)          │  │
-│  │  • New Run Page (configure and start runs)             │  │
-│  │  • Runs List Page (history with filtering)             │  │
-│  │  • Run Detail Page (telemetry, analysis, feedback)     │  │
-│  └────────────────────────────────────────────────────────┘  │
-│                           │                                   │
-│                    HTTP + WebSocket                           │
-│                           │                                   │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │                  Express Backend                        │  │
-│  │  • /api/status - VFD status                            │  │
-│  │  • /api/command - Control commands                     │  │
-│  │  • /api/runs - Run CRUD                                │  │
-│  │  • /ws/telemetry - Real-time streaming                 │  │
-│  └────────────────────────────────────────────────────────┘  │
-│                           │                                   │
-│                      SQLite DB                                │
-└──────────────────────────────────────────────────────────────┘
-```
+- **Factory I/O Integration** - Connect to 3D factory simulation via Modbus TCP
+- **ISA-101 Compliant** - Industrial "gray is good" design philosophy
+- **Real-time Telemetry** - 100ms polling with WebSocket streaming
+- **PTT Voice Control** - Talk to your machine with push-to-talk
+- **Simulator Fallback** - Works without Factory I/O for demos/testing
+
+---
 
 ## Quick Start
 
-### Backend
-
+### 1. Start the Backend
 ```bash
-cd backend
+cd apps/conveyor-lab/backend
 npm install
 npm run dev
 ```
+Backend starts at **http://localhost:8888**
 
-Server starts at http://localhost:3001
-
-### Frontend
-
+### 2. Start the Frontend
 ```bash
-cd frontend
+cd apps/conveyor-lab/frontend
 npm install
 npm run dev
 ```
+Frontend starts at **http://localhost:3001**
 
-Dev server starts at http://localhost:5173
+### 3. Open the HMI
+Navigate to **http://localhost:3001** in your browser.
+
+---
+
+## Factory I/O Setup
+
+### Prerequisites
+- **Factory I/O** (Modbus & OPC Edition) - [Download](https://factoryio.com/)
+- The app auto-detects Factory I/O on startup
+
+### Step 1: Open Factory I/O
+Launch Factory I/O and open a scene with a conveyor belt:
+- **File → Open → Scenes → Sorting by Height (Basic)**
+- Or any scene with a Belt Conveyor
+
+### Step 2: Configure Modbus TCP Server
+1. Press **F4** to open the Driver Configuration
+2. Select **Modbus TCP/IP Server** from the driver list
+3. Click **Configuration**:
+   - Port: `502`
+   - Unit ID: `1`
+4. Click **Connect**
+
+### Step 3: Map I/O Tags
+In the Driver Configuration, map these tags:
+
+| Tag Type | Address | Factory I/O Tag |
+|----------|---------|-----------------|
+| Coil | 0 | Belt Conveyor (Entry) |
+| Discrete Input | 0 | Belt Conveyor (Entry) - Running |
+
+### Step 4: Start Simulation
+Press **F5** or click the Play button to start the simulation.
+
+### Step 5: Start Conveyor Lab
+The backend will auto-detect Factory I/O:
+```
+[Modbus] Connected to Factory I/O
+[Conveyor] Connected to Factory I/O via Modbus TCP
+║  Conveyor:  Factory I/O                            ║
+```
+
+---
+
+## HMI Controls
+
+### Status Panel
+| Element | Description |
+|---------|-------------|
+| **LIVE** indicator | Green when connected |
+| **Status lamp** | Green = Running, Gray = Stopped, Red = Fault |
+| **Direction** | FORWARD or REVERSE |
+
+### Control Buttons
+| Button | Action |
+|--------|--------|
+| **RUN** | Start the conveyor |
+| **STOP** | Stop the conveyor |
+| **REV** | Set direction to Reverse |
+| **FWD** | Set direction to Forward |
+
+### Gauges
+| Gauge | Range | Description |
+|-------|-------|-------------|
+| **SPEED** | 0-60 Hz | Motor speed in Hertz |
+| **CURRENT** | 0-10 A | Motor current draw |
+
+### Numeric Displays
+- **CMD** - Commanded speed (setpoint)
+- **ACT** - Actual speed (feedback from Factory I/O)
+- **AMPS** - Motor current
+
+### Speed Setpoint Slider
+Drag the slider to set target speed (5-60 Hz).
+
+---
+
+## Connection Modes
+
+The backend automatically selects the connection mode at startup:
+
+### Factory I/O Mode (`connectionMode: "factoryio"`)
+- Connected to Factory I/O via Modbus TCP
+- Live data from 3D simulation
+- Controls affect the virtual factory
+
+### Simulator Mode (`connectionMode: "simulator"`)
+- Built-in VFD simulator
+- Used when Factory I/O is not running
+- Full functionality for testing/demos
+
+Check the current mode:
+```bash
+curl http://localhost:8888/api/status | jq .connectionMode
+```
+
+---
+
+## PTT Voice Commands (Push-to-Talk)
+
+### How to Use
+1. Click and **hold** the microphone button (or hold **SPACEBAR**)
+2. Speak your command
+3. Release to send
+
+### Example Commands
+| Voice Command | Action |
+|---------------|--------|
+| "Start the conveyor" | Starts the belt |
+| "Stop" | Stops the belt |
+| "Set speed to 45 Hz" | Changes speed setpoint |
+| "What's the current speed?" | Reports status |
+| "Why did it fault?" | Explains fault condition |
+
+### Requirements
+- Modern browser with Web Speech API support (Chrome, Edge)
+- Microphone permissions granted
+
+---
 
 ## API Reference
 
-### Status Endpoints
-
-**GET /api/status**
+### GET /api/status
 Returns current VFD status.
-
 ```json
 {
   "runState": "running",
   "direction": "forward",
-  "commandHz": 30.0,
+  "commandHz": 30,
   "actualHz": 29.5,
-  "motorCurrent": 2.5,
+  "motorCurrent": 2.45,
   "faultCode": 0,
-  "faultText": "",
-  "timestamp": 1708200000000
+  "faultText": "No Fault",
+  "connectionMode": "factoryio"
 }
 ```
 
-**POST /api/command**
+### POST /api/command
 Send control commands.
+```bash
+# Start
+curl -X POST http://localhost:8888/api/command \
+  -H "Content-Type: application/json" \
+  -d '{"action": "start"}'
 
-```json
-{
-  "action": "start" | "stop" | "set_speed" | "set_direction" | "clear_fault",
-  "value": 30 | "forward" | "reverse",
-  "runId": "optional-run-id"
-}
+# Stop
+curl -X POST http://localhost:8888/api/command \
+  -H "Content-Type: application/json" \
+  -d '{"action": "stop"}'
+
+# Set Speed
+curl -X POST http://localhost:8888/api/command \
+  -H "Content-Type: application/json" \
+  -d '{"action": "set_speed", "value": 45}'
+
+# Set Direction
+curl -X POST http://localhost:8888/api/command \
+  -H "Content-Type: application/json" \
+  -d '{"action": "set_direction", "value": "reverse"}'
 ```
 
-### Run Endpoints
-
-**POST /api/runs**
-Create a new run.
-
-```json
-{
-  "name": "Morning calibration",
-  "description": "Testing new belt",
-  "direction": "forward",
-  "targetSpeedHz": 30,
-  "maxDurationSeconds": 300,
-  "tags": ["calibration", "test"]
-}
+### WebSocket /ws/telemetry
+Real-time status updates at 100ms intervals.
+```javascript
+const ws = new WebSocket('ws://localhost:8888/ws/telemetry');
+ws.onmessage = (event) => {
+  const { type, data } = JSON.parse(event.data);
+  if (type === 'status') {
+    console.log('Status:', data);
+  }
+};
 ```
 
-**GET /api/runs**
-List runs with pagination and filtering.
+---
 
-Query params: `limit`, `offset`, `tags`, `dateFrom`, `dateTo`
+## Architecture
 
-**GET /api/runs/:id**
-Get run details with telemetry, analysis, and feedback.
-
-**POST /api/runs/:id/stop**
-Stop a running run.
-
-**POST /api/runs/:id/feedback**
-Add feedback for RLHF training.
-
-```json
-{
-  "modelAnalysisId": "analysis-id",
-  "actionTaken": "followed" | "partial" | "ignored",
-  "rating": 1-5,
-  "tags": ["helpful", "accurate"],
-  "notes": "Optional notes"
-}
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    YOUR LAPTOP                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐        ┌─────────────────┐                │
+│  │   Factory I/O   │        │  Conveyor Lab   │                │
+│  │   (3D Sim)      │◄──────►│  HMI (Browser)  │                │
+│  │                 │ Modbus │                 │                │
+│  │  Port 502       │  TCP   │  Port 3001      │                │
+│  └────────┬────────┘        └────────┬────────┘                │
+│           │                          │                          │
+│           ▼                          ▼                          │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │              Conveyor Lab Backend (Port 8888)               ││
+│  │  ┌─────────────────────┐    ┌────────────────────────────┐ ││
+│  │  │ Modbus TCP Client   │    │    WebSocket Server        │ ││
+│  │  │ (reads/writes I/O)  │────│  (streams status to HMI)   │ ││
+│  │  └─────────────────────┘    └────────────────────────────┘ ││
+│  └─────────────────────────────────────────────────────────────┘│
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**POST /api/runs/:id/model-analysis**
-Add AI analysis to a run.
+---
 
-```json
-{
-  "cosmosModel": "cosmos-reason2-2b",
-  "summary": "Analysis summary",
-  "suggestedActions": ["Action 1", "Action 2"],
-  "confidence": 0.85,
-  "reasoning": "Optional reasoning"
-}
-```
+## Troubleshooting
 
-### WebSocket
+### "Factory I/O not available, using simulator"
+- Ensure Factory I/O is running
+- Check Modbus TCP Server is enabled (F4 → Modbus TCP/IP Server → Connect)
+- Verify the IP address in `backend/src/config/modbus-config.ts` matches your Factory I/O binding
 
-**ws://host/ws/telemetry**
+### Connection Timeout on Commands
+- Factory I/O Modbus driver may need I/O tags mapped
+- Check the Coil addresses match your scene's actuators
+- Increase timeout in `modbus-config.ts`
 
-Connect with optional auth: `?initData=<telegram-init-data>`
+### WebSocket Not Connecting
+- Ensure backend is running on port 8888
+- Check browser console for CORS errors
 
-Message types:
-- `status` - VFD status updates
-- `telemetry` - Telemetry data points
-- `runComplete` - Run completion notification
-- `error` - Error messages
+### Voice Recognition Not Working
+- Use Chrome or Edge browser
+- Grant microphone permissions when prompted
+- Speak clearly after pressing the PTT button
 
-## Telegram Integration
-
-The app uses the Telegram Mini Apps SDK for:
-- User authentication via `initData` validation
-- Haptic feedback on interactions
-- Main/Back button integration
-- Theme color adaptation
-
-### Testing Outside Telegram
-
-The app works in a regular browser for development. Authentication is bypassed when `initData` is not present.
-
-## Database Schema
-
-- **users** - Telegram user records
-- **runs** - Run configurations and summaries
-- **telemetry_points** - Time-series VFD data
-- **model_analyses** - AI analysis results
-- **feedback** - User feedback for RLHF
-- **media** - Associated videos/images
+---
 
 ## Configuration
 
-Environment variables:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| PORT | 3001 | Backend server port |
-| TELEGRAM_BOT_TOKEN | - | Bot token for auth validation |
-| DATABASE_URL | ./conveyor-lab.db | SQLite database path |
-
-## Cosmos Integration
-
-The app is designed to collect training data for Cosmos Reason2 fine-tuning:
-
-1. **Telemetry Collection** - VFD data points during runs
-2. **Model Analysis** - AI predictions stored with runs
-3. **Feedback Loop** - Operator feedback on AI recommendations
-
-Export data for training:
+### Environment Variables
 ```bash
-sqlite3 conveyor-lab.db ".mode json" "SELECT * FROM runs JOIN feedback ON runs.id = feedback.runId" > training_data.json
+PORT=8888                    # HTTP server port
+MODBUS_HOST=100.83.251.23    # Factory I/O IP address
+MODBUS_PORT=502              # Modbus TCP port
+MODBUS_UNIT_ID=1             # Modbus unit ID
+FACTORYIO_AUTO_CONNECT=true  # Auto-detect Factory I/O
 ```
 
-## Development
+### Modbus Register Map
+Edit `backend/src/config/modbus-config.ts` to match your Factory I/O scene:
 
-### Tech Stack
+```typescript
+export const MODBUS_MAP = {
+  coils: {
+    CONVEYOR: 0,  // Conveyor on/off
+    FORWARD: 1,   // Direction forward
+    REVERSE: 2,   // Direction reverse
+  },
+  discreteInputs: {
+    RUNNING: 0,   // Conveyor running status
+  },
+};
+```
+
+---
+
+## Tech Stack
 
 **Backend:**
 - Node.js + TypeScript
-- Express
-- better-sqlite3
-- ws (WebSocket)
+- Express + WebSocket (ws)
+- modbus-serial (Modbus TCP client)
 - Zod validation
 
 **Frontend:**
 - React + TypeScript
 - Vite
-- TailwindCSS
-- React Query
-- Zustand
-- Recharts
+- TailwindCSS (ISA-101 theme)
+- Web Speech API
 
-### Project Structure
+---
 
-```
-conveyor-lab/
-├── backend/
-│   └── src/
-│       ├── index.ts           # Entry point
-│       ├── types/             # TypeScript types
-│       ├── models/            # Database & repositories
-│       ├── services/          # VFD simulator, WebSocket
-│       ├── middleware/        # Telegram auth
-│       └── routes/            # API routes
-└── frontend/
-    └── src/
-        ├── main.tsx           # Entry point
-        ├── App.tsx            # Router
-        ├── types/             # Shared types
-        ├── store/             # Zustand store
-        ├── hooks/             # Custom hooks
-        ├── services/          # API client
-        ├── components/        # UI components
-        └── pages/             # Page components
-```
+## License
+MIT - Factory LM
