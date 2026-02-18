@@ -1,0 +1,176 @@
+id: cmms-gist-work-order
+name: "Feature 002 — CMMS Gist Work Order"
+version: 1
+description: >
+  Antfarm Feature 002. Creates a portable, CMMS-agnostic work order as a
+  GitHub Gist containing Markdown + CSV + attachments. Any major CMMS
+  (Maximo, Fiix, SAP PM, eMaint, Limble, UpKeep) can import the CSV.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: designer
+    name: Schema Designer
+    role: analysis
+    description: Validates the canonical field list against 6 CMMS systems
+    workspace:
+      files:
+        AGENTS.md: agents/designer/AGENTS.md
+
+  - id: dev
+    name: Template Developer
+    role: coding
+    description: Creates Gist templates and the gist_work_order.py helper module
+    workspace:
+      files:
+        AGENTS.md: agents/dev/AGENTS.md
+
+  - id: doc-writer
+    name: CMMS Doc Writer
+    role: analysis
+    description: Creates CMMS mapping documentation for all 6 target systems
+    workspace:
+      files:
+        AGENTS.md: agents/doc-writer/AGENTS.md
+
+  - id: tester
+    name: E2E Tester
+    role: coding
+    description: Runs unit tests and creates a sample Gist for verification
+    workspace:
+      files:
+        AGENTS.md: agents/tester/AGENTS.md
+
+  - id: dev-ops
+    name: VPS Polling Agent
+    role: coding
+    description: Deploys Gist comment polling to VPS (HIL-gated, not auto-executed)
+    workspace:
+      files:
+        AGENTS.md: agents/dev-ops/AGENTS.md
+
+steps:
+  - id: plan_schema
+    agent: designer
+    input: |
+      Validate the canonical work order field list against 6 CMMS systems.
+
+      25 columns:
+        Universal (5): work_order_id, title, status, priority, asset_name
+        Strongly recommended (20): asset_id, location, site, assigned_to,
+          assigned_team, work_type, category, due_date, created_date,
+          completed_date, completed_by, reported_by, channel, estimated_hours,
+          cost, completion_notes, failure_code, description, cmms_system,
+          cmms_external_id
+
+      Cross-check against:
+        - Atlas CSV: apps/cmms/api/src/main/resources/import-templates/en/work_order.csv
+        - CMMSClient: services/plc-copilot/photo_to_cmms_bot.py:358-392
+        - IBM Maximo MIF import
+        - Fiix CSV import (integer status IDs)
+        - SAP PM (AUFNR, KTEXT, PRIOK — needs XML via LTMC)
+        - eMaint CSV import
+        - Limble CSV import (minutes for estimated_hours)
+        - UpKeep API (system IDs for asset/location/user)
+
+      Reply with:
+      FIELD_COUNT: 25
+      UNIVERSAL_FIELDS: work_order_id, title, status, priority, asset_name
+      TEMPLATE_STRUCTURE: md + csv + attachments.txt
+      OUTLIERS: SAP (XML adapter needed), Fiix (integer IDs)
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: implement_templates
+    agent: dev
+    input: |
+      Create the Gist template files and helper module.
+
+      Files to create:
+        1. cmms/gist-templates/work-order.md — Markdown with ${variable} placeholders
+        2. cmms/gist-templates/work-order.csv — Header-only CSV, 25 columns
+        3. cmms/gist-templates/attachments.txt — Format: type,description,url
+        4. cmms/gist_work_order.py — Helper with 5 functions:
+           - render_work_order_md(metadata: dict) -> str
+           - render_work_order_csv(metadata: dict) -> str
+           - render_attachments_txt(attachments: list[dict]) -> str
+           - create_work_order_gist(metadata, attachments=None) -> dict
+           - update_work_order_gist(gist_id, metadata, attachments=None) -> dict
+        5. cmms/__init__.py — Package init
+
+      Auto-generate work_order_id as WO-{YYYY}-{MMDD}-{SEQ:03d} if not provided.
+      Use subprocess.run(["gh", "gist", "create", "--public", ...]) for Gist creation.
+
+      Reply with:
+      FILES_CREATED: 5
+      FUNCTIONS: render_work_order_md, render_work_order_csv, render_attachments_txt, create_work_order_gist, update_work_order_gist
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: write_docs
+    agent: doc-writer
+    input: |
+      Create docs/cmms-gist-integration.md with CMMS mapping documentation.
+
+      Sections:
+        1. Overview — What the FactoryLM work order Gist format is
+        2. CSV Column Reference — All 25 columns with type and description
+        3. Per-CMMS Mapping Tables (6 systems):
+           - IBM Maximo (MIF): WONUM, DESCRIPTION, STATUS, WOPRIORITY, etc.
+           - Fiix: strCode, intWorkOrderStatusID (integer IDs required)
+           - SAP PM: AUFNR, KTEXT, PRIOK (needs XML via LTMC)
+           - eMaint: Work Order Number, Description, WO Status
+           - Limble: Task Name, Priority Level (estimated_hours in minutes)
+           - UpKeep: title only required, system IDs for asset/location/user
+        4. Outlier Adapter Notes — SAP XML converter + Fracttal API (future)
+        5. One-Click Integration Narrative — Marketing copy
+
+      Reply with:
+      DOC_PATH: docs/cmms-gist-integration.md
+      CMMS_SYSTEMS: 6
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: create_tests
+    agent: dev
+    input: |
+      Create tests/test_gist_work_order.py with unit tests.
+
+      Tests:
+        - test_render_work_order_md() — Renders template, checks key fields
+        - test_render_work_order_csv() — Validates header + data row, 25 columns
+        - test_render_attachments_txt() — Validates type,description,url format
+        - test_auto_generate_wo_id() — Checks WO-YYYY-MMDD-NNN format
+        - test_create_work_order_gist() — Mocks subprocess for gh CLI
+
+      Use unittest + unittest.mock.patch for subprocess calls.
+
+      Reply with:
+      TEST_FILE: tests/test_gist_work_order.py
+      TEST_COUNT: 5
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: test_e2e
+    agent: tester
+    input: |
+      Run all tests and create a sample work order Gist.
+
+      1. Run: pytest tests/test_gist_work_order.py — verify all pass
+      2. Call create_work_order_gist() with sample data:
+         - title: "Motor Bearing Failure — Conveyor Line 3"
+         - status: open, priority: high
+         - asset_name: "Conveyor Drive Motor", asset_id: "M3-CONV-L3"
+         - 2 attachments (photo + diagram)
+      3. Verify Gist has 3 files: work-order.md, work-order.csv, attachments.txt
+
+      Reply with:
+      TESTS_PASSED: 5/5
+      GIST_URL: <url>
+      GIST_FILES: work-order.md, work-order.csv, attachments.txt
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"

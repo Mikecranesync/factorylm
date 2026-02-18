@@ -1,0 +1,8 @@
+{
+  "id": "T-015",
+  "name": "Health Endpoint — service info with skills list",
+  "type": "http_get",
+  "endpoint": "/",
+  "expect_contains": ["OpenClaw", "skills"],
+  "expect_not_contains": ["error"]
+}

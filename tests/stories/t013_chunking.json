@@ -1,0 +1,12 @@
+{
+  "id": "T-013",
+  "name": "Long Response Chunking — no truncation error",
+  "type": "chat",
+  "steps": [
+    {
+      "user": "Give me a detailed guide to troubleshooting a Micro820 PLC that won't communicate over Ethernet",
+      "expect_contains": [],
+      "expect_not_contains": ["exception", "An error occurred", "Message is too long"]
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+id: wiring-telegram-component-enrichment
+name: "Feature 001 — Wiring Telegram Component Enrichment"
+version: 2
+description: >
+  Antfarm Feature 001. Classifies incoming Telegram photos, enriches the KB
+  with component data, runs wiring reconstruction if a project is active,
+  and notifies the tech. Wraps the deployed VPS pipeline at 100.68.120.99:8340.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: classifier
+    name: Photo Classifier
+    role: analysis
+    description: Classifies photo intent and extracts routing metadata
+    workspace:
+      files:
+        AGENTS.md: agents/classifier/AGENTS.md
+
+  - id: kb-enricher
+    name: KB Enrichment Agent
+    role: coding
+    description: Runs the 4-stage KB enrichment pipeline on a component photo
+    workspace:
+      files:
+        AGENTS.md: agents/kb-enricher/AGENTS.md
+
+  - id: reconstructor
+    name: Wiring Reconstructor
+    role: coding
+    description: Runs the 6-stage reconstruction pipeline and produces diagrams
+    workspace:
+      files:
+        AGENTS.md: agents/reconstructor/AGENTS.md
+
+  - id: notifier
+    name: Tech Notifier
+    role: coding
+    description: Sends results back to the tech via Telegram
+    workspace:
+      files:
+        AGENTS.md: agents/notifier/AGENTS.md
+
+steps:
+  - id: classify_photo
+    agent: classifier
+    input: |
+      Classify this Telegram photo event.
+
+      Event payload:
+        photo_ref: {{photo_ref}}
+        caption: {{caption}}
+        chat_id: {{chat_id}}
+        conversation_state: {{conversation_state}}
+
+      Determine intent:
+        - KB_ENRICH_COMPONENT: Close-up of a single component, nameplate, or data plate
+        - WIRING_RECONSTRUCT: Wide shot of a panel interior showing wires
+        - BOTH: Active project AND useful component detail
+
+      Rules:
+        - If conversation_state has a project_id, always include WIRING_RECONSTRUCT
+        - Every photo with a visible component always includes KB_ENRICH_COMPONENT
+        - Extract visible device tags (Q1, K1, F1, etc.) and component type
+
+      Reply with:
+      INTENT: <KB_ENRICH_COMPONENT | WIRING_RECONSTRUCT | BOTH>
+      TAGS: <comma-separated tags or "none">
+      COMPONENT_TYPE: <type or "unknown">
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: run_kb_enrichment
+    agent: kb-enricher
+    input: |
+      Run KB enrichment on this photo.
+      Only run if intent includes KB_ENRICH_COMPONENT.
+
+      Photo: {{photo_ref}}
+      Tags: {{tags}}
+      Component type: {{component_type}}
+      Intent: {{intent}}
+
+      This calls the DEPLOYED VPS pipeline — do not re-implement.
+      The VPS at 100.68.120.99 runs WiringEnrichSkill which calls:
+        openclaw.wiring.kb_enrichment.enrich_from_photo(photo_path, tags=tags)
+
+      If running locally with VPS access:
+        curl -X POST http://100.68.120.99:8340/api/v1/message \
+          -H "Content-Type: application/json" \
+          -d '{"text": "enrich component from photo {{photo_ref}}", "user_id": "antfarm"}'
+
+      Reply with:
+      ENRICHMENT_STATUS: done | skipped | error
+      ATOM_ID: <id or "new" or "n/a">
+      COMPONENT_SUMMARY: <1-line summary or "skipped">
+      RESULT: pass | error
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: maybe_reconstruct
+    agent: reconstructor
+    input: |
+      Run wiring reconstruction on this photo.
+      Only run if intent includes WIRING_RECONSTRUCT or conversation_state has project_id.
+
+      Photo: {{photo_ref}}
+      Project ID: {{project_id}}
+      Focus tag: {{tags}}
+      Intent: {{intent}}
+
+      This calls the DEPLOYED VPS pipeline — do not re-implement.
+      The VPS runs the 6-stage reconstruction:
+        openclaw.wiring.pipeline.process_photo(project, photo_path, focus_tag)
+
+      Reply with:
+      RECONSTRUCTION_STATUS: done | skipped | error
+      COMPLETENESS: <percentage or "n/a">
+      NEXT_QUESTION: <question or "none">
+      DIAGRAM_READY: <true | false | n/a>
+      RESULT: pass | error
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: notify_tech
+    agent: notifier
+    input: |
+      Send results to the tech via Telegram.
+
+      Chat ID: {{chat_id}}
+      Enrichment summary: {{component_summary}}
+      Reconstruction completeness: {{completeness}}
+      Next question: {{next_question}}
+      Diagram ready: {{diagram_ready}}
+      Project ID: {{project_id}}
+
+      Mode: Jarvis-DevOps-Me — messages go to Mike, not customers.
+
+      Compose a clear message:
+      - Lead with what was found (component name, match status)
+      - Include actionable next steps
+      - If diagram_ready, mention it will be attached
+      - Keep under 300 characters when possible
+
+      Reply with:
+      NOTIFICATION_STATUS: done
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"

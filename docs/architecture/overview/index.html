@@ -1,0 +1,1402 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="Industrial AI Platform - Professional Engineering Documentation" name="description"/>
+<meta content="Mike Harper" name="author"/>
+<link href="https://factorylm.github.io/docs-site/architecture/overview/" rel="canonical"/>
+<link href="../" rel="prev"/>
+<link href="../layer-0/" rel="next"/>
+<link href="../../assets/favicon.ico" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.1" name="generator"/>
+<title>Overview - FactoryLM Documentation</title>
+<link href="../../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
+<link href="../../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../stylesheets/extra.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#architecture-overview">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="FactoryLM Documentation" class="md-header__button md-logo" data-md-component="logo" href="https://factorylm.com" title="FactoryLM Documentation">
+<img alt="logo" src="../../assets/logo.svg"/>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            FactoryLM Documentation
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="(prefers-color-scheme)" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+</label>
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="deep-orange" data-md-color-media="(prefers-color-scheme: light)" data-md-color-primary="blue-grey" data-md-color-scheme="default" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_2" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+<input aria-label="Switch to system preference" class="md-option" data-md-color-accent="deep-orange" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-primary="blue-grey" data-md-color-scheme="slate" id="__palette_2" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to system preference">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<a aria-label="Share" class="md-search__icon md-icon" data-clipboard="" data-clipboard-text="" data-md-component="search-share" href="javascript:void(0)" tabindex="-1" title="Share">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+</a>
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+<div class="md-search__suggest" data-md-component="search-suggest"></div>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/Mikecranesync/factorylm" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+</div>
+<div class="md-source__repository">
+    Mikecranesync/factorylm
+  </div>
+</a>
+</div>
+</nav>
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../..">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../getting-started/">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../">
+          
+  
+  
+    
+  
+  Architecture
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../products/">
+          
+  
+  
+    
+  
+  Products
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../edge-agent/">
+          
+  
+  
+    
+  
+  Edge Agent
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../apps/">
+          
+  
+  
+    
+  
+  Apps
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../developer-guide/">
+          
+  
+  
+    
+  
+  Developer Guide
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../api-reference/">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="FactoryLM Documentation" class="md-nav__button md-logo" data-md-component="logo" href="https://factorylm.com" title="FactoryLM Documentation">
+<img alt="logo" src="../../assets/logo.svg"/>
+</a>
+    FactoryLM Documentation
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/Mikecranesync/factorylm" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+</div>
+<div class="md-source__repository">
+    Mikecranesync/factorylm
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../getting-started/">
+<span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#the-big-picture">
+<span class="md-ellipsis">
+      
+        The Big Picture
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#system-architecture-diagram">
+<span class="md-ellipsis">
+      
+        System Architecture Diagram
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#query-routing-decision-tree">
+<span class="md-ellipsis">
+      
+        Query Routing Decision Tree
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#component-interaction-flow">
+<span class="md-ellipsis">
+      
+        Component Interaction Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#deployment-scenarios">
+<span class="md-ellipsis">
+      
+        Deployment Scenarios
+      
+    </span>
+</a>
+<nav aria-label="Deployment Scenarios" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#a-full-stack-internet-available">
+<span class="md-ellipsis">
+      
+        A: Full Stack (Internet Available)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#b-air-gapped-defenseitar">
+<span class="md-ellipsis">
+      
+        B: Air-Gapped (Defense/ITAR)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#c-budget-no-gpu-server">
+<span class="md-ellipsis">
+      
+        C: Budget (No GPU Server)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#d-maximum-security-pi-only">
+<span class="md-ellipsis">
+      
+        D: Maximum Security (Pi Only)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-characteristics">
+<span class="md-ellipsis">
+      
+        Performance Characteristics
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#security-architecture">
+<span class="md-ellipsis">
+      
+        Security Architecture
+      
+    </span>
+</a>
+<nav aria-label="Security Architecture" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#network-security">
+<span class="md-ellipsis">
+      
+        Network Security
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-protection">
+<span class="md-ellipsis">
+      
+        Data Protection
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scalability-and-high-availability">
+<span class="md-ellipsis">
+      
+        Scalability and High Availability
+      
+    </span>
+</a>
+<nav aria-label="Scalability and High Availability" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#horizontal-scaling">
+<span class="md-ellipsis">
+      
+        Horizontal Scaling
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#redundancy-options">
+<span class="md-ellipsis">
+      
+        Redundancy Options
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-points">
+<span class="md-ellipsis">
+      
+        Integration Points
+      
+    </span>
+</a>
+<nav aria-label="Integration Points" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#northbound-integrations-data-out">
+<span class="md-ellipsis">
+      
+        Northbound Integrations (Data Out)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#southbound-integrations-data-in">
+<span class="md-ellipsis">
+      
+        Southbound Integrations (Data In)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring-and-observability">
+<span class="md-ellipsis">
+      
+        Monitoring and Observability
+      
+    </span>
+</a>
+<nav aria-label="Monitoring and Observability" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#system-metrics">
+<span class="md-ellipsis">
+      
+        System Metrics
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#learning-analytics">
+<span class="md-ellipsis">
+      
+        Learning Analytics
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#next-steps">
+<span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../layer-0/">
+<span class="md-ellipsis">
+    
+  
+    Layer 0 (Code + KB)
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../layer-1/">
+<span class="md-ellipsis">
+    
+  
+    Layer 1 (Edge LLM)
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../layer-2/">
+<span class="md-ellipsis">
+    
+  
+    Layer 2 (Local GPU)
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../layer-3/">
+<span class="md-ellipsis">
+    
+  
+    Layer 3 (Cloud)
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../products/">
+<span class="md-ellipsis">
+    
+  
+    Products
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../edge-agent/">
+<span class="md-ellipsis">
+    
+  
+    Edge Agent
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../apps/">
+<span class="md-ellipsis">
+    
+  
+    Apps
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../developer-guide/">
+<span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../api-reference/">
+<span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#the-big-picture">
+<span class="md-ellipsis">
+      
+        The Big Picture
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#system-architecture-diagram">
+<span class="md-ellipsis">
+      
+        System Architecture Diagram
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#query-routing-decision-tree">
+<span class="md-ellipsis">
+      
+        Query Routing Decision Tree
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#component-interaction-flow">
+<span class="md-ellipsis">
+      
+        Component Interaction Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#deployment-scenarios">
+<span class="md-ellipsis">
+      
+        Deployment Scenarios
+      
+    </span>
+</a>
+<nav aria-label="Deployment Scenarios" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#a-full-stack-internet-available">
+<span class="md-ellipsis">
+      
+        A: Full Stack (Internet Available)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#b-air-gapped-defenseitar">
+<span class="md-ellipsis">
+      
+        B: Air-Gapped (Defense/ITAR)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#c-budget-no-gpu-server">
+<span class="md-ellipsis">
+      
+        C: Budget (No GPU Server)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#d-maximum-security-pi-only">
+<span class="md-ellipsis">
+      
+        D: Maximum Security (Pi Only)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-characteristics">
+<span class="md-ellipsis">
+      
+        Performance Characteristics
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#security-architecture">
+<span class="md-ellipsis">
+      
+        Security Architecture
+      
+    </span>
+</a>
+<nav aria-label="Security Architecture" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#network-security">
+<span class="md-ellipsis">
+      
+        Network Security
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-protection">
+<span class="md-ellipsis">
+      
+        Data Protection
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#scalability-and-high-availability">
+<span class="md-ellipsis">
+      
+        Scalability and High Availability
+      
+    </span>
+</a>
+<nav aria-label="Scalability and High Availability" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#horizontal-scaling">
+<span class="md-ellipsis">
+      
+        Horizontal Scaling
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#redundancy-options">
+<span class="md-ellipsis">
+      
+        Redundancy Options
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-points">
+<span class="md-ellipsis">
+      
+        Integration Points
+      
+    </span>
+</a>
+<nav aria-label="Integration Points" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#northbound-integrations-data-out">
+<span class="md-ellipsis">
+      
+        Northbound Integrations (Data Out)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#southbound-integrations-data-in">
+<span class="md-ellipsis">
+      
+        Southbound Integrations (Data In)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring-and-observability">
+<span class="md-ellipsis">
+      
+        Monitoring and Observability
+      
+    </span>
+</a>
+<nav aria-label="Monitoring and Observability" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#system-metrics">
+<span class="md-ellipsis">
+      
+        System Metrics
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#learning-analytics">
+<span class="md-ellipsis">
+      
+        Learning Analytics
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#next-steps">
+<span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<nav aria-label="Navigation" class="md-path">
+<ol class="md-path__list">
+<li class="md-path__item">
+<a class="md-path__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-path__item">
+<a class="md-path__link" href="../">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+</ol>
+</nav>
+<article class="md-content__inner md-typeset">
+<a class="md-content__button md-icon" href="https://github.com/Mikecranesync/factorylm/edit/main/docs-site/docs/architecture/overview.md" rel="edit" title="Edit this page">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"></path></svg>
+</a>
+<a class="md-content__button md-icon" href="https://github.com/Mikecranesync/factorylm/raw/main/docs-site/docs/architecture/overview.md" title="View source of this page">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"></path></svg>
+</a>
+<h1 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">¶</a></h1>
+<p>This page provides a high-level overview of the FactoryLM architecture. For detailed information about each layer, see the individual layer documentation pages.</p>
+<h2 id="the-big-picture">The Big Picture<a class="headerlink" href="#the-big-picture" title="Permanent link">¶</a></h2>
+<p>FactoryLM's architecture is designed around a simple but powerful principle: <strong>intelligence flows downward</strong>. Over time, common queries and patterns migrate from expensive cloud AI to fast, free deterministic code.</p>
+<h2 id="system-architecture-diagram">System Architecture Diagram<a class="headerlink" href="#system-architecture-diagram" title="Permanent link">¶</a></h2>
+<pre class="mermaid"><code>graph TB
+    subgraph "User Interfaces"
+        WA[WhatsApp]
+        TG[Telegram]  
+        Voice[Voice/Phone]
+        Web[Web Dashboard]
+        Halo[Halo Glasses]
+    end
+
+    subgraph "Message Router"
+        Router[Intelligent Routing&lt;br/&gt;Based on Query Type]
+    end
+
+    subgraph "Intelligence Layers"
+        subgraph "Layer 3 - Cloud AI"
+            Claude[Claude/GPT-4&lt;br/&gt;Complex Reasoning]
+            Cloud_Cost[$0.01-0.10 per query&lt;br/&gt;1-2 second response]
+        end
+
+        subgraph "Layer 2 - Local GPU"
+            Llama[Llama 70B/Mixtral&lt;br/&gt;Medium Complexity]
+            GPU_Cost[Electricity only&lt;br/&gt;2-3 second response]
+        end
+
+        subgraph "Layer 1 - Edge LLM"
+            Qwen[Qwen 0.5B/Phi-2&lt;br/&gt;Simple Commands]
+            Edge_Cost[No cost&lt;br/&gt;0.5-1 second response]
+        end
+
+        subgraph "Layer 0 - Code + KB"
+            VectorDB[Vector Database&lt;br/&gt;Semantic Search]
+            Plane[Plane Workflows&lt;br/&gt;Task Orchestration]
+            Wiseflow[Wiseflow&lt;br/&gt;Knowledge Gathering]
+            Logic[Logic Gates&lt;br/&gt;Pattern Matching]
+            KB_Cost[No cost&lt;br/&gt;Sub-100ms response]
+        end
+    end
+
+    subgraph "Industrial Layer"
+        Protocols[Protocol Adapters&lt;br/&gt;Modbus, EtherNet/IP, OPC UA]
+        PLCs[PLCs &amp; Industrial Equipment]
+    end
+
+    WA --&gt; Router
+    TG --&gt; Router
+    Voice --&gt; Router
+    Web --&gt; Router
+    Halo --&gt; Router
+
+    Router --&gt; Claude
+    Router --&gt; Llama
+    Router --&gt; Qwen
+    Router --&gt; VectorDB
+    Router --&gt; Plane
+
+    VectorDB --&gt; Protocols
+    Plane --&gt; Protocols
+    Protocols --&gt; PLCs
+
+    style VectorDB fill:#4CAF50
+    style Plane fill:#4CAF50
+    style Logic fill:#4CAF50
+    style Wiseflow fill:#4CAF50
+    style Qwen fill:#FF9800
+    style Llama fill:#2196F3
+    style Claude fill:#9C27B0</code></pre>
+<h2 id="query-routing-decision-tree">Query Routing Decision Tree<a class="headerlink" href="#query-routing-decision-tree" title="Permanent link">¶</a></h2>
+<p>Understanding how FactoryLM decides which layer to use helps you optimize your interactions:</p>
+<pre class="mermaid"><code>flowchart TD
+    Query[User Query] --&gt; KB_Search{Knowledge Base&lt;br/&gt;Confidence &gt; 90%?}
+
+    KB_Search --&gt;|Yes| KB_Response[Layer 0: Instant Response&lt;br/&gt;&lt; 100ms, $0]
+
+    KB_Search --&gt;|No| Workflow_Check{Matching Workflow&lt;br/&gt;Pattern Found?}
+
+    Workflow_Check --&gt;|Yes| Workflow_Response[Layer 0: Execute Workflow&lt;br/&gt;&lt; 1s, $0]
+
+    Workflow_Check --&gt;|No| Simple_Check{Simple Command?&lt;br/&gt;Read tags, basic status}
+
+    Simple_Check --&gt;|Yes| Edge_Response[Layer 1: Edge LLM&lt;br/&gt;0.5-1s, $0]
+
+    Simple_Check --&gt;|No| GPU_Check{GPU Server&lt;br/&gt;Available?}
+
+    GPU_Check --&gt;|Yes| GPU_Response[Layer 2: Local GPU&lt;br/&gt;2-3s, Electricity]
+
+    GPU_Check --&gt;|No| Cloud_Check{Cloud Access&lt;br/&gt;Enabled &amp; Available?}
+
+    Cloud_Check --&gt;|Yes| Cloud_Response[Layer 3: Cloud AI&lt;br/&gt;1-2s, $0.01-0.10]
+
+    Cloud_Check --&gt;|No| Fallback[Fallback: Best Available Layer]
+
+    style KB_Response fill:#4CAF50
+    style Workflow_Response fill:#4CAF50
+    style Edge_Response fill:#FF9800
+    style GPU_Response fill:#2196F3
+    style Cloud_Response fill:#9C27B0</code></pre>
+<h2 id="component-interaction-flow">Component Interaction Flow<a class="headerlink" href="#component-interaction-flow" title="Permanent link">¶</a></h2>
+<p>Here's how the different components work together to process a typical user query:</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User as User&lt;br/&gt;(WhatsApp)
+    participant Router as Message&lt;br/&gt;Router
+    participant L0 as Layer 0&lt;br/&gt;Vector DB
+    participant L1 as Layer 1&lt;br/&gt;Edge LLM
+    participant PLC as PLC&lt;br/&gt;Hardware
+    participant KB as Knowledge&lt;br/&gt;Base
+
+    User-&gt;&gt;Router: "Motor temperature high - what should I do?"
+
+    Router-&gt;&gt;L0: Search knowledge base
+    L0-&gt;&gt;KB: Query: motor temperature troubleshooting
+    KB--&gt;&gt;L0: No exact match found (confidence: 75%)
+    L0--&gt;&gt;Router: Below threshold
+
+    Router-&gt;&gt;L1: Process with edge LLM
+    L1-&gt;&gt;PLC: Read current motor temperature
+    PLC--&gt;&gt;L1: 85°C (normal: 70°C)
+
+    L1-&gt;&gt;KB: Search: motor overheating procedures
+    KB--&gt;&gt;L1: Found: Motor maintenance guide
+
+    L1-&gt;&gt;L1: Generate response with context
+    L1--&gt;&gt;Router: Response with troubleshooting steps
+
+    Router--&gt;&gt;User: "Motor temp is 85°C (15°C over normal). Recommended actions: 1) Check cooling fan 2) Verify oil levels 3) Inspect for blockages"
+
+    Router-&gt;&gt;KB: Log interaction for learning
+    KB-&gt;&gt;KB: Create new workflow pattern</code></pre>
+<h2 id="deployment-scenarios">Deployment Scenarios<a class="headerlink" href="#deployment-scenarios" title="Permanent link">¶</a></h2>
+<p>FactoryLM's flexible architecture supports various deployment scenarios based on your specific requirements:</p>
+<h3 id="a-full-stack-internet-available">A: Full Stack (Internet Available)<a class="headerlink" href="#a-full-stack-internet-available" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph TD
+    subgraph "Full Stack Deployment"
+        L3[Layer 3: Cloud AI ✓]
+        L2[Layer 2: Local GPU ✓]
+        L1[Layer 1: Edge LLM ✓]
+        L0[Layer 0: Code + KB ✓]
+    end
+
+    Internet[Internet Connection ✓]
+    GPU[GPU Server ✓]
+    Pi[Raspberry Pi ✓]
+
+    Internet --&gt; L3
+    GPU --&gt; L2
+    Pi --&gt; L1
+    Pi --&gt; L0
+
+    style L3 fill:#9C27B0
+    style L2 fill:#2196F3
+    style L1 fill:#FF9800
+    style L0 fill:#4CAF50</code></pre>
+<p><strong>Best for</strong>: General manufacturing, R&amp;D facilities, maximum AI capability</p>
+<h3 id="b-air-gapped-defenseitar">B: Air-Gapped (Defense/ITAR)<a class="headerlink" href="#b-air-gapped-defenseitar" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph TD
+    subgraph "Air-Gapped Deployment"
+        L3[Layer 3: Cloud AI ❌]
+        L2[Layer 2: Local GPU ✓]
+        L1[Layer 1: Edge LLM ✓]
+        L0[Layer 0: Code + KB ✓]
+    end
+
+    NoInternet[No Internet ❌]
+    GPU[GPU Server ✓]
+    Pi[Raspberry Pi ✓]
+
+    GPU --&gt; L2
+    Pi --&gt; L1
+    Pi --&gt; L0
+
+    style L3 fill:#ffcdd2
+    style L2 fill:#2196F3
+    style L1 fill:#FF9800
+    style L0 fill:#4CAF50</code></pre>
+<p><strong>Best for</strong>: Defense contractors, ITAR facilities, high-security environments</p>
+<h3 id="c-budget-no-gpu-server">C: Budget (No GPU Server)<a class="headerlink" href="#c-budget-no-gpu-server" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph TD
+    subgraph "Budget Deployment"
+        L3[Layer 3: Cloud AI ✓]
+        L2[Layer 2: Local GPU ❌]
+        L1[Layer 1: Edge LLM ✓]
+        L0[Layer 0: Code + KB ✓]
+    end
+
+    Internet[Internet Connection ✓]
+    NoGPU[No GPU Server ❌]
+    Pi[Raspberry Pi ✓]
+
+    Internet --&gt; L3
+    Pi --&gt; L1
+    Pi --&gt; L0
+
+    style L3 fill:#9C27B0
+    style L2 fill:#ffcdd2
+    style L1 fill:#FF9800
+    style L0 fill:#4CAF50</code></pre>
+<p><strong>Best for</strong>: Small facilities, proof-of-concept, cost-sensitive deployments</p>
+<h3 id="d-maximum-security-pi-only">D: Maximum Security (Pi Only)<a class="headerlink" href="#d-maximum-security-pi-only" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph TD
+    subgraph "Maximum Security Deployment"
+        L3[Layer 3: Cloud AI ❌]
+        L2[Layer 2: Local GPU ❌]
+        L1[Layer 1: Edge LLM ❌]
+        L0[Layer 0: Code + KB ✓]
+    end
+
+    NoInternet[No Internet ❌]
+    NoGPU[No GPU Server ❌]
+    Pi[Raspberry Pi ✓]
+
+    Pi --&gt; L0
+
+    style L3 fill:#ffcdd2
+    style L2 fill:#ffcdd2
+    style L1 fill:#ffcdd2
+    style L0 fill:#4CAF50</code></pre>
+<p><strong>Best for</strong>: Maximum security, completely isolated environments, deterministic-only operation</p>
+<h2 id="performance-characteristics">Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Permanent link">¶</a></h2>
+<p>Understanding the performance characteristics of each layer helps you set expectations and optimize usage:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Response Time</th>
+<th>Cost per Query</th>
+<th>Accuracy</th>
+<th>Use Cases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Layer 0</strong></td>
+<td>&lt; 100ms</td>
+<td>$0</td>
+<td>95%+ (known patterns)</td>
+<td>Known procedures, documented solutions</td>
+</tr>
+<tr>
+<td><strong>Layer 1</strong></td>
+<td>0.5-1s</td>
+<td>$0</td>
+<td>80-90%</td>
+<td>Simple commands, basic reasoning</td>
+</tr>
+<tr>
+<td><strong>Layer 2</strong></td>
+<td>2-3s</td>
+<td>Electricity only</td>
+<td>90-95%</td>
+<td>Complex analysis, diagnostics</td>
+</tr>
+<tr>
+<td><strong>Layer 3</strong></td>
+<td>1-2s</td>
+<td>$0.01-0.10</td>
+<td>95%+</td>
+<td>Novel problems, advanced reasoning</td>
+</tr>
+</tbody>
+</table>
+<h2 id="security-architecture">Security Architecture<a class="headerlink" href="#security-architecture" title="Permanent link">¶</a></h2>
+<p>FactoryLM implements defense-in-depth security principles:</p>
+<h3 id="network-security">Network Security<a class="headerlink" href="#network-security" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph TB
+    subgraph "Corporate Network"
+        Corp[Corporate Users&lt;br/&gt;Dashboard Access]
+    end
+
+    subgraph "DMZ"
+        Firewall[Industrial Firewall]
+        VPN[VPN Gateway]
+    end
+
+    subgraph "Industrial Network"
+        Pi[FactoryLM Pi&lt;br/&gt;Read-Only Access]
+        PLCs[PLCs &amp; Equipment&lt;br/&gt;Production Systems]
+    end
+
+    Corp --&gt; VPN
+    VPN --&gt; Firewall
+    Firewall --&gt; Pi
+    Pi -.-&gt;|Read Only| PLCs
+
+    style Pi fill:#4CAF50
+    style PLCs fill:#e8f5e8
+    style Firewall fill:#ffeb3b</code></pre>
+<h3 id="data-protection">Data Protection<a class="headerlink" href="#data-protection" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Encryption at rest</strong> - All stored data encrypted</li>
+<li><strong>Encryption in transit</strong> - TLS 1.3 for all communications</li>
+<li><strong>Zero trust networking</strong> - Every connection verified</li>
+<li><strong>Read-only principle</strong> - No write access to industrial systems</li>
+<li><strong>Audit logging</strong> - Complete audit trail of all actions</li>
+</ul>
+<h2 id="scalability-and-high-availability">Scalability and High Availability<a class="headerlink" href="#scalability-and-high-availability" title="Permanent link">¶</a></h2>
+<h3 id="horizontal-scaling">Horizontal Scaling<a class="headerlink" href="#horizontal-scaling" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph TB
+    subgraph "Plant A"
+        Pi1[FactoryLM Pi #1&lt;br/&gt;Production Line 1]
+        Pi2[FactoryLM Pi #2&lt;br/&gt;Production Line 2]
+    end
+
+    subgraph "Plant B"
+        Pi3[FactoryLM Pi #3&lt;br/&gt;Assembly Line]
+        Pi4[FactoryLM Pi #4&lt;br/&gt;Quality Control]
+    end
+
+    subgraph "Central Infrastructure"
+        GPU[Shared GPU Server&lt;br/&gt;Layer 2 Processing]
+        Cloud[Cloud Services&lt;br/&gt;Layer 3 + Analytics]
+        Dashboard[Central Dashboard&lt;br/&gt;Multi-plant View]
+    end
+
+    Pi1 --&gt; GPU
+    Pi2 --&gt; GPU
+    Pi3 --&gt; GPU
+    Pi4 --&gt; GPU
+
+    GPU --&gt; Cloud
+
+    Pi1 --&gt; Dashboard
+    Pi2 --&gt; Dashboard
+    Pi3 --&gt; Dashboard
+    Pi4 --&gt; Dashboard
+
+    style GPU fill:#2196F3
+    style Cloud fill:#9C27B0
+    style Dashboard fill:#e1f5fe</code></pre>
+<h3 id="redundancy-options">Redundancy Options<a class="headerlink" href="#redundancy-options" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Primary/Secondary Pi deployment</strong> - Automatic failover</li>
+<li><strong>Multi-path networking</strong> - Redundant network connections</li>
+<li><strong>Distributed knowledge base</strong> - Synchronized across nodes</li>
+<li><strong>Edge caching</strong> - Local copies of critical data</li>
+</ul>
+<h2 id="integration-points">Integration Points<a class="headerlink" href="#integration-points" title="Permanent link">¶</a></h2>
+<p>FactoryLM provides multiple integration points for existing systems:</p>
+<h3 id="northbound-integrations-data-out">Northbound Integrations (Data Out)<a class="headerlink" href="#northbound-integrations-data-out" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph LR
+    FLM[FactoryLM] --&gt; REST[REST API]
+    FLM --&gt; MQTT[MQTT Broker]
+    FLM --&gt; WebHooks[WebHooks]
+    FLM --&gt; GraphQL[GraphQL API]
+
+    REST --&gt; ERP[ERP Systems]
+    REST --&gt; MES[MES Systems]
+    MQTT --&gt; SCADA[SCADA Systems]
+    WebHooks --&gt; Notification[Notification Services]
+    GraphQL --&gt; Custom[Custom Applications]</code></pre>
+<h3 id="southbound-integrations-data-in">Southbound Integrations (Data In)<a class="headerlink" href="#southbound-integrations-data-in" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph LR
+    Modbus[Modbus TCP/RTU] --&gt; FLM[FactoryLM]
+    EIP[EtherNet/IP] --&gt; FLM
+    OPC[OPC UA] --&gt; FLM
+    S7[Siemens S7] --&gt; FLM
+    BACnet[BACnet] --&gt; FLM
+    DNP3[DNP3] --&gt; FLM
+
+    FLM --&gt; Processing[Intelligence Processing&lt;br/&gt;Layers 0-3]</code></pre>
+<h2 id="monitoring-and-observability">Monitoring and Observability<a class="headerlink" href="#monitoring-and-observability" title="Permanent link">¶</a></h2>
+<p>Built-in monitoring provides visibility into system performance and learning:</p>
+<h3 id="system-metrics">System Metrics<a class="headerlink" href="#system-metrics" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Query routing statistics</strong> - Which layers handle what types of queries</li>
+<li><strong>Response time distributions</strong> - Performance across all layers</li>
+<li><strong>Cost tracking</strong> - LLM usage costs and optimization opportunities</li>
+<li><strong>Knowledge base growth</strong> - Learning progress over time</li>
+<li><strong>Protocol performance</strong> - Industrial communication health</li>
+</ul>
+<h3 id="learning-analytics">Learning Analytics<a class="headerlink" href="#learning-analytics" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Pattern recognition</strong> - Identifying common query patterns</li>
+<li><strong>Knowledge gaps</strong> - Areas needing more documentation</li>
+<li><strong>User behavior</strong> - How different users interact with the system</li>
+<li><strong>Accuracy improvements</strong> - Tracking response quality over time</li>
+</ul>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<p>Now that you understand the overall architecture, dive deeper into specific layers:</p>
+<ol>
+<li><strong><a href="../layer-0/">Layer 0: Code + Knowledge Base</a></strong> - The ultimate destination for all queries</li>
+<li><strong><a href="../layer-1/">Layer 1: Edge LLM</a></strong> - Small models running on Raspberry Pi</li>
+<li><strong><a href="../layer-2/">Layer 2: Local GPU</a></strong> - Powerful local processing for complex queries</li>
+<li><strong><a href="../layer-3/">Layer 3: Cloud AI</a></strong> - State-of-the-art models for novel problems</li>
+</ol>
+<p>You can also explore specific aspects:</p>
+<ul>
+<li><strong><a href="../../products/">Products</a></strong> - Detailed product requirements and specifications</li>
+<li><strong><a href="../../getting-started/installation/">Installation</a></strong> - Set up your own FactoryLM deployment</li>
+<li><strong><a href="../../developer-guide/">Developer Guide</a></strong> - Contribute to and extend FactoryLM</li>
+</ul>
+<hr/>
+<p>The FactoryLM architecture is designed to grow smarter over time, automatically optimizing for speed and cost while maintaining the highest levels of security and reliability required in industrial environments.</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+<button class="md-top md-icon" data-md-component="top" hidden="" type="button">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+</main>
+<footer class="md-footer">
+<nav aria-label="Footer" class="md-footer__inner md-grid">
+<a aria-label="Previous: Architecture Overview" class="md-footer__link md-footer__link--prev" href="../">
+<div class="md-footer__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</div>
+<div class="md-footer__title">
+<span class="md-footer__direction">
+                Previous
+              </span>
+<div class="md-ellipsis">
+                Architecture Overview
+              </div>
+</div>
+</a>
+<a aria-label="Next: Layer 0 (Code + KB)" class="md-footer__link md-footer__link--next" href="../layer-0/">
+<div class="md-footer__title">
+<span class="md-footer__direction">
+                Next
+              </span>
+<div class="md-ellipsis">
+                Layer 0 (Code + KB)
+              </div>
+</div>
+<div class="md-footer__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+</div>
+</a>
+</nav>
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+<div class="md-copyright__highlight">
+      © 2026 <a href="https://factorylm.com" rel="noopener" target="_blank">FactoryLM</a>
+</div>
+</div>
+<div class="md-social">
+<a class="md-social__link" href="https://github.com/Mikecranesync/factorylm" rel="noopener" target="_blank" title="github.com">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</a>
+<a class="md-social__link" href="https://twitter.com/FactoryLM" rel="noopener" target="_blank" title="twitter.com">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"></path></svg>
+</a>
+<a class="md-social__link" href="https://www.linkedin.com/company/factorylm" rel="noopener" target="_blank" title="www.linkedin.com">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<div class="md-progress" data-md-component="progress" role="progressbar"></div>
+<script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.code.select", "content.footnote.tooltips", "content.tabs.link", "content.tooltips", "header.autohide", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.prune", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+<script src="../../javascripts/extra.js"></script>
+</body>
+</html>

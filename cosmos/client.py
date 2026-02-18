@@ -23,13 +23,12 @@ class CosmosClient:
 
     def __init__(self, config_path: str | None = None) -> None:
         cfg_file = Path(config_path) if config_path else Path("config/cosmos.yaml")
-        self.api_key: str = os.getenv("NVIDIA_COSMOS_API_KEY", "") or os.getenv("NVIDIA_API_KEY_NEW", "")
+        self.api_key: str = os.getenv("NVIDIA_COSMOS_API_KEY", "")
         self.api_base_url: str = "https://integrate.api.nvidia.com/v1"
         self.model: str = "nvidia/cosmos-reason2-8b"
         self.fallback_model: str = "meta/llama-3.1-70b-instruct"
         self._config: dict = {}
         self._use_fallback: bool = False  # Track if we should use fallback
-        self._nim_url: str = ""
 
         if cfg_file.exists():
             try:
@@ -46,14 +45,6 @@ class CosmosClient:
             except Exception:
                 logger.exception("Failed to load Cosmos config from %s", cfg_file)
 
-        # COSMOS_NIM_URL overrides everything — self-hosted NIM container
-        nim_url = os.getenv("COSMOS_NIM_URL", "")
-        if nim_url:
-            self._nim_url = nim_url.rstrip("/")
-            self.api_base_url = self._nim_url
-            self.model = "nvidia/Cosmos-Reason2-2B"
-            logger.info("Using Cosmos NIM endpoint: %s", self._nim_url)
-
     def analyze_incident(
         self,
         incident_id: str,
@@ -65,10 +56,10 @@ class CosmosClient:
     ) -> CosmosInsight:
         """Send an incident bundle to Cosmos Reason 2 and return a CosmosInsight.
 
-        Uses real NVIDIA API when api_key is set (or NIM endpoint), otherwise falls back to stub.
+        Uses real NVIDIA API when api_key is set, otherwise falls back to stub.
         """
-        # Use real API if key is available or NIM is configured
-        if self.api_key or self.is_nim:
+        # Use real API if key is available
+        if self.api_key:
             return self._analyze_incident_real(
                 incident_id, node_id, tags, images, video_url, context
             )
@@ -139,19 +130,18 @@ Format your response as JSON with keys: summary, root_cause, confidence, reasoni
                 })
 
         try:
-            headers = {"Content-Type": "application/json"}
-            if self.api_key:
-                headers["Authorization"] = f"Bearer {self.api_key}"
-
             response = httpx.post(
                 f"{self.api_base_url}/chat/completions",
-                headers=headers,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
                 json={
                     "model": current_model,
                     "messages": [{"role": "user", "content": content}],
                     "max_tokens": 1024,
                 },
-                timeout=60.0 if self.is_nim else 30.0,
+                timeout=30.0,
             )
             response.raise_for_status()
             result = response.json()
@@ -194,8 +184,7 @@ Format your response as JSON with keys: summary, root_cause, confidence, reasoni
         except httpx.HTTPStatusError as e:
             logger.error("Cosmos API HTTP error: %s - %s", e.response.status_code, e.response.text)
             # If 404 and not already using fallback, try fallback model
-            # NIM only serves the Cosmos model — don't fall back to Llama
-            if e.response.status_code == 404 and not self._use_fallback and not self.is_nim:
+            if e.response.status_code == 404 and not self._use_fallback:
                 logger.info("Cosmos model not available, switching to fallback: %s", self.fallback_model)
                 self._use_fallback = True
                 return self._analyze_incident_real(incident_id, node_id, tags, images, video_url, context)
@@ -215,7 +204,24 @@ Format your response as JSON with keys: summary, root_cause, confidence, reasoni
 
         # Build a realistic stub response based on the tags provided
         fault_type = tags.get("error_code", 0)
+        if fault_type == 0 and tags.get("e_stop"):
+            fault_type = -1
         stub_responses = {
+            -1: {
+                "summary": "Emergency stop activated. All motion halted.",
+                "root_cause": "Operator or safety system triggered e-stop",
+                "confidence": 0.95,
+                "reasoning": (
+                    "E-stop signal is active. All motors de-energized and conveyors stopped. "
+                    "This is either a manual operator action or an automated safety interlock response."
+                ),
+                "suggested_checks": [
+                    "Identify who pressed the e-stop and why",
+                    "Inspect work area for personnel safety hazards",
+                    "Check for jammed material or mechanical failure that triggered the stop",
+                    "Reset e-stop, verify safe conditions, then restart in controlled sequence",
+                ],
+            },
             0: {
                 "summary": "No active fault detected. System operating within normal parameters.",
                 "root_cause": "N/A — no fault present",
@@ -496,11 +502,6 @@ Format as JSON with keys: caption, key_events (list of {{timestamp, action}}), i
                 "cosmos_model": self.model,
             }
 
-    @property
-    def is_nim(self) -> bool:
-        """Return True when using a self-hosted NIM endpoint."""
-        return bool(self._nim_url)
-
     def is_available(self) -> bool:
-        """Return True if the client has credentials or a NIM endpoint configured."""
-        return bool(self.api_key) or self.is_nim
+        """Return True if the client has credentials configured."""
+        return bool(self.api_key)

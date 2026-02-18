@@ -1,0 +1,81 @@
+service: openclaw
+version: "1.0.0"
+snapshot_date: "2026-02-16"
+previous_snapshot: null
+
+runtime:
+  python_version: "3.12"
+  device: vps
+  ip: "100.68.120.99"
+  port: 8340
+  branch: "feat/tts-emoji-ack"
+  commit: "85949ac"
+
+env_vars:
+  - name: TELEGRAM_BOT_TOKEN
+    value: REDACTED
+    source: doppler
+  - name: GROQ_API_KEY
+    value: REDACTED
+    source: doppler
+  - name: ANTHROPIC_API_KEY
+    value: REDACTED
+    source: doppler
+  - name: GEMINI_API_KEY
+    value: REDACTED
+    source: doppler
+  - name: OPENROUTER_API_KEY
+    value: REDACTED
+    source: doppler
+  - name: OPENAI_API_KEY
+    value: REDACTED
+    source: doppler
+  - name: DOPPLER_TOKEN
+    value: REDACTED
+    source: systemd-unit
+
+config_files:
+  - path: "openclaw.yaml"
+    description: "Main application config"
+
+key_settings:
+  port: 8340
+  log_level: "INFO"
+  telegram_enabled: true
+  telegram_rate_limit_per_hour: 60
+  default_llm_provider: "groq"
+  groq_model: "llama-3.3-70b-versatile"
+  groq_daily_request_limit: 14000
+  anthropic_model: "claude-sonnet-4-20250514"
+  anthropic_daily_request_limit: 100
+  anthropic_daily_token_limit: 100000
+  gemini_model: "gemini-2.5-flash"
+  matrix_url: "http://100.72.2.99:8000"
+  jarvis_hosts:
+    plc_laptop: "http://100.72.2.99:8765"
+    travel_laptop: "http://100.83.251.23:8765"
+  tts_voice: "en-US-JennyNeural"
+  tts_max_chars: 4000
+  tts_min_chars: 20
+
+dependencies:
+  - fastapi>=0.110.0
+  - uvicorn[standard]>=0.27.0
+  - httpx>=0.27.0
+  - pydantic>=2.0
+  - pydantic-settings>=2.0
+  - pyyaml>=6.0
+  - groq>=0.4.0
+  - anthropic>=0.18.0
+  - openai>=1.10.0
+  - google-generativeai>=0.4.0
+  - python-telegram-bot>=20.0
+  - edge-tts
+  - structlog>=24.0.0
+
+health:
+  endpoint: "/"
+  expected: '{"name":"Jarvis (OpenClaw)","version":"1.0.0","providers":["groq","anthropic","gemini"],"skills":["diagnose","status","photo","work_order","admin","search","chat"]}'
+
+changes_from_previous: null
+  # First snapshot — no previous to compare against

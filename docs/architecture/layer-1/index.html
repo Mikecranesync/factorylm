@@ -1,0 +1,1896 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="Industrial AI Platform - Professional Engineering Documentation" name="description"/>
+<meta content="Mike Harper" name="author"/>
+<link href="https://factorylm.github.io/docs-site/architecture/layer-1/" rel="canonical"/>
+<link href="../layer-0/" rel="prev"/>
+<link href="../layer-2/" rel="next"/>
+<link href="../../assets/favicon.ico" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.1" name="generator"/>
+<title>Layer 1 (Edge LLM) - FactoryLM Documentation</title>
+<link href="../../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
+<link href="../../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../stylesheets/extra.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#layer-1-edge-llm-raspberry-pi">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="FactoryLM Documentation" class="md-header__button md-logo" data-md-component="logo" href="https://factorylm.com" title="FactoryLM Documentation">
+<img alt="logo" src="../../assets/logo.svg"/>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            FactoryLM Documentation
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Layer 1 (Edge LLM)
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="(prefers-color-scheme)" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+</label>
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="deep-orange" data-md-color-media="(prefers-color-scheme: light)" data-md-color-primary="blue-grey" data-md-color-scheme="default" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_2" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+<input aria-label="Switch to system preference" class="md-option" data-md-color-accent="deep-orange" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-primary="blue-grey" data-md-color-scheme="slate" id="__palette_2" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to system preference">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<a aria-label="Share" class="md-search__icon md-icon" data-clipboard="" data-clipboard-text="" data-md-component="search-share" href="javascript:void(0)" tabindex="-1" title="Share">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+</a>
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+<div class="md-search__suggest" data-md-component="search-suggest"></div>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/Mikecranesync/factorylm" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+</div>
+<div class="md-source__repository">
+    Mikecranesync/factorylm
+  </div>
+</a>
+</div>
+</nav>
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../..">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../getting-started/">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../">
+          
+  
+  
+    
+  
+  Architecture
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../products/">
+          
+  
+  
+    
+  
+  Products
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../edge-agent/">
+          
+  
+  
+    
+  
+  Edge Agent
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../apps/">
+          
+  
+  
+    
+  
+  Apps
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../developer-guide/">
+          
+  
+  
+    
+  
+  Developer Guide
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../api-reference/">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="FactoryLM Documentation" class="md-nav__button md-logo" data-md-component="logo" href="https://factorylm.com" title="FactoryLM Documentation">
+<img alt="logo" src="../../assets/logo.svg"/>
+</a>
+    FactoryLM Documentation
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/Mikecranesync/factorylm" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+</div>
+<div class="md-source__repository">
+    Mikecranesync/factorylm
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../..">
+<span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../getting-started/">
+<span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../overview/">
+<span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../layer-0/">
+<span class="md-ellipsis">
+    
+  
+    Layer 0 (Code + KB)
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    
+  
+    Layer 1 (Edge LLM)
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    
+  
+    Layer 1 (Edge LLM)
+  
+
+    
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#supported-models">
+<span class="md-ellipsis">
+      
+        Supported Models
+      
+    </span>
+</a>
+<nav aria-label="Supported Models" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-comparison">
+<span class="md-ellipsis">
+      
+        Model Comparison
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-selection-criteria">
+<span class="md-ellipsis">
+      
+        Model Selection Criteria
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#query-types-handled">
+<span class="md-ellipsis">
+      
+        Query Types Handled
+      
+    </span>
+</a>
+<nav aria-label="Query Types Handled" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#simple-status-queries">
+<span class="md-ellipsis">
+      
+        Simple Status Queries
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-commands">
+<span class="md-ellipsis">
+      
+        Basic Commands
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#simple-calculations">
+<span class="md-ellipsis">
+      
+        Simple Calculations
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#architecture-details">
+<span class="md-ellipsis">
+      
+        Architecture Details
+      
+    </span>
+</a>
+<nav aria-label="Architecture Details" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-inference-pipeline">
+<span class="md-ellipsis">
+      
+        Model Inference Pipeline
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#memory-management">
+<span class="md-ellipsis">
+      
+        Memory Management
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#prompt-engineering-for-industrial-context">
+<span class="md-ellipsis">
+      
+        Prompt Engineering for Industrial Context
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-characteristics">
+<span class="md-ellipsis">
+      
+        Performance Characteristics
+      
+    </span>
+</a>
+<nav aria-label="Performance Characteristics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response-times-by-model">
+<span class="md-ellipsis">
+      
+        Response Times by Model
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#throughput-optimization">
+<span class="md-ellipsis">
+      
+        Throughput Optimization
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#hardware-optimization">
+<span class="md-ellipsis">
+      
+        Hardware Optimization
+      
+    </span>
+</a>
+<nav aria-label="Hardware Optimization" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#raspberry-pi-4-configuration">
+<span class="md-ellipsis">
+      
+        Raspberry Pi 4 Configuration
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#storage-optimization">
+<span class="md-ellipsis">
+      
+        Storage Optimization
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#thermal-management">
+<span class="md-ellipsis">
+      
+        Thermal Management
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#industrial-context-awareness">
+<span class="md-ellipsis">
+      
+        Industrial Context Awareness
+      
+    </span>
+</a>
+<nav aria-label="Industrial Context Awareness" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#equipment-state-tracking">
+<span class="md-ellipsis">
+      
+        Equipment State Tracking
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#safety-awareness">
+<span class="md-ellipsis">
+      
+        Safety Awareness
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-with-other-layers">
+<span class="md-ellipsis">
+      
+        Integration with Other Layers
+      
+    </span>
+</a>
+<nav aria-label="Integration with Other Layers" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#escalation-logic">
+<span class="md-ellipsis">
+      
+        Escalation Logic
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#knowledge-sharing">
+<span class="md-ellipsis">
+      
+        Knowledge Sharing
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-and-management">
+<span class="md-ellipsis">
+      
+        Configuration and Management
+      
+    </span>
+</a>
+<nav aria-label="Configuration and Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-configuration">
+<span class="md-ellipsis">
+      
+        Model Configuration
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#runtime-management">
+<span class="md-ellipsis">
+      
+        Runtime Management
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring-and-metrics">
+<span class="md-ellipsis">
+      
+        Monitoring and Metrics
+      
+    </span>
+</a>
+<nav aria-label="Monitoring and Metrics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-performance-indicators">
+<span class="md-ellipsis">
+      
+        Key Performance Indicators
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#health-monitoring">
+<span class="md-ellipsis">
+      
+        Health Monitoring
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#deployment-best-practices">
+<span class="md-ellipsis">
+      
+        Deployment Best Practices
+      
+    </span>
+</a>
+<nav aria-label="Deployment Best Practices" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#installation-optimization">
+<span class="md-ellipsis">
+      
+        Installation Optimization
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-selection-guidelines">
+<span class="md-ellipsis">
+      
+        Model Selection Guidelines
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-tuning">
+<span class="md-ellipsis">
+      
+        Performance Tuning
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#security-considerations">
+<span class="md-ellipsis">
+      
+        Security Considerations
+      
+    </span>
+</a>
+<nav aria-label="Security Considerations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-security">
+<span class="md-ellipsis">
+      
+        Model Security
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-privacy">
+<span class="md-ellipsis">
+      
+        Data Privacy
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#future-enhancements">
+<span class="md-ellipsis">
+      
+        Future Enhancements
+      
+    </span>
+</a>
+<nav aria-label="Future Enhancements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#planned-improvements">
+<span class="md-ellipsis">
+      
+        Planned Improvements
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#hardware-evolution">
+<span class="md-ellipsis">
+      
+        Hardware Evolution
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../layer-2/">
+<span class="md-ellipsis">
+    
+  
+    Layer 2 (Local GPU)
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../layer-3/">
+<span class="md-ellipsis">
+    
+  
+    Layer 3 (Cloud)
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../products/">
+<span class="md-ellipsis">
+    
+  
+    Products
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../edge-agent/">
+<span class="md-ellipsis">
+    
+  
+    Edge Agent
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../apps/">
+<span class="md-ellipsis">
+    
+  
+    Apps
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../developer-guide/">
+<span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+<a class="md-nav__link" href="../../api-reference/">
+<span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#overview">
+<span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#supported-models">
+<span class="md-ellipsis">
+      
+        Supported Models
+      
+    </span>
+</a>
+<nav aria-label="Supported Models" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-comparison">
+<span class="md-ellipsis">
+      
+        Model Comparison
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-selection-criteria">
+<span class="md-ellipsis">
+      
+        Model Selection Criteria
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#query-types-handled">
+<span class="md-ellipsis">
+      
+        Query Types Handled
+      
+    </span>
+</a>
+<nav aria-label="Query Types Handled" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#simple-status-queries">
+<span class="md-ellipsis">
+      
+        Simple Status Queries
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#basic-commands">
+<span class="md-ellipsis">
+      
+        Basic Commands
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#simple-calculations">
+<span class="md-ellipsis">
+      
+        Simple Calculations
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#architecture-details">
+<span class="md-ellipsis">
+      
+        Architecture Details
+      
+    </span>
+</a>
+<nav aria-label="Architecture Details" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-inference-pipeline">
+<span class="md-ellipsis">
+      
+        Model Inference Pipeline
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#memory-management">
+<span class="md-ellipsis">
+      
+        Memory Management
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#prompt-engineering-for-industrial-context">
+<span class="md-ellipsis">
+      
+        Prompt Engineering for Industrial Context
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-characteristics">
+<span class="md-ellipsis">
+      
+        Performance Characteristics
+      
+    </span>
+</a>
+<nav aria-label="Performance Characteristics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response-times-by-model">
+<span class="md-ellipsis">
+      
+        Response Times by Model
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#throughput-optimization">
+<span class="md-ellipsis">
+      
+        Throughput Optimization
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#hardware-optimization">
+<span class="md-ellipsis">
+      
+        Hardware Optimization
+      
+    </span>
+</a>
+<nav aria-label="Hardware Optimization" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#raspberry-pi-4-configuration">
+<span class="md-ellipsis">
+      
+        Raspberry Pi 4 Configuration
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#storage-optimization">
+<span class="md-ellipsis">
+      
+        Storage Optimization
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#thermal-management">
+<span class="md-ellipsis">
+      
+        Thermal Management
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#industrial-context-awareness">
+<span class="md-ellipsis">
+      
+        Industrial Context Awareness
+      
+    </span>
+</a>
+<nav aria-label="Industrial Context Awareness" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#equipment-state-tracking">
+<span class="md-ellipsis">
+      
+        Equipment State Tracking
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#safety-awareness">
+<span class="md-ellipsis">
+      
+        Safety Awareness
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#integration-with-other-layers">
+<span class="md-ellipsis">
+      
+        Integration with Other Layers
+      
+    </span>
+</a>
+<nav aria-label="Integration with Other Layers" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#escalation-logic">
+<span class="md-ellipsis">
+      
+        Escalation Logic
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#knowledge-sharing">
+<span class="md-ellipsis">
+      
+        Knowledge Sharing
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#configuration-and-management">
+<span class="md-ellipsis">
+      
+        Configuration and Management
+      
+    </span>
+</a>
+<nav aria-label="Configuration and Management" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-configuration">
+<span class="md-ellipsis">
+      
+        Model Configuration
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#runtime-management">
+<span class="md-ellipsis">
+      
+        Runtime Management
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#monitoring-and-metrics">
+<span class="md-ellipsis">
+      
+        Monitoring and Metrics
+      
+    </span>
+</a>
+<nav aria-label="Monitoring and Metrics" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#key-performance-indicators">
+<span class="md-ellipsis">
+      
+        Key Performance Indicators
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#health-monitoring">
+<span class="md-ellipsis">
+      
+        Health Monitoring
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#deployment-best-practices">
+<span class="md-ellipsis">
+      
+        Deployment Best Practices
+      
+    </span>
+</a>
+<nav aria-label="Deployment Best Practices" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#installation-optimization">
+<span class="md-ellipsis">
+      
+        Installation Optimization
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-selection-guidelines">
+<span class="md-ellipsis">
+      
+        Model Selection Guidelines
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#performance-tuning">
+<span class="md-ellipsis">
+      
+        Performance Tuning
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#security-considerations">
+<span class="md-ellipsis">
+      
+        Security Considerations
+      
+    </span>
+</a>
+<nav aria-label="Security Considerations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#model-security">
+<span class="md-ellipsis">
+      
+        Model Security
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#data-privacy">
+<span class="md-ellipsis">
+      
+        Data Privacy
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#future-enhancements">
+<span class="md-ellipsis">
+      
+        Future Enhancements
+      
+    </span>
+</a>
+<nav aria-label="Future Enhancements" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#planned-improvements">
+<span class="md-ellipsis">
+      
+        Planned Improvements
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#hardware-evolution">
+<span class="md-ellipsis">
+      
+        Hardware Evolution
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<nav aria-label="Navigation" class="md-path">
+<ol class="md-path__list">
+<li class="md-path__item">
+<a class="md-path__link" href="../..">
+<span class="md-ellipsis">
+    Home
+  </span>
+</a>
+</li>
+<li class="md-path__item">
+<a class="md-path__link" href="../">
+<span class="md-ellipsis">
+    Architecture
+  </span>
+</a>
+</li>
+</ol>
+</nav>
+<article class="md-content__inner md-typeset">
+<a class="md-content__button md-icon" href="https://github.com/Mikecranesync/factorylm/edit/main/docs-site/docs/architecture/layer-1.md" rel="edit" title="Edit this page">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"></path></svg>
+</a>
+<a class="md-content__button md-icon" href="https://github.com/Mikecranesync/factorylm/raw/main/docs-site/docs/architecture/layer-1.md" title="View source of this page">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"></path></svg>
+</a>
+<h1 id="layer-1-edge-llm-raspberry-pi">Layer 1: Edge LLM (Raspberry Pi)<a class="headerlink" href="#layer-1-edge-llm-raspberry-pi" title="Permanent link">¶</a></h1>
+<p>Layer 1 provides on-device AI processing using small, efficient language models running directly on the Raspberry Pi. This layer handles simple commands and natural language parsing without requiring external network connectivity.</p>
+<div class="admonition info">
+<p class="admonition-title">On-Device Intelligence</p>
+<p>Layer 1 runs entirely on the Raspberry Pi hardware - no internet required. This ensures low latency, zero cost per query, and complete data privacy.</p>
+</div>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<p>Layer 1 bridges the gap between deterministic Layer 0 and more complex AI layers, providing intelligent responses for simple queries:</p>
+<pre class="mermaid"><code>graph TB
+    subgraph "Raspberry Pi Hardware"
+        CPU[ARM Cortex-A72&lt;br/&gt;Quad-core 1.5GHz]
+        RAM[4GB/8GB RAM]
+        Storage[MicroSD Storage]
+
+        subgraph "Layer 1: Edge LLM"
+            Model[Qwen 0.5B&lt;br/&gt;Phi-2 2.7B&lt;br/&gt;TinyLlama 1.1B]
+            Parser[NL Command Parser]
+            Formatter[Response Formatter]
+        end
+
+        CPU --&gt; Model
+        RAM --&gt; Model
+        Storage --&gt; Model
+    end
+
+    Query[User Query] --&gt; Parser
+    Parser --&gt; Model
+    Model --&gt; Formatter
+    Formatter --&gt; Response[Response&lt;br/&gt;0.5-1s, $0]
+
+    style Model fill:#FF9800
+    style Parser fill:#FFE0B2
+    style Formatter fill:#FFE0B2</code></pre>
+<h2 id="supported-models">Supported Models<a class="headerlink" href="#supported-models" title="Permanent link">¶</a></h2>
+<p>Layer 1 supports several small language models optimized for edge deployment:</p>
+<h3 id="model-comparison">Model Comparison<a class="headerlink" href="#model-comparison" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Size</th>
+<th>Memory</th>
+<th>Speed</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TinyLlama 1.1B</strong></td>
+<td>2.2GB</td>
+<td>3GB RAM</td>
+<td>Very Fast</td>
+<td>Basic commands, status queries</td>
+</tr>
+<tr>
+<td><strong>Qwen 0.5B</strong></td>
+<td>1GB</td>
+<td>2GB RAM</td>
+<td>Fastest</td>
+<td>Simple parsing, keyword extraction</td>
+</tr>
+<tr>
+<td><strong>Phi-2 2.7B</strong></td>
+<td>5.4GB</td>
+<td>6GB RAM</td>
+<td>Fast</td>
+<td>More complex reasoning, troubleshooting</td>
+</tr>
+<tr>
+<td><strong>Llama 3.2 1B</strong></td>
+<td>2GB</td>
+<td>3GB RAM</td>
+<td>Fast</td>
+<td>Balanced performance and capability</td>
+</tr>
+</tbody>
+</table>
+<h3 id="model-selection-criteria">Model Selection Criteria<a class="headerlink" href="#model-selection-criteria" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>flowchart TD
+    Start[Query Received] --&gt; Simple{Simple Command?&lt;br/&gt;Status, Read Tags}
+
+    Simple --&gt;|Yes| Qwen[Qwen 0.5B&lt;br/&gt;Fastest Response]
+    Simple --&gt;|No| Complex{Complex Reasoning?&lt;br/&gt;Troubleshooting}
+
+    Complex --&gt;|No| Llama[TinyLlama 1.1B&lt;br/&gt;Balanced]
+    Complex --&gt;|Yes| Memory{8GB RAM Available?}
+
+    Memory --&gt;|Yes| Phi[Phi-2 2.7B&lt;br/&gt;Advanced Reasoning]
+    Memory --&gt;|No| Fallback[Escalate to Layer 2/3]
+
+    style Qwen fill:#4CAF50
+    style Llama fill:#FF9800
+    style Phi fill:#2196F3
+    style Fallback fill:#9C27B0</code></pre>
+<h2 id="query-types-handled">Query Types Handled<a class="headerlink" href="#query-types-handled" title="Permanent link">¶</a></h2>
+<p>Layer 1 excels at specific types of industrial queries:</p>
+<h3 id="simple-status-queries">Simple Status Queries<a class="headerlink" href="#simple-status-queries" title="Permanent link">¶</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nt">Examples</span><span class="p">:</span>
+</span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"What's</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">motor</span><span class="nv"> </span><span class="s">status?"</span>
+</span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Show</span><span class="nv"> </span><span class="s">me</span><span class="nv"> </span><span class="s">temperature</span><span class="nv"> </span><span class="s">readings"</span>
+</span><span id="__span-0-4"><a href="#__codelineno-0-4" id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Is</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">conveyor</span><span class="nv"> </span><span class="s">running?"</span>
+</span><span id="__span-0-5"><a href="#__codelineno-0-5" id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Check</span><span class="nv"> </span><span class="s">pump</span><span class="nv"> </span><span class="s">pressure"</span>
+</span><span id="__span-0-6"><a href="#__codelineno-0-6" id="__codelineno-0-6" name="__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="nt">Processing</span><span class="p">:</span>
+</span><span id="__span-0-8"><a href="#__codelineno-0-8" id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">1. Parse query for equipment name and property</span>
+</span><span id="__span-0-9"><a href="#__codelineno-0-9" id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">2. Map to appropriate tag address</span>
+</span><span id="__span-0-10"><a href="#__codelineno-0-10" id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">3. Read current value from PLC</span>
+</span><span id="__span-0-11"><a href="#__codelineno-0-11" id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">4. Format human-readable response</span>
+</span></code></pre></div>
+<h3 id="basic-commands">Basic Commands<a class="headerlink" href="#basic-commands" title="Permanent link">¶</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="nt">Examples</span><span class="p">:</span>
+</span><span id="__span-1-2"><a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Read</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">temperature</span><span class="nv"> </span><span class="s">sensors"</span>
+</span><span id="__span-1-3"><a href="#__codelineno-1-3" id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Show</span><span class="nv"> </span><span class="s">active</span><span class="nv"> </span><span class="s">alarms"</span>
+</span><span id="__span-1-4"><a href="#__codelineno-1-4" id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Display</span><span class="nv"> </span><span class="s">motor</span><span class="nv"> </span><span class="s">speeds"</span>
+</span><span id="__span-1-5"><a href="#__codelineno-1-5" id="__codelineno-1-5" name="__codelineno-1-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Check</span><span class="nv"> </span><span class="s">system</span><span class="nv"> </span><span class="s">status"</span>
+</span><span id="__span-1-6"><a href="#__codelineno-1-6" id="__codelineno-1-6" name="__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a href="#__codelineno-1-7" id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="nt">Processing</span><span class="p">:</span>
+</span><span id="__span-1-8"><a href="#__codelineno-1-8" id="__codelineno-1-8" name="__codelineno-1-8"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">1. Identify command type (read, show, check, display)</span>
+</span><span id="__span-1-9"><a href="#__codelineno-1-9" id="__codelineno-1-9" name="__codelineno-1-9"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">2. Extract scope (all, specific equipment, system)</span>
+</span><span id="__span-1-10"><a href="#__codelineno-1-10" id="__codelineno-1-10" name="__codelineno-1-10"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">3. Execute data collection</span>
+</span><span id="__span-1-11"><a href="#__codelineno-1-11" id="__codelineno-1-11" name="__codelineno-1-11"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">4. Present results in conversational format</span>
+</span></code></pre></div>
+<h3 id="simple-calculations">Simple Calculations<a class="headerlink" href="#simple-calculations" title="Permanent link">¶</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="nt">Examples</span><span class="p">:</span>
+</span><span id="__span-2-2"><a href="#__codelineno-2-2" id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"What's</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">efficiency</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">pump</span><span class="nv"> </span><span class="s">P1?"</span>
+</span><span id="__span-2-3"><a href="#__codelineno-2-3" id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Calculate</span><span class="nv"> </span><span class="s">flow</span><span class="nv"> </span><span class="s">rate</span><span class="nv"> </span><span class="s">variance"</span>
+</span><span id="__span-2-4"><a href="#__codelineno-2-4" id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Show</span><span class="nv"> </span><span class="s">temperature</span><span class="nv"> </span><span class="s">difference"</span>
+</span><span id="__span-2-5"><a href="#__codelineno-2-5" id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"Compare</span><span class="nv"> </span><span class="s">motor</span><span class="nv"> </span><span class="s">loads"</span>
+</span><span id="__span-2-6"><a href="#__codelineno-2-6" id="__codelineno-2-6" name="__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a href="#__codelineno-2-7" id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="nt">Processing</span><span class="p">:</span>
+</span><span id="__span-2-8"><a href="#__codelineno-2-8" id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">1. Parse mathematical operation</span>
+</span><span id="__span-2-9"><a href="#__codelineno-2-9" id="__codelineno-2-9" name="__codelineno-2-9"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">2. Identify required data points</span>
+</span><span id="__span-2-10"><a href="#__codelineno-2-10" id="__codelineno-2-10" name="__codelineno-2-10"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">3. Perform calculation</span>
+</span><span id="__span-2-11"><a href="#__codelineno-2-11" id="__codelineno-2-11" name="__codelineno-2-11"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">4. Explain result with context</span>
+</span></code></pre></div>
+<h2 id="architecture-details">Architecture Details<a class="headerlink" href="#architecture-details" title="Permanent link">¶</a></h2>
+<h3 id="model-inference-pipeline">Model Inference Pipeline<a class="headerlink" href="#model-inference-pipeline" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User
+    participant Parser as NL Parser
+    participant Model as Edge LLM
+    participant PLC as PLC Interface
+    participant Formatter as Response Formatter
+
+    User-&gt;&gt;Parser: "Show motor M1 temperature"
+    Parser-&gt;&gt;Parser: Extract: equipment=M1, property=temperature
+    Parser-&gt;&gt;Model: Generate query plan
+    Model-&gt;&gt;PLC: Read tag: M1_TEMP
+    PLC--&gt;&gt;Model: Value: 72.5°C
+    Model-&gt;&gt;Formatter: Format response with context
+    Formatter--&gt;&gt;User: "Motor M1 temperature is 72.5°C (normal range: 60-80°C)"</code></pre>
+<h3 id="memory-management">Memory Management<a class="headerlink" href="#memory-management" title="Permanent link">¶</a></h3>
+<p>Efficient memory usage is critical for Raspberry Pi deployment:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a href="#__codelineno-3-1" id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="c1"># Model loading and memory optimization</span>
+</span><span id="__span-3-2"><a href="#__codelineno-3-2" id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">EdgeLLM</span><span class="p">:</span>
+</span><span id="__span-3-3"><a href="#__codelineno-3-3" id="__codelineno-3-3" name="__codelineno-3-3"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">"qwen-0.5b"</span><span class="p">,</span> <span class="n">max_memory</span><span class="o">=</span><span class="s2">"2GB"</span><span class="p">):</span>
+</span><span id="__span-3-4"><a href="#__codelineno-3-4" id="__codelineno-3-4" name="__codelineno-3-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">model_name</span>
+</span><span id="__span-3-5"><a href="#__codelineno-3-5" id="__codelineno-3-5" name="__codelineno-3-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">max_memory</span> <span class="o">=</span> <span class="n">max_memory</span>
+</span><span id="__span-3-6"><a href="#__codelineno-3-6" id="__codelineno-3-6" name="__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a href="#__codelineno-3-7" id="__codelineno-3-7" name="__codelineno-3-7"></a>        <span class="c1"># Load model with memory constraints</span>
+</span><span id="__span-3-8"><a href="#__codelineno-3-8" id="__codelineno-3-8" name="__codelineno-3-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_model_optimized</span><span class="p">()</span>
+</span><span id="__span-3-9"><a href="#__codelineno-3-9" id="__codelineno-3-9" name="__codelineno-3-9"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_tokenizer</span><span class="p">()</span>
+</span><span id="__span-3-10"><a href="#__codelineno-3-10" id="__codelineno-3-10" name="__codelineno-3-10"></a>
+</span><span id="__span-3-11"><a href="#__codelineno-3-11" id="__codelineno-3-11" name="__codelineno-3-11"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_load_model_optimized</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-3-12"><a href="#__codelineno-3-12" id="__codelineno-3-12" name="__codelineno-3-12"></a>        <span class="c1"># Quantization for memory efficiency</span>
+</span><span id="__span-3-13"><a href="#__codelineno-3-13" id="__codelineno-3-13" name="__codelineno-3-13"></a>        <span class="k">return</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+</span><span id="__span-3-14"><a href="#__codelineno-3-14" id="__codelineno-3-14" name="__codelineno-3-14"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+</span><span id="__span-3-15"><a href="#__codelineno-3-15" id="__codelineno-3-15" name="__codelineno-3-15"></a>            <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span>  <span class="c1"># Half precision</span>
+</span><span id="__span-3-16"><a href="#__codelineno-3-16" id="__codelineno-3-16" name="__codelineno-3-16"></a>            <span class="n">device_map</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">,</span>
+</span><span id="__span-3-17"><a href="#__codelineno-3-17" id="__codelineno-3-17" name="__codelineno-3-17"></a>            <span class="n">max_memory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_memory</span><span class="p">,</span>
+</span><span id="__span-3-18"><a href="#__codelineno-3-18" id="__codelineno-3-18" name="__codelineno-3-18"></a>            <span class="n">load_in_8bit</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># 8-bit quantization</span>
+</span><span id="__span-3-19"><a href="#__codelineno-3-19" id="__codelineno-3-19" name="__codelineno-3-19"></a>        <span class="p">)</span>
+</span></code></pre></div>
+<h3 id="prompt-engineering-for-industrial-context">Prompt Engineering for Industrial Context<a class="headerlink" href="#prompt-engineering-for-industrial-context" title="Permanent link">¶</a></h3>
+<p>Layer 1 uses specialized prompts optimized for industrial environments:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a href="#__codelineno-4-1" id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="c1"># Industrial prompt template</span>
+</span><span id="__span-4-2"><a href="#__codelineno-4-2" id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="n">INDUSTRIAL_PROMPT</span> <span class="o">=</span> <span class="s2">"""</span>
+</span><span id="__span-4-3"><a href="#__codelineno-4-3" id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="s2">You are FactoryLM, an industrial AI assistant running on edge hardware.</span>
+</span><span id="__span-4-4"><a href="#__codelineno-4-4" id="__codelineno-4-4" name="__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a href="#__codelineno-4-5" id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="s2">Context: Manufacturing facility with PLCs, motors, sensors, and automation equipment.</span>
+</span><span id="__span-4-6"><a href="#__codelineno-4-6" id="__codelineno-4-6" name="__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a href="#__codelineno-4-7" id="__codelineno-4-7" name="__codelineno-4-7"></a><span class="s2">Guidelines:</span>
+</span><span id="__span-4-8"><a href="#__codelineno-4-8" id="__codelineno-4-8" name="__codelineno-4-8"></a><span class="s2">- Provide concise, actionable responses</span>
+</span><span id="__span-4-9"><a href="#__codelineno-4-9" id="__codelineno-4-9" name="__codelineno-4-9"></a><span class="s2">- Focus on safety and operational efficiency</span>
+</span><span id="__span-4-10"><a href="#__codelineno-4-10" id="__codelineno-4-10" name="__codelineno-4-10"></a><span class="s2">- Use industrial terminology correctly</span>
+</span><span id="__span-4-11"><a href="#__codelineno-4-11" id="__codelineno-4-11" name="__codelineno-4-11"></a><span class="s2">- Always include units with numerical values</span>
+</span><span id="__span-4-12"><a href="#__codelineno-4-12" id="__codelineno-4-12" name="__codelineno-4-12"></a><span class="s2">- Escalate complex issues to higher layers</span>
+</span><span id="__span-4-13"><a href="#__codelineno-4-13" id="__codelineno-4-13" name="__codelineno-4-13"></a>
+</span><span id="__span-4-14"><a href="#__codelineno-4-14" id="__codelineno-4-14" name="__codelineno-4-14"></a><span class="s2">Current equipment status: </span><span class="si">{equipment_data}</span>
+</span><span id="__span-4-15"><a href="#__codelineno-4-15" id="__codelineno-4-15" name="__codelineno-4-15"></a><span class="s2">User query: </span><span class="si">{user_query}</span>
+</span><span id="__span-4-16"><a href="#__codelineno-4-16" id="__codelineno-4-16" name="__codelineno-4-16"></a>
+</span><span id="__span-4-17"><a href="#__codelineno-4-17" id="__codelineno-4-17" name="__codelineno-4-17"></a><span class="s2">Response (max 100 tokens):</span>
+</span><span id="__span-4-18"><a href="#__codelineno-4-18" id="__codelineno-4-18" name="__codelineno-4-18"></a><span class="s2">"""</span>
+</span></code></pre></div>
+<h2 id="performance-characteristics">Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Permanent link">¶</a></h2>
+<p>Layer 1 is optimized for edge deployment constraints:</p>
+<h3 id="response-times-by-model">Response Times by Model<a class="headerlink" href="#response-times-by-model" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Cold Start</th>
+<th>Warm Response</th>
+<th>Memory Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Qwen 0.5B</strong></td>
+<td>2-3s</td>
+<td>200-500ms</td>
+<td>1.5GB</td>
+</tr>
+<tr>
+<td><strong>TinyLlama 1.1B</strong></td>
+<td>3-5s</td>
+<td>400-800ms</td>
+<td>2.5GB</td>
+</tr>
+<tr>
+<td><strong>Phi-2 2.7B</strong></td>
+<td>8-12s</td>
+<td>1-2s</td>
+<td>5.5GB</td>
+</tr>
+<tr>
+<td><strong>Llama 3.2 1B</strong></td>
+<td>4-6s</td>
+<td>500-1000ms</td>
+<td>2.8GB</td>
+</tr>
+</tbody>
+</table>
+<h3 id="throughput-optimization">Throughput Optimization<a class="headerlink" href="#throughput-optimization" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph LR
+    subgraph "Request Processing"
+        Queue[Request Queue&lt;br/&gt;Max 10 concurrent]
+        Cache[Response Cache&lt;br/&gt;Frequent queries]
+        Pool[Model Pool&lt;br/&gt;Pre-loaded models]
+    end
+
+    Request[User Request] --&gt; Queue
+    Queue --&gt; Cache
+    Cache --&gt;|Hit| FastResponse[Cached Response&lt;br/&gt;&lt; 50ms]
+    Cache --&gt;|Miss| Pool
+    Pool --&gt; Generation[Model Generation&lt;br/&gt;200-2000ms]
+    Generation --&gt; Response[Generated Response]
+
+    style Cache fill:#4CAF50
+    style Pool fill:#FF9800</code></pre>
+<h2 id="hardware-optimization">Hardware Optimization<a class="headerlink" href="#hardware-optimization" title="Permanent link">¶</a></h2>
+<h3 id="raspberry-pi-4-configuration">Raspberry Pi 4 Configuration<a class="headerlink" href="#raspberry-pi-4-configuration" title="Permanent link">¶</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a href="#__codelineno-5-1" id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="nt">Recommended Configuration</span><span class="p">:</span>
+</span><span id="__span-5-2"><a href="#__codelineno-5-2" id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="w">  </span><span class="nt">Model</span><span class="p">:</span><span class="w"> </span><span class="s">"Raspberry</span><span class="nv"> </span><span class="s">Pi</span><span class="nv"> </span><span class="s">4</span><span class="nv"> </span><span class="s">Model</span><span class="nv"> </span><span class="s">B"</span>
+</span><span id="__span-5-3"><a href="#__codelineno-5-3" id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="w">  </span><span class="nt">RAM</span><span class="p">:</span><span class="w"> </span><span class="s">"8GB</span><span class="nv"> </span><span class="s">(minimum</span><span class="nv"> </span><span class="s">4GB)"</span>
+</span><span id="__span-5-4"><a href="#__codelineno-5-4" id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="w">  </span><span class="nt">Storage</span><span class="p">:</span><span class="w"> </span><span class="s">"64GB</span><span class="nv"> </span><span class="s">microSD</span><span class="nv"> </span><span class="s">Class</span><span class="nv"> </span><span class="s">10</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">USB</span><span class="nv"> </span><span class="s">3.0</span><span class="nv"> </span><span class="s">SSD"</span>
+</span><span id="__span-5-5"><a href="#__codelineno-5-5" id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="w">  </span><span class="nt">Cooling</span><span class="p">:</span><span class="w"> </span><span class="s">"Active</span><span class="nv"> </span><span class="s">cooling</span><span class="nv"> </span><span class="s">fan</span><span class="nv"> </span><span class="s">(essential</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">AI</span><span class="nv"> </span><span class="s">workloads)"</span>
+</span><span id="__span-5-6"><a href="#__codelineno-5-6" id="__codelineno-5-6" name="__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a href="#__codelineno-5-7" id="__codelineno-5-7" name="__codelineno-5-7"></a><span class="nt">Overclocking Settings</span><span class="p">:</span>
+</span><span id="__span-5-8"><a href="#__codelineno-5-8" id="__codelineno-5-8" name="__codelineno-5-8"></a><span class="w">  </span><span class="nt">arm_freq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2000</span>
+</span><span id="__span-5-9"><a href="#__codelineno-5-9" id="__codelineno-5-9" name="__codelineno-5-9"></a><span class="w">  </span><span class="nt">gpu_freq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">750</span>
+</span><span id="__span-5-10"><a href="#__codelineno-5-10" id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="w">  </span><span class="nt">over_voltage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
+</span><span id="__span-5-11"><a href="#__codelineno-5-11" id="__codelineno-5-11" name="__codelineno-5-11"></a><span class="w">  </span><span class="nt">temp_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</span></code></pre></div>
+<h3 id="storage-optimization">Storage Optimization<a class="headerlink" href="#storage-optimization" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a href="#__codelineno-6-1" id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="c1"># Model storage optimization</span>
+</span><span id="__span-6-2"><a href="#__codelineno-6-2" id="__codelineno-6-2" name="__codelineno-6-2"></a>/opt/factorylm/models/
+</span><span id="__span-6-3"><a href="#__codelineno-6-3" id="__codelineno-6-3" name="__codelineno-6-3"></a>├──<span class="w"> </span>qwen-0.5b-int8.bin<span class="w">          </span><span class="c1"># 512MB quantized</span>
+</span><span id="__span-6-4"><a href="#__codelineno-6-4" id="__codelineno-6-4" name="__codelineno-6-4"></a>├──<span class="w"> </span>tinyllama-1.1b-fp16.bin<span class="w">     </span><span class="c1"># 2.2GB half precision  </span>
+</span><span id="__span-6-5"><a href="#__codelineno-6-5" id="__codelineno-6-5" name="__codelineno-6-5"></a>├──<span class="w"> </span>phi-2-2.7b-8bit.bin<span class="w">         </span><span class="c1"># 2.8GB 8-bit quantized</span>
+</span><span id="__span-6-6"><a href="#__codelineno-6-6" id="__codelineno-6-6" name="__codelineno-6-6"></a>└──<span class="w"> </span>model_cache/<span class="w">                </span><span class="c1"># Runtime cache</span>
+</span></code></pre></div>
+<h3 id="thermal-management">Thermal Management<a class="headerlink" href="#thermal-management" title="Permanent link">¶</a></h3>
+<p>Edge AI generates significant heat. Proper thermal management is essential:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a href="#__codelineno-7-1" id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="c1"># Temperature monitoring and throttling</span>
+</span><span id="__span-7-2"><a href="#__codelineno-7-2" id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">ThermalManager</span><span class="p">:</span>
+</span><span id="__span-7-3"><a href="#__codelineno-7-3" id="__codelineno-7-3" name="__codelineno-7-3"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-7-4"><a href="#__codelineno-7-4" id="__codelineno-7-4" name="__codelineno-7-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">max_temp</span> <span class="o">=</span> <span class="mi">75</span>  <span class="c1"># °C</span>
+</span><span id="__span-7-5"><a href="#__codelineno-7-5" id="__codelineno-7-5" name="__codelineno-7-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">throttle_temp</span> <span class="o">=</span> <span class="mi">70</span>  <span class="c1"># °C</span>
+</span><span id="__span-7-6"><a href="#__codelineno-7-6" id="__codelineno-7-6" name="__codelineno-7-6"></a>
+</span><span id="__span-7-7"><a href="#__codelineno-7-7" id="__codelineno-7-7" name="__codelineno-7-7"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-7-8"><a href="#__codelineno-7-8" id="__codelineno-7-8" name="__codelineno-7-8"></a>        <span class="n">cpu_temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cpu_temperature</span><span class="p">()</span>
+</span><span id="__span-7-9"><a href="#__codelineno-7-9" id="__codelineno-7-9" name="__codelineno-7-9"></a>
+</span><span id="__span-7-10"><a href="#__codelineno-7-10" id="__codelineno-7-10" name="__codelineno-7-10"></a>        <span class="k">if</span> <span class="n">cpu_temp</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">throttle_temp</span><span class="p">:</span>
+</span><span id="__span-7-11"><a href="#__codelineno-7-11" id="__codelineno-7-11" name="__codelineno-7-11"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">throttle_performance</span><span class="p">()</span>
+</span><span id="__span-7-12"><a href="#__codelineno-7-12" id="__codelineno-7-12" name="__codelineno-7-12"></a>
+</span><span id="__span-7-13"><a href="#__codelineno-7-13" id="__codelineno-7-13" name="__codelineno-7-13"></a>        <span class="k">if</span> <span class="n">cpu_temp</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_temp</span><span class="p">:</span>
+</span><span id="__span-7-14"><a href="#__codelineno-7-14" id="__codelineno-7-14" name="__codelineno-7-14"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">emergency_cooldown</span><span class="p">()</span>
+</span><span id="__span-7-15"><a href="#__codelineno-7-15" id="__codelineno-7-15" name="__codelineno-7-15"></a>
+</span><span id="__span-7-16"><a href="#__codelineno-7-16" id="__codelineno-7-16" name="__codelineno-7-16"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">throttle_performance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-7-17"><a href="#__codelineno-7-17" id="__codelineno-7-17" name="__codelineno-7-17"></a>        <span class="c1"># Reduce model batch size and clock speed</span>
+</span><span id="__span-7-18"><a href="#__codelineno-7-18" id="__codelineno-7-18" name="__codelineno-7-18"></a>        <span class="k">pass</span>
+</span><span id="__span-7-19"><a href="#__codelineno-7-19" id="__codelineno-7-19" name="__codelineno-7-19"></a>
+</span><span id="__span-7-20"><a href="#__codelineno-7-20" id="__codelineno-7-20" name="__codelineno-7-20"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">emergency_cooldown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-7-21"><a href="#__codelineno-7-21" id="__codelineno-7-21" name="__codelineno-7-21"></a>        <span class="c1"># Pause inference and enable maximum cooling</span>
+</span><span id="__span-7-22"><a href="#__codelineno-7-22" id="__codelineno-7-22" name="__codelineno-7-22"></a>        <span class="k">pass</span>
+</span></code></pre></div>
+<h2 id="industrial-context-awareness">Industrial Context Awareness<a class="headerlink" href="#industrial-context-awareness" title="Permanent link">¶</a></h2>
+<p>Layer 1 maintains awareness of industrial context to provide relevant responses:</p>
+<h3 id="equipment-state-tracking">Equipment State Tracking<a class="headerlink" href="#equipment-state-tracking" title="Permanent link">¶</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a href="#__codelineno-8-1" id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">IndustrialContext</span><span class="p">:</span>
+</span><span id="__span-8-2"><a href="#__codelineno-8-2" id="__codelineno-8-2" name="__codelineno-8-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-8-3"><a href="#__codelineno-8-3" id="__codelineno-8-3" name="__codelineno-8-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">equipment_states</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-8-4"><a href="#__codelineno-8-4" id="__codelineno-8-4" name="__codelineno-8-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">alarm_conditions</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-8-5"><a href="#__codelineno-8-5" id="__codelineno-8-5" name="__codelineno-8-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">maintenance_schedules</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-8-6"><a href="#__codelineno-8-6" id="__codelineno-8-6" name="__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a href="#__codelineno-8-7" id="__codelineno-8-7" name="__codelineno-8-7"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">update_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag_updates</span><span class="p">):</span>
+</span><span id="__span-8-8"><a href="#__codelineno-8-8" id="__codelineno-8-8" name="__codelineno-8-8"></a>        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tag_updates</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-8-9"><a href="#__codelineno-8-9" id="__codelineno-8-9" name="__codelineno-8-9"></a>            <span class="n">equipment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_equipment_from_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+</span><span id="__span-8-10"><a href="#__codelineno-8-10" id="__codelineno-8-10" name="__codelineno-8-10"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">equipment_states</span><span class="p">[</span><span class="n">equipment</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</span><span id="__span-8-11"><a href="#__codelineno-8-11" id="__codelineno-8-11" name="__codelineno-8-11"></a>
+</span><span id="__span-8-12"><a href="#__codelineno-8-12" id="__codelineno-8-12" name="__codelineno-8-12"></a>            <span class="c1"># Check for alarm conditions</span>
+</span><span id="__span-8-13"><a href="#__codelineno-8-13" id="__codelineno-8-13" name="__codelineno-8-13"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">check_alarm_conditions</span><span class="p">(</span><span class="n">equipment</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</span><span id="__span-8-14"><a href="#__codelineno-8-14" id="__codelineno-8-14" name="__codelineno-8-14"></a>
+</span><span id="__span-8-15"><a href="#__codelineno-8-15" id="__codelineno-8-15" name="__codelineno-8-15"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_relevant_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+</span><span id="__span-8-16"><a href="#__codelineno-8-16" id="__codelineno-8-16" name="__codelineno-8-16"></a>        <span class="c1"># Return context relevant to the user's query</span>
+</span><span id="__span-8-17"><a href="#__codelineno-8-17" id="__codelineno-8-17" name="__codelineno-8-17"></a>        <span class="n">equipment_mentioned</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_equipment_from_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="__span-8-18"><a href="#__codelineno-8-18" id="__codelineno-8-18" name="__codelineno-8-18"></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="__span-8-19"><a href="#__codelineno-8-19" id="__codelineno-8-19" name="__codelineno-8-19"></a>            <span class="s2">"equipment_states"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">equipment_states</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">equipment_mentioned</span><span class="p">),</span>
+</span><span id="__span-8-20"><a href="#__codelineno-8-20" id="__codelineno-8-20" name="__codelineno-8-20"></a>            <span class="s2">"active_alarms"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_alarms_for_equipment</span><span class="p">(</span><span class="n">equipment_mentioned</span><span class="p">),</span>
+</span><span id="__span-8-21"><a href="#__codelineno-8-21" id="__codelineno-8-21" name="__codelineno-8-21"></a>            <span class="s2">"maintenance_due"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_maintenance_status</span><span class="p">(</span><span class="n">equipment_mentioned</span><span class="p">)</span>
+</span><span id="__span-8-22"><a href="#__codelineno-8-22" id="__codelineno-8-22" name="__codelineno-8-22"></a>        <span class="p">}</span>
+</span></code></pre></div>
+<h3 id="safety-awareness">Safety Awareness<a class="headerlink" href="#safety-awareness" title="Permanent link">¶</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a href="#__codelineno-9-1" id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="c1"># Safety-aware response generation</span>
+</span><span id="__span-9-2"><a href="#__codelineno-9-2" id="__codelineno-9-2" name="__codelineno-9-2"></a><span class="n">SAFETY_KEYWORDS</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-9-3"><a href="#__codelineno-9-3" id="__codelineno-9-3" name="__codelineno-9-3"></a>    <span class="s2">"emergency"</span><span class="p">,</span> <span class="s2">"stop"</span><span class="p">,</span> <span class="s2">"shutdown"</span><span class="p">,</span> <span class="s2">"danger"</span><span class="p">,</span> <span class="s2">"unsafe"</span><span class="p">,</span>
+</span><span id="__span-9-4"><a href="#__codelineno-9-4" id="__codelineno-9-4" name="__codelineno-9-4"></a>    <span class="s2">"fire"</span><span class="p">,</span> <span class="s2">"leak"</span><span class="p">,</span> <span class="s2">"pressure"</span><span class="p">,</span> <span class="s2">"temperature"</span><span class="p">,</span> <span class="s2">"fault"</span>
+</span><span id="__span-9-5"><a href="#__codelineno-9-5" id="__codelineno-9-5" name="__codelineno-9-5"></a><span class="p">]</span>
+</span><span id="__span-9-6"><a href="#__codelineno-9-6" id="__codelineno-9-6" name="__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a href="#__codelineno-9-7" id="__codelineno-9-7" name="__codelineno-9-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">check_safety_implications</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+</span><span id="__span-9-8"><a href="#__codelineno-9-8" id="__codelineno-9-8" name="__codelineno-9-8"></a>    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">keyword</span> <span class="ow">in</span> <span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="n">SAFETY_KEYWORDS</span><span class="p">):</span>
+</span><span id="__span-9-9"><a href="#__codelineno-9-9" id="__codelineno-9-9" name="__codelineno-9-9"></a>        <span class="c1"># Add safety disclaimer</span>
+</span><span id="__span-9-10"><a href="#__codelineno-9-10" id="__codelineno-9-10" name="__codelineno-9-10"></a>        <span class="n">response</span> <span class="o">+=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">⚠️ For safety-critical issues, immediately contact qualified personnel."</span>
+</span><span id="__span-9-11"><a href="#__codelineno-9-11" id="__codelineno-9-11" name="__codelineno-9-11"></a>
+</span><span id="__span-9-12"><a href="#__codelineno-9-12" id="__codelineno-9-12" name="__codelineno-9-12"></a>    <span class="k">return</span> <span class="n">response</span>
+</span></code></pre></div>
+<h2 id="integration-with-other-layers">Integration with Other Layers<a class="headerlink" href="#integration-with-other-layers" title="Permanent link">¶</a></h2>
+<p>Layer 1 seamlessly integrates with the other FactoryLM layers:</p>
+<h3 id="escalation-logic">Escalation Logic<a class="headerlink" href="#escalation-logic" title="Permanent link">¶</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a href="#__codelineno-10-1" id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">process_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+</span><span id="__span-10-2"><a href="#__codelineno-10-2" id="__codelineno-10-2" name="__codelineno-10-2"></a>    <span class="c1"># First check Layer 0</span>
+</span><span id="__span-10-3"><a href="#__codelineno-10-3" id="__codelineno-10-3" name="__codelineno-10-3"></a>    <span class="n">layer0_response</span> <span class="o">=</span> <span class="n">knowledge_base</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="__span-10-4"><a href="#__codelineno-10-4" id="__codelineno-10-4" name="__codelineno-10-4"></a>    <span class="k">if</span> <span class="n">layer0_response</span><span class="o">.</span><span class="n">confidence</span> <span class="o">&gt;</span> <span class="mf">0.9</span><span class="p">:</span>
+</span><span id="__span-10-5"><a href="#__codelineno-10-5" id="__codelineno-10-5" name="__codelineno-10-5"></a>        <span class="k">return</span> <span class="n">layer0_response</span>
+</span><span id="__span-10-6"><a href="#__codelineno-10-6" id="__codelineno-10-6" name="__codelineno-10-6"></a>
+</span><span id="__span-10-7"><a href="#__codelineno-10-7" id="__codelineno-10-7" name="__codelineno-10-7"></a>    <span class="c1"># Process with Layer 1</span>
+</span><span id="__span-10-8"><a href="#__codelineno-10-8" id="__codelineno-10-8" name="__codelineno-10-8"></a>    <span class="n">complexity_score</span> <span class="o">=</span> <span class="n">assess_query_complexity</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="__span-10-9"><a href="#__codelineno-10-9" id="__codelineno-10-9" name="__codelineno-10-9"></a>
+</span><span id="__span-10-10"><a href="#__codelineno-10-10" id="__codelineno-10-10" name="__codelineno-10-10"></a>    <span class="k">if</span> <span class="n">complexity_score</span> <span class="o">&lt;</span> <span class="mf">0.7</span><span class="p">:</span>
+</span><span id="__span-10-11"><a href="#__codelineno-10-11" id="__codelineno-10-11" name="__codelineno-10-11"></a>        <span class="c1"># Handle with Layer 1</span>
+</span><span id="__span-10-12"><a href="#__codelineno-10-12" id="__codelineno-10-12" name="__codelineno-10-12"></a>        <span class="n">response</span> <span class="o">=</span> <span class="n">edge_llm</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+</span><span id="__span-10-13"><a href="#__codelineno-10-13" id="__codelineno-10-13" name="__codelineno-10-13"></a>
+</span><span id="__span-10-14"><a href="#__codelineno-10-14" id="__codelineno-10-14" name="__codelineno-10-14"></a>        <span class="c1"># Learn from successful responses</span>
+</span><span id="__span-10-15"><a href="#__codelineno-10-15" id="__codelineno-10-15" name="__codelineno-10-15"></a>        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+</span><span id="__span-10-16"><a href="#__codelineno-10-16" id="__codelineno-10-16" name="__codelineno-10-16"></a>            <span class="n">knowledge_base</span><span class="o">.</span><span class="n">add_pattern</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+</span><span id="__span-10-17"><a href="#__codelineno-10-17" id="__codelineno-10-17" name="__codelineno-10-17"></a>
+</span><span id="__span-10-18"><a href="#__codelineno-10-18" id="__codelineno-10-18" name="__codelineno-10-18"></a>        <span class="k">return</span> <span class="n">response</span>
+</span><span id="__span-10-19"><a href="#__codelineno-10-19" id="__codelineno-10-19" name="__codelineno-10-19"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-10-20"><a href="#__codelineno-10-20" id="__codelineno-10-20" name="__codelineno-10-20"></a>        <span class="c1"># Escalate to Layer 2 or 3</span>
+</span><span id="__span-10-21"><a href="#__codelineno-10-21" id="__codelineno-10-21" name="__codelineno-10-21"></a>        <span class="k">return</span> <span class="n">escalate_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="knowledge-sharing">Knowledge Sharing<a class="headerlink" href="#knowledge-sharing" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph LR
+    L1[Layer 1&lt;br/&gt;Edge Processing] --&gt; KB[Knowledge Base&lt;br/&gt;Layer 0]
+    L1 --&gt; L2[Layer 2&lt;br/&gt;GPU Server]
+    L1 --&gt; L3[Layer 3&lt;br/&gt;Cloud AI]
+
+    KB --&gt; L1
+    L2 --&gt; KB
+    L3 --&gt; KB
+
+    style L1 fill:#FF9800
+    style KB fill:#4CAF50
+    style L2 fill:#2196F3
+    style L3 fill:#9C27B0</code></pre>
+<h2 id="configuration-and-management">Configuration and Management<a class="headerlink" href="#configuration-and-management" title="Permanent link">¶</a></h2>
+<h3 id="model-configuration">Model Configuration<a class="headerlink" href="#model-configuration" title="Permanent link">¶</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-11-1"><a href="#__codelineno-11-1" id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="c1"># edge_llm.yml</span>
+</span><span id="__span-11-2"><a href="#__codelineno-11-2" id="__codelineno-11-2" name="__codelineno-11-2"></a><span class="nt">edge_llm</span><span class="p">:</span>
+</span><span id="__span-11-3"><a href="#__codelineno-11-3" id="__codelineno-11-3" name="__codelineno-11-3"></a><span class="w">  </span><span class="nt">default_model</span><span class="p">:</span><span class="w"> </span><span class="s">"qwen-0.5b"</span>
+</span><span id="__span-11-4"><a href="#__codelineno-11-4" id="__codelineno-11-4" name="__codelineno-11-4"></a>
+</span><span id="__span-11-5"><a href="#__codelineno-11-5" id="__codelineno-11-5" name="__codelineno-11-5"></a><span class="w">  </span><span class="nt">models</span><span class="p">:</span>
+</span><span id="__span-11-6"><a href="#__codelineno-11-6" id="__codelineno-11-6" name="__codelineno-11-6"></a><span class="w">    </span><span class="nt">qwen-0.5b</span><span class="p">:</span>
+</span><span id="__span-11-7"><a href="#__codelineno-11-7" id="__codelineno-11-7" name="__codelineno-11-7"></a><span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"/opt/factorylm/models/qwen-0.5b-int8.bin"</span>
+</span><span id="__span-11-8"><a href="#__codelineno-11-8" id="__codelineno-11-8" name="__codelineno-11-8"></a><span class="w">      </span><span class="nt">memory_required</span><span class="p">:</span><span class="w"> </span><span class="s">"2GB"</span>
+</span><span id="__span-11-9"><a href="#__codelineno-11-9" id="__codelineno-11-9" name="__codelineno-11-9"></a><span class="w">      </span><span class="nt">context_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2048</span>
+</span><span id="__span-11-10"><a href="#__codelineno-11-10" id="__codelineno-11-10" name="__codelineno-11-10"></a><span class="w">      </span><span class="nt">quantization</span><span class="p">:</span><span class="w"> </span><span class="s">"int8"</span>
+</span><span id="__span-11-11"><a href="#__codelineno-11-11" id="__codelineno-11-11" name="__codelineno-11-11"></a>
+</span><span id="__span-11-12"><a href="#__codelineno-11-12" id="__codelineno-11-12" name="__codelineno-11-12"></a><span class="w">    </span><span class="nt">tinyllama-1.1b</span><span class="p">:</span>
+</span><span id="__span-11-13"><a href="#__codelineno-11-13" id="__codelineno-11-13" name="__codelineno-11-13"></a><span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"/opt/factorylm/models/tinyllama-1.1b-fp16.bin"</span>
+</span><span id="__span-11-14"><a href="#__codelineno-11-14" id="__codelineno-11-14" name="__codelineno-11-14"></a><span class="w">      </span><span class="nt">memory_required</span><span class="p">:</span><span class="w"> </span><span class="s">"3GB"</span>
+</span><span id="__span-11-15"><a href="#__codelineno-11-15" id="__codelineno-11-15" name="__codelineno-11-15"></a><span class="w">      </span><span class="nt">context_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4096</span>
+</span><span id="__span-11-16"><a href="#__codelineno-11-16" id="__codelineno-11-16" name="__codelineno-11-16"></a><span class="w">      </span><span class="nt">quantization</span><span class="p">:</span><span class="w"> </span><span class="s">"fp16"</span>
+</span><span id="__span-11-17"><a href="#__codelineno-11-17" id="__codelineno-11-17" name="__codelineno-11-17"></a>
+</span><span id="__span-11-18"><a href="#__codelineno-11-18" id="__codelineno-11-18" name="__codelineno-11-18"></a><span class="w">  </span><span class="nt">performance</span><span class="p">:</span>
+</span><span id="__span-11-19"><a href="#__codelineno-11-19" id="__codelineno-11-19" name="__codelineno-11-19"></a><span class="w">    </span><span class="nt">max_concurrent_requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+</span><span id="__span-11-20"><a href="#__codelineno-11-20" id="__codelineno-11-20" name="__codelineno-11-20"></a><span class="w">    </span><span class="nt">request_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+</span><span id="__span-11-21"><a href="#__codelineno-11-21" id="__codelineno-11-21" name="__codelineno-11-21"></a><span class="w">    </span><span class="nt">cache_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+</span><span id="__span-11-22"><a href="#__codelineno-11-22" id="__codelineno-11-22" name="__codelineno-11-22"></a>
+</span><span id="__span-11-23"><a href="#__codelineno-11-23" id="__codelineno-11-23" name="__codelineno-11-23"></a><span class="w">  </span><span class="nt">thermal</span><span class="p">:</span>
+</span><span id="__span-11-24"><a href="#__codelineno-11-24" id="__codelineno-11-24" name="__codelineno-11-24"></a><span class="w">    </span><span class="nt">max_temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">75</span>
+</span><span id="__span-11-25"><a href="#__codelineno-11-25" id="__codelineno-11-25" name="__codelineno-11-25"></a><span class="w">    </span><span class="nt">throttle_temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">70</span>
+</span><span id="__span-11-26"><a href="#__codelineno-11-26" id="__codelineno-11-26" name="__codelineno-11-26"></a><span class="w">    </span><span class="nt">monitoring_interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</span></code></pre></div>
+<h3 id="runtime-management">Runtime Management<a class="headerlink" href="#runtime-management" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a href="#__codelineno-12-1" id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="c1"># Layer 1 service management</span>
+</span><span id="__span-12-2"><a href="#__codelineno-12-2" id="__codelineno-12-2" name="__codelineno-12-2"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>factorylm-layer1
+</span><span id="__span-12-3"><a href="#__codelineno-12-3" id="__codelineno-12-3" name="__codelineno-12-3"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>factorylm-layer1
+</span><span id="__span-12-4"><a href="#__codelineno-12-4" id="__codelineno-12-4" name="__codelineno-12-4"></a>
+</span><span id="__span-12-5"><a href="#__codelineno-12-5" id="__codelineno-12-5" name="__codelineno-12-5"></a><span class="c1"># Model switching</span>
+</span><span id="__span-12-6"><a href="#__codelineno-12-6" id="__codelineno-12-6" name="__codelineno-12-6"></a>factorylm<span class="w"> </span>layer1<span class="w"> </span>set-model<span class="w"> </span>qwen-0.5b
+</span><span id="__span-12-7"><a href="#__codelineno-12-7" id="__codelineno-12-7" name="__codelineno-12-7"></a>factorylm<span class="w"> </span>layer1<span class="w"> </span>set-model<span class="w"> </span>tinyllama-1.1b
+</span><span id="__span-12-8"><a href="#__codelineno-12-8" id="__codelineno-12-8" name="__codelineno-12-8"></a>
+</span><span id="__span-12-9"><a href="#__codelineno-12-9" id="__codelineno-12-9" name="__codelineno-12-9"></a><span class="c1"># Performance monitoring</span>
+</span><span id="__span-12-10"><a href="#__codelineno-12-10" id="__codelineno-12-10" name="__codelineno-12-10"></a>factorylm<span class="w"> </span>layer1<span class="w"> </span>stats
+</span><span id="__span-12-11"><a href="#__codelineno-12-11" id="__codelineno-12-11" name="__codelineno-12-11"></a>factorylm<span class="w"> </span>layer1<span class="w"> </span>temperature
+</span></code></pre></div>
+<h2 id="monitoring-and-metrics">Monitoring and Metrics<a class="headerlink" href="#monitoring-and-metrics" title="Permanent link">¶</a></h2>
+<h3 id="key-performance-indicators">Key Performance Indicators<a class="headerlink" href="#key-performance-indicators" title="Permanent link">¶</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a href="#__codelineno-13-1" id="__codelineno-13-1" name="__codelineno-13-1"></a><span class="n">layer1_metrics</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-13-2"><a href="#__codelineno-13-2" id="__codelineno-13-2" name="__codelineno-13-2"></a>    <span class="s2">"requests_per_minute"</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+</span><span id="__span-13-3"><a href="#__codelineno-13-3" id="__codelineno-13-3" name="__codelineno-13-3"></a>    <span class="s2">"average_response_time"</span><span class="p">:</span> <span class="mi">450</span><span class="p">,</span>  <span class="c1"># milliseconds</span>
+</span><span id="__span-13-4"><a href="#__codelineno-13-4" id="__codelineno-13-4" name="__codelineno-13-4"></a>    <span class="s2">"model_load_time"</span><span class="p">:</span> <span class="mf">3.2</span><span class="p">,</span>       <span class="c1"># seconds</span>
+</span><span id="__span-13-5"><a href="#__codelineno-13-5" id="__codelineno-13-5" name="__codelineno-13-5"></a>    <span class="s2">"memory_usage"</span><span class="p">:</span> <span class="mf">2.8</span><span class="p">,</span>          <span class="c1"># GB</span>
+</span><span id="__span-13-6"><a href="#__codelineno-13-6" id="__codelineno-13-6" name="__codelineno-13-6"></a>    <span class="s2">"cpu_temperature"</span><span class="p">:</span> <span class="mi">68</span><span class="p">,</span>        <span class="c1"># °C</span>
+</span><span id="__span-13-7"><a href="#__codelineno-13-7" id="__codelineno-13-7" name="__codelineno-13-7"></a>    <span class="s2">"success_rate"</span><span class="p">:</span> <span class="mf">0.92</span><span class="p">,</span>         <span class="c1"># 92%</span>
+</span><span id="__span-13-8"><a href="#__codelineno-13-8" id="__codelineno-13-8" name="__codelineno-13-8"></a>    <span class="s2">"escalation_rate"</span><span class="p">:</span> <span class="mf">0.08</span>       <span class="c1"># 8% escalated to higher layers</span>
+</span><span id="__span-13-9"><a href="#__codelineno-13-9" id="__codelineno-13-9" name="__codelineno-13-9"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="health-monitoring">Health Monitoring<a class="headerlink" href="#health-monitoring" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>graph TB
+    Monitor[Health Monitor] --&gt; CPU[CPU Usage&lt;br/&gt;&lt; 80%]
+    Monitor --&gt; Memory[Memory Usage&lt;br/&gt;&lt; 85%]
+    Monitor --&gt; Temp[Temperature&lt;br/&gt;&lt; 75°C]
+    Monitor --&gt; Response[Response Time&lt;br/&gt;&lt; 2s]
+
+    CPU --&gt; Alert{All OK?}
+    Memory --&gt; Alert
+    Temp --&gt; Alert
+    Response --&gt; Alert
+
+    Alert --&gt;|No| Throttle[Throttle Performance]
+    Alert --&gt;|Yes| Normal[Normal Operation]
+
+    style Normal fill:#4CAF50
+    style Throttle fill:#FF9800</code></pre>
+<h2 id="deployment-best-practices">Deployment Best Practices<a class="headerlink" href="#deployment-best-practices" title="Permanent link">¶</a></h2>
+<h3 id="installation-optimization">Installation Optimization<a class="headerlink" href="#installation-optimization" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Use SSD storage</strong> for better I/O performance with models</li>
+<li><strong>Enable swap</strong> to handle memory pressure gracefully</li>
+<li><strong>Configure thermal management</strong> to prevent throttling</li>
+<li><strong>Optimize network settings</strong> for industrial environments</li>
+<li><strong>Set up monitoring</strong> to track performance and health</li>
+</ol>
+<h3 id="model-selection-guidelines">Model Selection Guidelines<a class="headerlink" href="#model-selection-guidelines" title="Permanent link">¶</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a href="#__codelineno-14-1" id="__codelineno-14-1" name="__codelineno-14-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">select_optimal_model</span><span class="p">(</span><span class="n">available_memory</span><span class="p">,</span> <span class="n">query_complexity</span><span class="p">,</span> <span class="n">response_time_requirement</span><span class="p">):</span>
+</span><span id="__span-14-2"><a href="#__codelineno-14-2" id="__codelineno-14-2" name="__codelineno-14-2"></a>    <span class="k">if</span> <span class="n">available_memory</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+</span><span id="__span-14-3"><a href="#__codelineno-14-3" id="__codelineno-14-3" name="__codelineno-14-3"></a>        <span class="k">return</span> <span class="s2">"qwen-0.5b"</span>
+</span><span id="__span-14-4"><a href="#__codelineno-14-4" id="__codelineno-14-4" name="__codelineno-14-4"></a>    <span class="k">elif</span> <span class="n">query_complexity</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+</span><span id="__span-14-5"><a href="#__codelineno-14-5" id="__codelineno-14-5" name="__codelineno-14-5"></a>        <span class="k">return</span> <span class="s2">"qwen-0.5b"</span> <span class="k">if</span> <span class="n">response_time_requirement</span> <span class="o">&lt;</span> <span class="mi">500</span> <span class="k">else</span> <span class="s2">"tinyllama-1.1b"</span>
+</span><span id="__span-14-6"><a href="#__codelineno-14-6" id="__codelineno-14-6" name="__codelineno-14-6"></a>    <span class="k">elif</span> <span class="n">available_memory</span> <span class="o">&gt;=</span> <span class="mi">6</span><span class="p">:</span>
+</span><span id="__span-14-7"><a href="#__codelineno-14-7" id="__codelineno-14-7" name="__codelineno-14-7"></a>        <span class="k">return</span> <span class="s2">"phi-2-2.7b"</span>
+</span><span id="__span-14-8"><a href="#__codelineno-14-8" id="__codelineno-14-8" name="__codelineno-14-8"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-14-9"><a href="#__codelineno-14-9" id="__codelineno-14-9" name="__codelineno-14-9"></a>        <span class="k">return</span> <span class="s2">"tinyllama-1.1b"</span>
+</span></code></pre></div>
+<h3 id="performance-tuning">Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a href="#__codelineno-15-1" id="__codelineno-15-1" name="__codelineno-15-1"></a><span class="c1"># Raspberry Pi optimization</span>
+</span><span id="__span-15-2"><a href="#__codelineno-15-2" id="__codelineno-15-2" name="__codelineno-15-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">'gpu_mem=64'</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/boot/config.txt<span class="w">          </span><span class="c1"># Reduce GPU memory</span>
+</span><span id="__span-15-3"><a href="#__codelineno-15-3" id="__codelineno-15-3" name="__codelineno-15-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">'arm_freq=2000'</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/boot/config.txt<span class="w">       </span><span class="c1"># Overclock CPU</span>
+</span><span id="__span-15-4"><a href="#__codelineno-15-4" id="__codelineno-15-4" name="__codelineno-15-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">'over_voltage=6'</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/boot/config.txt<span class="w">      </span><span class="c1"># Increase voltage</span>
+</span><span id="__span-15-5"><a href="#__codelineno-15-5" id="__codelineno-15-5" name="__codelineno-15-5"></a>
+</span><span id="__span-15-6"><a href="#__codelineno-15-6" id="__codelineno-15-6" name="__codelineno-15-6"></a><span class="c1"># System optimization</span>
+</span><span id="__span-15-7"><a href="#__codelineno-15-7" id="__codelineno-15-7" name="__codelineno-15-7"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">'vm.swappiness=10'</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/sysctl.conf<span class="w">    </span><span class="c1"># Reduce swap usage</span>
+</span><span id="__span-15-8"><a href="#__codelineno-15-8" id="__codelineno-15-8" name="__codelineno-15-8"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">'net.core.rmem_max=16777216'</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/sysctl.conf<span class="w">  </span><span class="c1"># Network buffers</span>
+</span></code></pre></div>
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">¶</a></h2>
+<h3 id="model-security">Model Security<a class="headerlink" href="#model-security" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Model verification</strong>: Cryptographic signatures for model files</li>
+<li><strong>Sandboxed execution</strong>: Isolated runtime environment</li>
+<li><strong>Input validation</strong>: Sanitize all user inputs before processing</li>
+<li><strong>Output filtering</strong>: Remove sensitive information from responses</li>
+</ul>
+<h3 id="data-privacy">Data Privacy<a class="headerlink" href="#data-privacy" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Local processing</strong>: All inference happens on-device</li>
+<li><strong>No external calls</strong>: No data sent to external services</li>
+<li><strong>Encrypted storage</strong>: Model files and cache encrypted at rest</li>
+<li><strong>Audit logging</strong>: Record all queries and responses for security analysis</li>
+</ul>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">¶</a></h2>
+<h3 id="planned-improvements">Planned Improvements<a class="headerlink" href="#planned-improvements" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Dynamic model loading</strong> - Load/unload models based on demand</li>
+<li><strong>Federated learning</strong> - Share improvements across deployments</li>
+<li><strong>Custom model fine-tuning</strong> - Train models on facility-specific data</li>
+<li><strong>Multi-modal support</strong> - Process images and audio alongside text</li>
+<li><strong>Real-time adaptation</strong> - Continuously improve based on usage patterns</li>
+</ol>
+<h3 id="hardware-evolution">Hardware Evolution<a class="headerlink" href="#hardware-evolution" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Raspberry Pi 5 support</strong> - Better performance with newer hardware</li>
+<li><strong>Coral TPU integration</strong> - Dedicated AI acceleration</li>
+<li><strong>NVIDIA Jetson compatibility</strong> - GPU acceleration for edge AI</li>
+<li><strong>Custom ASIC support</strong> - Purpose-built AI chips for industrial use</li>
+</ul>
+<hr/>
+<p>Layer 1 provides the perfect balance between Layer 0's deterministic speed and the advanced capabilities of Layers 2 and 3. By running entirely on edge hardware, it ensures fast, private, and cost-effective AI processing for common industrial queries while maintaining the ability to escalate complex problems to more powerful systems when needed.</p>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+<button class="md-top md-icon" data-md-component="top" hidden="" type="button">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+</main>
+<footer class="md-footer">
+<nav aria-label="Footer" class="md-footer__inner md-grid">
+<a aria-label="Previous: Layer 0 (Code + KB)" class="md-footer__link md-footer__link--prev" href="../layer-0/">
+<div class="md-footer__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</div>
+<div class="md-footer__title">
+<span class="md-footer__direction">
+                Previous
+              </span>
+<div class="md-ellipsis">
+                Layer 0 (Code + KB)
+              </div>
+</div>
+</a>
+<a aria-label="Next: Layer 2 (Local GPU)" class="md-footer__link md-footer__link--next" href="../layer-2/">
+<div class="md-footer__title">
+<span class="md-footer__direction">
+                Next
+              </span>
+<div class="md-ellipsis">
+                Layer 2 (Local GPU)
+              </div>
+</div>
+<div class="md-footer__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+</div>
+</a>
+</nav>
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+<div class="md-copyright__highlight">
+      © 2026 <a href="https://factorylm.com" rel="noopener" target="_blank">FactoryLM</a>
+</div>
+</div>
+<div class="md-social">
+<a class="md-social__link" href="https://github.com/Mikecranesync/factorylm" rel="noopener" target="_blank" title="github.com">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</a>
+<a class="md-social__link" href="https://twitter.com/FactoryLM" rel="noopener" target="_blank" title="twitter.com">
+<svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"></path></svg>
+</a>
+<a class="md-social__link" href="https://www.linkedin.com/company/factorylm" rel="noopener" target="_blank" title="www.linkedin.com">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<div class="md-progress" data-md-component="progress" role="progressbar"></div>
+<script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.code.select", "content.footnote.tooltips", "content.tabs.link", "content.tooltips", "header.autohide", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.prune", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+<script src="../../javascripts/extra.js"></script>
+</body>
+</html>

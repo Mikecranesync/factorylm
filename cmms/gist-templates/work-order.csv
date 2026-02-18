@@ -1,0 +1,1 @@
+work_order_id,title,status,priority,asset_name,asset_id,location,site,assigned_to,assigned_team,work_type,category,due_date,created_date,completed_date,completed_by,reported_by,channel,estimated_hours,cost,completion_notes,failure_code,description,cmms_system,cmms_external_id

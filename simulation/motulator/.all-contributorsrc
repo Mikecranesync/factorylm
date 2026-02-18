@@ -1,0 +1,220 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 50,
+  "commit": false,
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "lauritapio",
+      "name": "Lauri Tiitinen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85596019?v=4",
+      "profile": "https://github.com/lauritapio",
+      "contributions": [
+        "code",
+        "ideas",
+        "example",
+        "mentoring"
+      ]
+    },
+    {
+      "login": "HannuHar",
+      "name": "HannuHar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96597650?v=4",
+      "profile": "https://github.com/HannuHar",
+      "contributions": [
+        "code",
+        "bug"
+      ]
+    },
+    {
+      "login": "mhinkkan",
+      "name": "Marko Hinkkanen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/76600872?v=4",
+      "profile": "https://research.aalto.fi/en/persons/marko-hinkkanen",
+      "contributions": [
+        "code",
+        "ideas",
+        "example",
+        "mentoring"
+      ]
+    },
+    {
+      "login": "silundbe",
+      "name": "silundbe",
+      "avatar_url": "https://avatars.githubusercontent.com/u/81169347?v=4",
+      "profile": "https://github.com/silundbe",
+      "contributions": [
+        "code",
+        "example"
+      ]
+    },
+    {
+      "login": "JoonaKukkonen",
+      "name": "JoonaKukkonen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85099403?v=4",
+      "profile": "https://github.com/JoonaKukkonen",
+      "contributions": [
+        "code",
+        "infra"
+      ]
+    },
+    {
+      "login": "jarno-k",
+      "name": "jarno-k",
+      "avatar_url": "https://avatars.githubusercontent.com/u/84438313?v=4",
+      "profile": "https://github.com/jarno-k",
+      "contributions": [
+        "ideas",
+        "review",
+        "mentoring"
+      ]
+    },
+    {
+      "login": "angelicaiaderosa",
+      "name": "angelicaiaderosa",
+      "avatar_url": "https://avatars.githubusercontent.com/u/112799415?v=4",
+      "profile": "https://github.com/angelicaiaderosa",
+      "contributions": [
+        "code",
+        "example"
+      ]
+    },
+    {
+      "login": "lucaperetti",
+      "name": "Luca Peretti",
+      "avatar_url": "https://avatars.githubusercontent.com/u/64190518?v=4",
+      "profile": "https://www.kth.se/profile/lucap",
+      "contributions": [
+        "ideas",
+        "promotion"
+      ]
+    },
+    {
+      "login": "GianmarioPellegrinoPolito",
+      "name": "GianmarioPellegrinoPolito",
+      "avatar_url": "https://avatars.githubusercontent.com/u/70333484?v=4",
+      "profile": "https://github.com/GianmarioPellegrinoPolito",
+      "contributions": [
+        "data"
+      ]
+    },
+    {
+      "login": "SimFerr",
+      "name": "Simone Ferrari",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67151973?v=4",
+      "profile": "https://github.com/SimFerr",
+      "contributions": [
+        "data"
+      ]
+    },
+    {
+      "login": "Jialed0303",
+      "name": "Jialed0303",
+      "avatar_url": "https://avatars.githubusercontent.com/u/118135952?v=4",
+      "profile": "https://github.com/Jialed0303",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "murgui",
+      "name": "murgui",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29175623?v=4",
+      "profile": "https://github.com/murgui",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "iam-nithin-10",
+      "name": "Nithin Valiyaveettil Sadanandan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/125553207?v=4",
+      "profile": "https://github.com/iam-nithin-10",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "saarela",
+      "name": "saarela",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10281832?v=4",
+      "profile": "https://github.com/saarela",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "UshnishChowdhury",
+      "name": "Ushnish",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35863166?v=4",
+      "profile": "https://github.com/UshnishChowdhury",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Francesco-Lelli",
+      "name": "Francesco-Lelli",
+      "avatar_url": "https://avatars.githubusercontent.com/u/127111681?v=4",
+      "profile": "https://github.com/Francesco-Lelli",
+      "contributions": [
+        "code",
+        "example",
+        "ideas"
+      ]
+    },
+    {
+      "login": "MiSaren",
+      "name": "Mikko Sarén",
+      "avatar_url": "https://avatars.githubusercontent.com/u/166725462?v=4",
+      "profile": "https://github.com/MiSaren",
+      "contributions": [
+        "code",
+        "example",
+        "ideas"
+      ]
+    },
+    {
+      "login": "maattaj11",
+      "name": "Juho Määttä",
+      "avatar_url": "https://avatars.githubusercontent.com/u/165767331?v=4",
+      "profile": "https://github.com/maattaj11",
+      "contributions": [
+        "code",
+        "example",
+        "ideas"
+      ]
+    },
+    {
+      "login": "rayanmour",
+      "name": "rayanmour",
+      "avatar_url": "https://avatars.githubusercontent.com/u/111271373?v=4",
+      "profile": "https://github.com/rayanmour",
+      "contributions": [
+        "code",
+        "example",
+        "ideas",
+        "review",
+        "mentoring"
+      ]
+    },
+    {
+      "login": "cusma",
+      "name": "Cosimo Bassi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/65770425?v=4",
+      "profile": "https://cusma.algo.xyz/",
+      "contributions": [
+        "infra"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true,
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "projectName": "motulator",
+  "projectOwner": "Aalto-Electric-Drives",
+  "commitType": "docs"
+}

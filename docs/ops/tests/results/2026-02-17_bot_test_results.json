@@ -1,0 +1,188 @@
+{
+  "timestamp": "2026-02-17T10:34:15.505278",
+  "vps_url": "http://100.68.120.99:8340",
+  "stories": [
+    {
+      "story_id": "T-001",
+      "name": "Basic Greeting \u2014 concise industrial response",
+      "story_type": "chat",
+      "passed": 1,
+      "failed": 0,
+      "steps": [
+        {
+          "step_num": 1,
+          "user_input": "hello",
+          "bot_response": "\ud83d\udc4b Hello Mike. What's on the agenda for the NVIDIA Cosmos Cookoff project? Need help with **Cosmos R2** integration or **PLC tag analysis**? \ud83e\udd14",
+          "intent": "chat",
+          "latency_ms": 478,
+          "passed": true,
+          "failures": []
+        }
+      ],
+      "duration_ms": 478,
+      "error": null
+    },
+    {
+      "story_id": "T-002",
+      "name": "Self-Description \u2014 mentions FactoryLM identity",
+      "story_type": "chat",
+      "passed": 1,
+      "failed": 0,
+      "steps": [
+        {
+          "step_num": 1,
+          "user_input": "talk to me about yourself",
+          "bot_response": "\ud83e\udd16 **Introduction**\nI'm Jarvis, the AI development partner at FactoryLM, created by Mike Harper. I'm designed to assist with AI-powered factory diagnostics, focusing on PLC tag analysis, fault detection, and Cosmos R2 integration.\n\n\ud83d\udcca **Capabilities**\nMy key capabilities include:\n* Diagnosing equipment faults using live PLC tags from the Matrix API\n* Displaying real-time I/O status for motors, conveyors, sensors, temperature, and pressure\n* Analyzing equipment photos via Gemini Vision\n* Creating a",
+          "intent": "chat",
+          "latency_ms": 1012,
+          "passed": true,
+          "failures": []
+        }
+      ],
+      "duration_ms": 1012,
+      "error": null
+    },
+    {
+      "story_id": "T-003",
+      "name": "Equipment IO Request \u2014 returns structured tag data",
+      "story_type": "chat",
+      "passed": 1,
+      "failed": 0,
+      "steps": [
+        {
+          "step_num": 1,
+          "user_input": "show me io",
+          "bot_response": "\ud83d\udcca **I/O Status**\nHere's the current I/O status for the sorting station conveyor:\n- **Motor**: Running (output: 1, speed: 50 Hz)\n- **Photoeye Sensors**: \n  - Sensor 1: Tripped (input: 1)\n  - Sensor 2: Not Tripped (input: 0)\n- **Pneumatics**: \n  - Cylinder 1: Extended (output: 1)\n  - Cylinder 2: Retracted (output: 0)\n- **Temperature**: 25\u00b0C (input: 25.0)\n- **Pressure**: 80 psi (input: 80.0)\n\nTo get this data, I accessed the Allen-Bradley Micro820 PLC via Modbus TCP on port 502. If you need to assi",
+          "intent": "chat",
+          "latency_ms": 1122,
+          "passed": true,
+          "failures": []
+        }
+      ],
+      "duration_ms": 1122,
+      "error": null
+    },
+    {
+      "story_id": "T-004",
+      "name": "Electrical Safety \u2014 lockout/tagout response",
+      "story_type": "chat",
+      "passed": 1,
+      "failed": 0,
+      "steps": [
+        {
+          "step_num": 1,
+          "user_input": "I'm redoing the 220V feed so I can put the dead front back on the circuit breaker panel",
+          "bot_response": "**Allen-Bradley Micro820 Power Feed Wiring Diagram**\nDrawing: FLM-WD-002 Rev A\n\n**Components:**\n- CB1: Main Circuit Breaker, 240V, 20A\n- PLC1: Allen-Bradley Micro820 PLC, 24V, 1A\n\n**Connections:**\n| From | To | Wire | Type |\n|------|----|------|------|\n| CB1.1 | PLC1.L1 | L1 | power |\n| CB1.2 | PLC1.L2 | L2 | power |\n| CB1.3 | PLC1.GND | GND | earth |\n\n**Notes:**\n- Ensure proper voltage and current ratings for all components\n- Verify overload settings for motor starters\n\n_Diagram generated from ",
+          "intent": "diagram",
+          "latency_ms": 1751,
+          "passed": true,
+          "failures": []
+        }
+      ],
+      "duration_ms": 1751,
+      "error": null
+    },
+    {
+      "story_id": "T-005",
+      "name": "Build Assistance \u2014 conveyor component guidance",
+      "story_type": "chat",
+      "passed": 1,
+      "failed": 0,
+      "steps": [
+        {
+          "step_num": 1,
+          "user_input": "I am building the conveyor still",
+          "bot_response": "\ud83d\udee0\ufe0f **Conveyor Build Update**\nI'll keep the simulation environment ready for when you're done. Current simulated I/O status:\n- Motor: **OFF**\n- Photoeye sensors: **NO OBJECT DETECTED**\n- Pneumatics: **IDLE**\n\nLet me know when you're ready to integrate the physical conveyor with the Allen-Bradley Micro820 PLC. I can help with **Modbus TCP** configuration on port 502 or **Matrix API** setup on port 8000. \ud83d\udcbb",
+          "intent": "chat",
+          "latency_ms": 755,
+          "passed": true,
+          "failures": []
+        }
+      ],
+      "duration_ms": 755,
+      "error": null
+    },
+    {
+      "story_id": "T-010",
+      "name": "Help Routing \u2014 human-readable capabilities list",
+      "story_type": "chat",
+      "passed": 1,
+      "failed": 0,
+      "steps": [
+        {
+          "step_num": 1,
+          "user_input": "help",
+          "bot_response": "**OpenClaw Health**\n\n  matrix: unhealthy\n  knowledge: healthy\n\n**LLM Providers**\n  groq: available\n  nvidia: available\n  anthropic: available\n  gemini: available",
+          "intent": "help",
+          "latency_ms": 35,
+          "passed": true,
+          "failures": []
+        }
+      ],
+      "duration_ms": 35,
+      "error": null
+    },
+    {
+      "story_id": "T-013",
+      "name": "Long Response Chunking \u2014 no truncation error",
+      "story_type": "chat",
+      "passed": 1,
+      "failed": 0,
+      "steps": [
+        {
+          "step_num": 1,
+          "user_input": "Give me a detailed guide to troubleshooting a Micro820 PLC that won't communicate over Ethernet",
+          "bot_response": "\ud83d\udd0d **Troubleshooting Micro820 PLC Ethernet Communication**\n===========================================================\n\n### Step 1: **Verify Physical Connections**\nCheck that the Ethernet cable is securely connected to both the Micro820 PLC and the network device (e.g., switch, router). Ensure the cable is not damaged and is the correct type (e.g., CAT5e or higher).\n\n### Step 2: **Check PLC Configuration**\nVerify that the Micro820 PLC is configured for Ethernet communication:\n* **IP Address**: Ch",
+          "intent": "chat",
+          "latency_ms": 2209,
+          "passed": true,
+          "failures": []
+        }
+      ],
+      "duration_ms": 2209,
+      "error": null
+    },
+    {
+      "story_id": "T-014",
+      "name": "Budget Endpoint \u2014 per-provider budget stats",
+      "story_type": "http_get",
+      "passed": 1,
+      "failed": 0,
+      "steps": [
+        {
+          "step_num": 1,
+          "user_input": "GET /metrics",
+          "bot_response": "{\"uptime_seconds\":3566,\"total_requests\":33,\"intents\":{\"chat\":24,\"diagram\":5,\"help\":4},\"providers\":{},\"avg_latency_ms\":0}",
+          "intent": "http_get",
+          "latency_ms": 27,
+          "passed": true,
+          "failures": []
+        }
+      ],
+      "duration_ms": 27,
+      "error": null
+    },
+    {
+      "story_id": "T-015",
+      "name": "Health Endpoint \u2014 service info with skills list",
+      "story_type": "http_get",
+      "passed": 1,
+      "failed": 0,
+      "steps": [
+        {
+          "step_num": 1,
+          "user_input": "GET /",
+          "bot_response": "{\"name\":\"OpenClaw\",\"version\":\"1.0.0\",\"providers\":[\"groq\",\"nvidia\",\"anthropic\",\"gemini\"],\"skills\":[\"diagnose\",\"status\",\"photo\",\"work_order\",\"admin\",\"search\",\"shell\",\"diagram\",\"chat\",\"gist\",\"project\",\"wiring_enrich\"]}",
+          "intent": "http_get",
+          "latency_ms": 27,
+          "passed": true,
+          "failures": []
+        }
+      ],
+      "duration_ms": 27,
+      "error": null
+    }
+  ],
+  "total_passed": 9,
+  "total_failed": 0
+}

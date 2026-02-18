@@ -46,11 +46,6 @@ from telegram.ext import (
     ContextTypes,
 )
 
-# Unified Capabilities (shared across all bots)
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from services.capabilities import get_capabilities
-
 # Import the routing layer
 try:
     from telegram_router import NodeRouter, get_router
@@ -59,17 +54,12 @@ except ImportError:
     HAS_ROUTER = False
     print("WARNING: telegram_router not found, using fallback mode")
 
-# Unified capabilities instance
-caps = get_capabilities()
-
 # ============================================================================
 # Configuration
 # ============================================================================
 
 # Create bot via @BotFather and set the token
-BOT_TOKEN = os.getenv("FRIDAY_BOT_TOKEN")
-if not BOT_TOKEN:
-    raise RuntimeError("FRIDAY_BOT_TOKEN env var is required")
+BOT_TOKEN = os.getenv("FRIDAY_BOT_TOKEN", "8422197159:AAGq_QCA-yHzktFOXF5wF83KuaaAK5oZ1AI")
 ALLOWED_USERS = [8445149012]  # Mike's Telegram ID
 
 # Services (fallback if router not available)
