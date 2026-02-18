@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Telegram Mini App theme integration */
+:root {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #000000;
+  --tg-theme-hint-color: #999999;
+  --tg-theme-link-color: #2481cc;
+  --tg-theme-button-color: #2481cc;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f0f0f0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
+}
+
+/* Custom scrollbar for Telegram Mini App */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--tg-theme-secondary-bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tg-theme-hint-color);
+  border-radius: 2px;
+}
+
+/* Utility classes for Telegram theming */
+@layer utilities {
+  .bg-tg-bg {
+    background-color: var(--tg-theme-bg-color);
+  }
+  .bg-tg-secondary {
+    background-color: var(--tg-theme-secondary-bg-color);
+  }
+  .text-tg {
+    color: var(--tg-theme-text-color);
+  }
+  .text-tg-hint {
+    color: var(--tg-theme-hint-color);
+  }
+  .text-tg-link {
+    color: var(--tg-theme-link-color);
+  }
+  .bg-tg-button {
+    background-color: var(--tg-theme-button-color);
+  }
+  .text-tg-button {
+    color: var(--tg-theme-button-text-color);
+  }
+}
