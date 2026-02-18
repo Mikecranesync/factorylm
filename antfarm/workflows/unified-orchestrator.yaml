@@ -1,0 +1,299 @@
+# Unified Orchestrator - Coordinates FactoryLM, Rivet-PRO, and Agent Factory
+id: unified-orchestrator
+name: Unified System Orchestrator
+version: 1
+description: |
+  Master workflow that coordinates across all three systems:
+  - FactoryLM: PLC diagnosis, remote control, capabilities
+  - Rivet-PRO: Equipment OCR, manual lookup, work orders
+  - Agent Factory: Content production, knowledge ingestion
+
+  Entry point for cross-system operations via Telegram or webhooks.
+
+polling:
+  model: default
+  timeoutSeconds: 120
+
+agents:
+  - id: router
+    name: Intent Router
+    role: analysis
+    description: Analyzes incoming request and routes to appropriate subsystem
+    workspace:
+      baseDir: agents
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+  - id: factorylm
+    name: FactoryLM Agent
+    role: coding
+    description: Handles PLC diagnosis, remote control, factory operations
+    workspace:
+      baseDir: agents
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+  - id: rivet
+    name: Rivet-PRO Agent
+    role: coding
+    description: Handles equipment OCR, manual lookup, work order creation
+    workspace:
+      baseDir: agents
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+  - id: agentfactory
+    name: Agent Factory Agent
+    role: coding
+    description: Handles content production, knowledge ingestion, committee review
+    workspace:
+      baseDir: agents
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+  - id: coordinator
+    name: Multi-System Coordinator
+    role: coding
+    description: Coordinates operations that span multiple systems
+    workspace:
+      baseDir: agents
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+  - id: formatter
+    name: Response Formatter
+    role: verification
+    description: Formats final response for Telegram or webhook callback
+    workspace:
+      baseDir: agents
+      files:
+        AGENTS.md: agents/AGENTS.md
+
+steps:
+  - id: route_request
+    agent: router
+    input: |
+      Analyze the incoming request and determine which system(s) to route to.
+
+      REQUEST:
+      {{task}}
+
+      SOURCE: cli
+      USER: system
+      CONTEXT: Direct workflow invocation
+
+      Routing rules:
+      1. PLC/Factory questions -> FactoryLM
+         Keywords: PLC, conveyor, sensor, motor, fault, alarm, diagnosis, factory
+      2. Equipment/Manual questions -> Rivet-PRO
+         Keywords: equipment, manual, nameplate, photo, OCR, work order, maintenance
+      3. Content/Video questions -> Agent Factory
+         Keywords: video, script, content, publish, knowledge, research
+      4. Multi-system -> Coordinator
+         Example: "Create a training video about this PLC fault"
+      5. Remote control -> FactoryLM (nodes capability)
+         Keywords: screenshot, shell, remote, laptop
+
+      Reply with:
+      STATUS: done
+      ROUTE: factorylm | rivet | agentfactory | coordinator | unknown
+      REASON: Why this route was chosen
+      EXTRACTED_INTENT: What the user wants
+      PARAMS: { relevant extracted parameters }
+    expects: "STATUS: done"
+    max_retries: 1
+
+  - id: handle_factorylm
+    agent: factorylm
+    condition: "{{ROUTE}} == 'factorylm'"
+    input: |
+      Handle FactoryLM request.
+
+      INTENT: {{EXTRACTED_INTENT}}
+      PARAMS: {{PARAMS}}
+      USER: {{user_id}}
+
+      Available capabilities:
+      - caps.factory.diagnose(question) - PLC diagnosis
+      - caps.nodes.shell(node, command) - Remote shell
+      - caps.nodes.screenshot(node) - Remote screenshot
+      - caps.voice.speak(text) - TTS
+      - caps.memory.query(question) - RAG memory
+
+      Nodes:
+      - plc-laptop (100.72.2.99) - Factory I/O + Micro 820
+      - travel-laptop (100.83.251.23) - Development
+      - vps (100.68.120.99) - Production services
+
+      Execute the operation using the capabilities API.
+
+      Reply with:
+      STATUS: done
+      RESULT: What was accomplished
+      DATA: { any data to return }
+      NEEDS_FOLLOWUP: true | false
+    expects: "STATUS: done"
+    max_retries: 2
+
+  - id: handle_rivet
+    agent: rivet
+    condition: "{{ROUTE}} == 'rivet'"
+    input: |
+      Handle Rivet-PRO request.
+
+      INTENT: {{EXTRACTED_INTENT}}
+      PARAMS: {{PARAMS}}
+      USER: {{user_id}}
+      IMAGE: {{image_bytes}}  # if photo was sent
+
+      Rivet-PRO capabilities:
+      - OCR Service: Extract equipment info from photos
+      - Equipment Service: Match to CMMS or create new record
+      - Manual Service: Search for equipment manuals
+      - Work Order Service: Create work orders
+
+      Workflows available:
+      - rivet-photo-to-manual: Full photo -> manual pipeline
+      - rivet-work-order: Issue -> work order pipeline
+      - rivet-equipment-onboarding: New equipment setup
+
+      Execute the appropriate workflow or direct API call.
+
+      Reply with:
+      STATUS: done
+      RESULT: What was accomplished
+      DATA: { equipment_id, manual_url, work_order_id, etc. }
+      NEEDS_FOLLOWUP: true | false
+    expects: "STATUS: done"
+    max_retries: 2
+
+  - id: handle_agentfactory
+    agent: agentfactory
+    condition: "{{ROUTE}} == 'agentfactory'"
+    input: |
+      Handle Agent Factory request.
+
+      INTENT: {{EXTRACTED_INTENT}}
+      PARAMS: {{PARAMS}}
+      USER: {{user_id}}
+
+      Agent Factory capabilities:
+      - Video Production: Research -> Script -> Video -> Publish
+      - Knowledge Ingestion: PDF/URL -> Atoms -> Vector DB
+      - Committee Review: 5-committee weighted voting
+
+      40+ agents available across categories:
+      - Executive: AI CEO, Chief of Staff
+      - Research: Research, Atom Builder, Librarian, Quality Checker
+      - Content: Scriptwriter, SEO, Thumbnail
+      - Media: Voice, Video, YouTube Upload
+      - Engagement: Community, Analytics, Social Amplifier
+
+      Execute the appropriate workflow.
+
+      Reply with:
+      STATUS: done
+      RESULT: What was accomplished
+      DATA: { content_id, video_url, atoms_created, etc. }
+      NEEDS_FOLLOWUP: true | false
+    expects: "STATUS: done"
+    max_retries: 2
+
+  - id: handle_coordinator
+    agent: coordinator
+    condition: "{{ROUTE}} == 'coordinator'"
+    input: |
+      Handle cross-system coordination request.
+
+      INTENT: {{EXTRACTED_INTENT}}
+      PARAMS: {{PARAMS}}
+      USER: {{user_id}}
+
+      This request spans multiple systems. Common patterns:
+
+      1. PLC Fault -> Training Content
+         - FactoryLM: Diagnose fault, get details
+         - Agent Factory: Create educational content about fault
+
+      2. Equipment Photo -> Knowledge Base
+         - Rivet-PRO: OCR and identify equipment
+         - Agent Factory: Ingest manual as knowledge atoms
+
+      3. Work Order -> Notification
+         - Rivet-PRO: Create work order
+         - FactoryLM: Send Telegram notification
+
+      4. Research -> Factory Implementation
+         - Agent Factory: Research best practices
+         - FactoryLM: Implement on PLC
+
+      Coordinate the systems in the correct order.
+
+      Reply with:
+      STATUS: done
+      SYSTEMS_USED: [list of systems]
+      RESULTS: { per-system results }
+      FINAL_OUTCOME: Summary of coordinated operation
+    expects: "STATUS: done"
+    max_retries: 2
+
+  - id: format_response
+    agent: formatter
+    input: |
+      Format the final response for the user.
+
+      SOURCE: {{source}}
+      ROUTE: {{ROUTE}}
+      RESULT: {{RESULT}}
+      DATA: {{DATA}}
+      USER: {{user_id}}
+
+      Formatting rules by source:
+      - telegram: Markdown, concise, emoji OK, include action buttons if relevant
+      - webhook: JSON response with status and data
+      - cli: Plain text with structured output
+
+      Include:
+      - Clear summary of what was done
+      - Any relevant data (IDs, URLs, etc.)
+      - Suggested next actions if applicable
+
+      Reply with:
+      STATUS: done
+      FORMATTED_RESPONSE: The response to send
+      RESPONSE_TYPE: text | markdown | json
+      ATTACHMENTS: [any files/images to include]
+    expects: "STATUS: done"
+
+triggers:
+  - type: webhook
+    path: /api/unified
+    method: POST
+  - type: telegram
+    bot: friday
+    commands: ["/ask", "/diagnose", "/equipment", "/content"]
+  - type: manual
+    command: "/unified"
+
+integration:
+  telegram:
+    bots:
+      - friday_bot
+      - factorylm_bot
+      - rivet_bot
+  capabilities:
+    - factory
+    - nodes
+    - voice
+    - memory
+    - photos
+  tailscale:
+    nodes:
+      - plc-laptop: 100.72.2.99
+      - travel-laptop: 100.83.251.23
+      - vps: 100.68.120.99
+
+success_criteria:
+  routing_accuracy: 0.95
+  response_time_max_seconds: 30
+  cross_system_success_rate: 0.85
