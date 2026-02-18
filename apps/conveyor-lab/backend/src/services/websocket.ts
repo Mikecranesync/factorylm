@@ -9,7 +9,7 @@
 
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
-import { conveyorSimulator } from './conveyor-simulator.js';
+import { getConveyor, getConnectionMode, IConveyorController } from './conveyor.js';
 import type { VFDStatus, TelemetryPoint } from '../types/index.js';
 
 interface WSMessage {
@@ -21,6 +21,7 @@ interface WSMessage {
 class TelemetryWebSocket {
   private wss: WebSocketServer | null = null;
   private clients: Set<WebSocket> = new Set();
+  private conveyor: IConveyorController | null = null;
 
   /**
    * Attach WebSocket server to HTTP server
@@ -31,14 +32,20 @@ class TelemetryWebSocket {
       path: '/ws/telemetry',
     });
 
+    this.conveyor = getConveyor();
+
     this.wss.on('connection', (ws) => {
       console.log('[WS] Client connected');
       this.clients.add(ws);
 
       // Send current status immediately
+      const conveyor = getConveyor();
       this.send(ws, {
         type: 'status',
-        data: conveyorSimulator.getStatus(),
+        data: {
+          ...conveyor.getStatus(),
+          connectionMode: getConnectionMode(),
+        },
         timestamp: Date.now(),
       });
 
@@ -64,16 +71,19 @@ class TelemetryWebSocket {
       });
     });
 
-    // Subscribe to simulator events
-    conveyorSimulator.on('status', (status: VFDStatus) => {
+    // Subscribe to conveyor events
+    this.conveyor.on('status', (status: VFDStatus) => {
       this.broadcast({
         type: 'status',
-        data: status,
+        data: {
+          ...status,
+          connectionMode: getConnectionMode(),
+        },
         timestamp: Date.now(),
       });
     });
 
-    conveyorSimulator.on('telemetry', (point: TelemetryPoint) => {
+    this.conveyor.on('telemetry', (point: TelemetryPoint) => {
       this.broadcast({
         type: 'telemetry',
         data: point,
@@ -81,7 +91,7 @@ class TelemetryWebSocket {
       });
     });
 
-    conveyorSimulator.on('runComplete', (data: { runId: string; summary: any }) => {
+    this.conveyor.on('runComplete', (data: { runId: string; summary: any }) => {
       this.broadcast({
         type: 'runComplete',
         data,
@@ -89,7 +99,7 @@ class TelemetryWebSocket {
       });
     });
 
-    console.log('[WS] WebSocket server attached at /ws/telemetry');
+    console.log(`[WS] WebSocket server attached at /ws/telemetry (mode: ${getConnectionMode()})`);
   }
 
   /**

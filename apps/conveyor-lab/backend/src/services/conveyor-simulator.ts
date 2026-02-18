@@ -300,5 +300,8 @@ class ConveyorSimulator extends EventEmitter {
   }
 }
 
-// Singleton instance
+// Export the class for use with conveyor service
+export { ConveyorSimulator };
+
+// Legacy singleton instance (deprecated - use getConveyor() from conveyor.ts)
 export const conveyorSimulator = new ConveyorSimulator();
