@@ -1,0 +1,258 @@
+{
+  "start_time": "2026-02-15T00:12:15.420227",
+  "end_time": "2026-02-15T00:13:14.070670",
+  "total_tests": 25,
+  "passed": 25,
+  "results": [
+    {
+      "category": "greetings",
+      "message": "Hey Pepper",
+      "response": "Message sent: 9",
+      "error": null,
+      "latency_ms": 1076.7626762390137,
+      "timestamp": "2026-02-15T00:12:15.420227",
+      "trace_id": "test_1771132336496",
+      "success": true
+    },
+    {
+      "category": "greetings",
+      "message": "What can you do?",
+      "response": "Message sent: 10",
+      "error": null,
+      "latency_ms": 1104.867935180664,
+      "timestamp": "2026-02-15T00:12:18.005558",
+      "trace_id": "test_1771132339110",
+      "success": true
+    },
+    {
+      "category": "greetings",
+      "message": "Tell me about your capabilities",
+      "response": "Message sent: 11",
+      "error": null,
+      "latency_ms": 810.6951713562012,
+      "timestamp": "2026-02-15T00:12:20.620518",
+      "trace_id": "test_1771132341431",
+      "success": true
+    },
+    {
+      "category": "greetings",
+      "message": "Who are you?",
+      "response": "Message sent: 12",
+      "error": null,
+      "latency_ms": 888.4601593017578,
+      "timestamp": "2026-02-15T00:12:22.943114",
+      "trace_id": "test_1771132343831",
+      "success": true
+    },
+    {
+      "category": "greetings",
+      "message": "Help me out",
+      "response": "Message sent: 13",
+      "error": null,
+      "latency_ms": 809.4089031219482,
+      "timestamp": "2026-02-15T00:12:25.346458",
+      "trace_id": "test_1771132346155",
+      "success": true
+    },
+    {
+      "category": "equipment",
+      "message": "What's the status of the PLC?",
+      "response": "Message sent: 14",
+      "error": null,
+      "latency_ms": 794.0900325775146,
+      "timestamp": "2026-02-15T00:12:27.660364",
+      "trace_id": "test_1771132348454",
+      "success": true
+    },
+    {
+      "category": "equipment",
+      "message": "Check conveyor CONV-001",
+      "response": "Message sent: 15",
+      "error": null,
+      "latency_ms": 795.1781749725342,
+      "timestamp": "2026-02-15T00:12:29.957278",
+      "trace_id": "test_1771132350752",
+      "success": true
+    },
+    {
+      "category": "equipment",
+      "message": "Any alarms on the factory floor?",
+      "response": "Message sent: 16",
+      "error": null,
+      "latency_ms": 809.2033863067627,
+      "timestamp": "2026-02-15T00:12:32.258283",
+      "trace_id": "test_1771132353067",
+      "success": true
+    },
+    {
+      "category": "equipment",
+      "message": "Read tag Motor_Speed",
+      "response": "Message sent: 17",
+      "error": null,
+      "latency_ms": 820.3239440917969,
+      "timestamp": "2026-02-15T00:12:34.581503",
+      "trace_id": "test_1771132355401",
+      "success": true
+    },
+    {
+      "category": "equipment",
+      "message": "Show me equipment health",
+      "response": "Message sent: 18",
+      "error": null,
+      "latency_ms": 784.9760055541992,
+      "timestamp": "2026-02-15T00:12:36.906266",
+      "trace_id": "test_1771132357691",
+      "success": true
+    },
+    {
+      "category": "goals",
+      "message": "What are my goals this week?",
+      "response": "Message sent: 19",
+      "error": null,
+      "latency_ms": 814.9063587188721,
+      "timestamp": "2026-02-15T00:12:39.202824",
+      "trace_id": "test_1771132360017",
+      "success": true
+    },
+    {
+      "category": "goals",
+      "message": "Create a goal to deploy RideView v2",
+      "response": "Message sent: 20",
+      "error": null,
+      "latency_ms": 786.6003513336182,
+      "timestamp": "2026-02-15T00:12:41.519448",
+      "trace_id": "test_1771132362306",
+      "success": true
+    },
+    {
+      "category": "goals",
+      "message": "Update goal progress to 50%",
+      "response": "Message sent: 21",
+      "error": null,
+      "latency_ms": 794.3875789642334,
+      "timestamp": "2026-02-15T00:12:43.809692",
+      "trace_id": "test_1771132364604",
+      "success": true
+    },
+    {
+      "category": "goals",
+      "message": "Show P0 priorities",
+      "response": "Message sent: 22",
+      "error": null,
+      "latency_ms": 795.6826686859131,
+      "timestamp": "2026-02-15T00:12:46.104651",
+      "trace_id": "test_1771132366900",
+      "success": true
+    },
+    {
+      "category": "goals",
+      "message": "Weekly review time",
+      "response": "Message sent: 23",
+      "error": null,
+      "latency_ms": 878.6251544952393,
+      "timestamp": "2026-02-15T00:12:48.416576",
+      "trace_id": "test_1771132369295",
+      "success": true
+    },
+    {
+      "category": "voice",
+      "message": "Say that in voice",
+      "response": "Message sent: 24",
+      "error": null,
+      "latency_ms": 810.5809688568115,
+      "timestamp": "2026-02-15T00:12:50.799376",
+      "trace_id": "test_1771132371609",
+      "success": true
+    },
+    {
+      "category": "voice",
+      "message": "Give me an audio summary",
+      "response": "Message sent: 25",
+      "error": null,
+      "latency_ms": 800.2128601074219,
+      "timestamp": "2026-02-15T00:12:53.123322",
+      "trace_id": "test_1771132373923",
+      "success": true
+    },
+    {
+      "category": "voice",
+      "message": "Speak to me",
+      "response": "Message sent: 26",
+      "error": null,
+      "latency_ms": 811.6734027862549,
+      "timestamp": "2026-02-15T00:12:55.433254",
+      "trace_id": "test_1771132376244",
+      "success": true
+    },
+    {
+      "category": "system",
+      "message": "/status",
+      "response": "Message sent: 27",
+      "error": null,
+      "latency_ms": 822.4802017211914,
+      "timestamp": "2026-02-15T00:12:57.747116",
+      "trace_id": "test_1771132378569",
+      "success": true
+    },
+    {
+      "category": "system",
+      "message": "Show system health",
+      "response": "Message sent: 28",
+      "error": null,
+      "latency_ms": 804.5389652252197,
+      "timestamp": "2026-02-15T00:13:00.077653",
+      "trace_id": "test_1771132380882",
+      "success": true
+    },
+    {
+      "category": "system",
+      "message": "Any errors today?",
+      "response": "Message sent: 29",
+      "error": null,
+      "latency_ms": 871.4027404785156,
+      "timestamp": "2026-02-15T00:13:02.392645",
+      "trace_id": "test_1771132383264",
+      "success": true
+    },
+    {
+      "category": "system",
+      "message": "Check the VPS",
+      "response": "Message sent: 30",
+      "error": null,
+      "latency_ms": 836.5731239318848,
+      "timestamp": "2026-02-15T00:13:04.770215",
+      "trace_id": "test_1771132385606",
+      "success": true
+    },
+    {
+      "category": "edge_cases",
+      "message": "Do a barrel roll",
+      "response": "Message sent: 31",
+      "error": null,
+      "latency_ms": 850.0962257385254,
+      "timestamp": "2026-02-15T00:13:07.107468",
+      "trace_id": "test_1771132387957",
+      "success": true
+    },
+    {
+      "category": "edge_cases",
+      "message": "What's Mike's password?",
+      "response": "Message sent: 32",
+      "error": null,
+      "latency_ms": 790.5924320220947,
+      "timestamp": "2026-02-15T00:13:09.457781",
+      "trace_id": "test_1771132390248",
+      "success": true
+    },
+    {
+      "category": "edge_cases",
+      "message": "Tell me a joke about factories",
+      "response": "Message sent: 33",
+      "error": null,
+      "latency_ms": 804.0745258331299,
+      "timestamp": "2026-02-15T00:13:11.761867",
+      "trace_id": "test_1771132392565",
+      "success": true
+    }
+  ]
+}

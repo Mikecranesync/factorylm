@@ -1,0 +1,411 @@
+/**
+ * Industrial HMI Theme - ISA-101 Compliant
+ *
+ * Based on FactoryTalk View / Step 7 HMI design standards
+ * "Gray is Good" - Color = Attention Needed
+ */
+
+/* ============================================================================
+   ISA-101 Color Variables
+   ============================================================================ */
+:root {
+  /* Background & Panel Colors */
+  --hmi-bg: #1a1a1a;
+  --hmi-panel: #2d2d2d;
+  --hmi-panel-dark: #232323;
+  --hmi-panel-light: #3a3a3a;
+  --hmi-inset: #1f1f1f;
+  --hmi-border: #444444;
+
+  /* Equipment State Colors */
+  --hmi-off: #4a4a4a;
+  --hmi-on: #e0e0e0;
+
+  /* Text Colors */
+  --hmi-text-muted: #808080;
+  --hmi-text-normal: #b0b0b0;
+  --hmi-text-active: #ffffff;
+  --hmi-text-label: #666666;
+
+  /* Status Colors (ISA-101) */
+  --hmi-running: #2d862d;
+  --hmi-running-glow: rgba(45, 134, 45, 0.6);
+  --hmi-stopped: #4a4a4a;
+  --hmi-fault: #ff0000;
+  --hmi-fault-glow: rgba(255, 0, 0, 0.6);
+  --hmi-warning: #ffd700;
+  --hmi-warning-glow: rgba(255, 215, 0, 0.5);
+  --hmi-manual: #4169e1;
+  --hmi-transition: #ffd700;
+
+  /* Alarm Priority Colors */
+  --hmi-alarm-critical: #ff0000;
+  --hmi-alarm-high: #ff8c00;
+  --hmi-alarm-medium: #ffd700;
+  --hmi-alarm-low: #00bfff;
+  --hmi-alarm-diagnostic: #4169e1;
+
+  /* Accent Colors */
+  --hmi-accent: #4a90d9;
+  --hmi-accent-dim: #2a5080;
+}
+
+/* ============================================================================
+   Base Styles
+   ============================================================================ */
+.hmi-app {
+  background-color: var(--hmi-bg);
+  color: var(--hmi-text-normal);
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+/* Monospace for values */
+.hmi-value {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================================
+   Panel Styles - 3D Industrial Look
+   ============================================================================ */
+.hmi-panel {
+  background: linear-gradient(135deg, var(--hmi-panel-light) 0%, var(--hmi-panel) 50%, var(--hmi-panel-dark) 100%);
+  border: 1px solid var(--hmi-border);
+  border-radius: 4px;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,0.05),
+    inset -1px -1px 0 rgba(0,0,0,0.2),
+    2px 2px 8px rgba(0,0,0,0.3);
+}
+
+.hmi-panel-inset {
+  background: var(--hmi-inset);
+  border: 1px solid #111;
+  border-radius: 2px;
+  box-shadow:
+    inset 2px 2px 4px rgba(0,0,0,0.5),
+    inset -1px -1px 2px rgba(255,255,255,0.03);
+}
+
+/* ============================================================================
+   Button Styles - Physical Button Appearance
+   ============================================================================ */
+.hmi-button {
+  position: relative;
+  background: linear-gradient(180deg, #4a4a4a 0%, #3a3a3a 50%, #2a2a2a 100%);
+  border: 2px solid #555;
+  border-radius: 6px;
+  color: var(--hmi-text-normal);
+  font-family: 'Segoe UI', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 12px 20px;
+  min-width: 80px;
+  min-height: 50px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,0.1),
+    inset -1px -1px 0 rgba(0,0,0,0.2),
+    0 4px 0 #1a1a1a,
+    0 6px 8px rgba(0,0,0,0.4);
+}
+
+.hmi-button:hover {
+  background: linear-gradient(180deg, #555 0%, #454545 50%, #353535 100%);
+}
+
+.hmi-button:active,
+.hmi-button.pressed {
+  transform: translateY(3px);
+  box-shadow:
+    inset 1px 1px 0 rgba(0,0,0,0.2),
+    inset -1px -1px 0 rgba(255,255,255,0.05),
+    0 1px 0 #1a1a1a,
+    0 2px 4px rgba(0,0,0,0.3);
+}
+
+.hmi-button.active {
+  background: linear-gradient(180deg, var(--hmi-running) 0%, #246624 50%, #1d5a1d 100%);
+  border-color: #3a9a3a;
+  color: white;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,0.2),
+    inset -1px -1px 0 rgba(0,0,0,0.2),
+    0 4px 0 #1a1a1a,
+    0 6px 8px rgba(0,0,0,0.4),
+    0 0 20px var(--hmi-running-glow);
+}
+
+.hmi-button.danger {
+  background: linear-gradient(180deg, #cc3333 0%, #aa2222 50%, #882222 100%);
+  border-color: #ff4444;
+  color: white;
+}
+
+.hmi-button.danger:active {
+  background: linear-gradient(180deg, #aa2222 0%, #882222 50%, #662222 100%);
+}
+
+.hmi-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ============================================================================
+   Status Lamp Styles
+   ============================================================================ */
+.hmi-lamp {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #333;
+  background: radial-gradient(circle at 30% 30%, #666 0%, var(--hmi-off) 60%, #222 100%);
+  box-shadow:
+    inset 1px 1px 3px rgba(255,255,255,0.1),
+    inset -1px -1px 3px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+}
+
+.hmi-lamp.on {
+  background: radial-gradient(circle at 30% 30%, #7fff7f 0%, var(--hmi-running) 50%, #1a5a1a 100%);
+  box-shadow:
+    inset 1px 1px 3px rgba(255,255,255,0.3),
+    0 0 15px var(--hmi-running-glow),
+    0 0 30px var(--hmi-running-glow);
+}
+
+.hmi-lamp.fault {
+  background: radial-gradient(circle at 30% 30%, #ff6666 0%, var(--hmi-fault) 50%, #990000 100%);
+  box-shadow:
+    inset 1px 1px 3px rgba(255,255,255,0.3),
+    0 0 15px var(--hmi-fault-glow),
+    0 0 30px var(--hmi-fault-glow);
+  animation: lamp-pulse 0.5s ease-in-out infinite;
+}
+
+.hmi-lamp.warning {
+  background: radial-gradient(circle at 30% 30%, #ffff99 0%, var(--hmi-warning) 50%, #cc9900 100%);
+  box-shadow:
+    inset 1px 1px 3px rgba(255,255,255,0.3),
+    0 0 15px var(--hmi-warning-glow);
+}
+
+@keyframes lamp-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ============================================================================
+   Numeric Display (LCD Style)
+   ============================================================================ */
+.hmi-display {
+  background: #0a0a0a;
+  border: 2px solid #333;
+  border-radius: 4px;
+  padding: 8px 12px;
+  box-shadow:
+    inset 2px 2px 6px rgba(0,0,0,0.8),
+    inset -1px -1px 2px rgba(255,255,255,0.02);
+}
+
+.hmi-display-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--hmi-text-label);
+  margin-bottom: 4px;
+}
+
+.hmi-display-value {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--hmi-text-active);
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+  line-height: 1;
+}
+
+.hmi-display-unit {
+  font-size: 12px;
+  color: var(--hmi-text-muted);
+  margin-left: 4px;
+}
+
+/* ============================================================================
+   Alarm Banner
+   ============================================================================ */
+.hmi-alarm-banner {
+  background: linear-gradient(90deg, #2a0000 0%, #400000 50%, #2a0000 100%);
+  border: 2px solid var(--hmi-alarm-critical);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: alarm-flash 0.5s ease-in-out infinite;
+}
+
+.hmi-alarm-banner.acknowledged {
+  animation: none;
+  background: linear-gradient(90deg, #200000 0%, #300000 50%, #200000 100%);
+}
+
+.hmi-alarm-banner .alarm-text {
+  flex: 1;
+  font-family: 'Consolas', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+}
+
+@keyframes alarm-flash {
+  0%, 100% {
+    background: linear-gradient(90deg, #2a0000 0%, #500000 50%, #2a0000 100%);
+    border-color: var(--hmi-alarm-critical);
+  }
+  50% {
+    background: linear-gradient(90deg, #500000 0%, #800000 50%, #500000 100%);
+    border-color: #ff6666;
+  }
+}
+
+/* ============================================================================
+   Slider (Industrial Style)
+   ============================================================================ */
+.hmi-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  background: var(--hmi-inset);
+  border: 2px solid #444;
+  border-radius: 2px;
+  outline: none;
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.hmi-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 32px;
+  background: linear-gradient(180deg, #666 0%, #4a4a4a 50%, #333 100%);
+  border: 2px solid #777;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,0.2),
+    2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.hmi-slider::-webkit-slider-thumb:hover {
+  background: linear-gradient(180deg, #777 0%, #5a5a5a 50%, #444 100%);
+}
+
+.hmi-slider::-moz-range-thumb {
+  width: 28px;
+  height: 32px;
+  background: linear-gradient(180deg, #666 0%, #4a4a4a 50%, #333 100%);
+  border: 2px solid #777;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   PTT Button
+   ============================================================================ */
+.hmi-ptt-button {
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 50%, #1a1a1a 100%);
+  border: 3px solid #555;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow:
+    inset 2px 2px 0 rgba(255,255,255,0.1),
+    inset -2px -2px 0 rgba(0,0,0,0.3),
+    0 6px 0 #111,
+    0 8px 15px rgba(0,0,0,0.5);
+}
+
+.hmi-ptt-button:hover {
+  background: linear-gradient(180deg, #454545 0%, #353535 50%, #252525 100%);
+}
+
+.hmi-ptt-button:active,
+.hmi-ptt-button.recording {
+  transform: translateY(4px);
+  box-shadow:
+    inset 2px 2px 0 rgba(0,0,0,0.2),
+    inset -2px -2px 0 rgba(255,255,255,0.05),
+    0 2px 0 #111,
+    0 3px 8px rgba(0,0,0,0.4);
+}
+
+.hmi-ptt-button.recording {
+  background: linear-gradient(180deg, #cc3333 0%, #aa2222 50%, #882222 100%);
+  border-color: #ff4444;
+  animation: ptt-glow 1s ease-in-out infinite;
+}
+
+@keyframes ptt-glow {
+  0%, 100% { box-shadow: 0 2px 0 #111, 0 0 20px rgba(255,0,0,0.4); }
+  50% { box-shadow: 0 2px 0 #111, 0 0 40px rgba(255,0,0,0.7); }
+}
+
+.hmi-ptt-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--hmi-text-muted);
+}
+
+.hmi-ptt-button.recording .hmi-ptt-icon {
+  color: white;
+}
+
+/* ============================================================================
+   Gauge Container
+   ============================================================================ */
+.hmi-gauge-container {
+  background: var(--hmi-panel);
+  border: 2px solid var(--hmi-border);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,0.05),
+    2px 2px 8px rgba(0,0,0,0.3);
+}
+
+/* ============================================================================
+   Utility Classes
+   ============================================================================ */
+.hmi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--hmi-text-label);
+}
+
+.hmi-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--hmi-border) 20%, var(--hmi-border) 80%, transparent 100%);
+  margin: 8px 0;
+}
+
+/* Status text colors */
+.text-running { color: var(--hmi-running); }
+.text-stopped { color: var(--hmi-text-muted); }
+.text-fault { color: var(--hmi-fault); }
+.text-warning { color: var(--hmi-warning); }

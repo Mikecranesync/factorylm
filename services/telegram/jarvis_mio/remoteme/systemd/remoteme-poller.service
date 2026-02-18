@@ -1,0 +1,16 @@
+[Unit]
+Description=RemoteMe Telegram Long Polling
+After=network.target remoteme.service
+Wants=remoteme.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/remoteme
+Environment=PATH=/opt/remoteme/venv/bin:/usr/bin
+ExecStart=/opt/remoteme/venv/bin/python /opt/remoteme/poll_and_forward.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

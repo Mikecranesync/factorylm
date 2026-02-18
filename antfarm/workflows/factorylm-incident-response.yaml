@@ -1,0 +1,301 @@
+id: factorylm-incident-response
+name: PLC Incident Response Pipeline
+version: 1
+description: Automated incident detection, AI diagnosis via Cosmos Reason 2, and operator notification via Telegram
+
+agents:
+  - id: fault_detector
+    name: Fault Detector
+    role: scanning
+    description: Monitors Matrix API for new faults, creates incident records from tag snapshots
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/fault_detector
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        matrix_api: services/matrix/app.py
+
+  - id: cosmos_analyzer
+    name: Cosmos AI Analyzer
+    role: analysis
+    description: Runs NVIDIA Cosmos Reason 2 analysis on incidents for root-cause detection
+    timeoutSeconds: 60
+    workspace:
+      baseDir: agents/cosmos_analyzer
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        cosmos_agent: cosmos/agent.py
+
+  - id: diagnosis_engine
+    name: Diagnosis Engine
+    role: analysis
+    description: Generates human-readable diagnosis from PLC state and AI insights
+    timeoutSeconds: 45
+    workspace:
+      baseDir: agents/diagnosis_engine
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        diagnosis_service: services/diagnosis/main.py
+
+  - id: telegram_notifier
+    name: Telegram Notifier
+    role: verification
+    description: Sends formatted alerts to operators via Gus bot on Telegram
+    timeoutSeconds: 15
+    workspace:
+      baseDir: agents/telegram_notifier
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        gus_bot: services/telegram/factorylm_bot.py
+
+  - id: insight_recorder
+    name: Insight Recorder
+    role: coding
+    description: Stores Cosmos insights back to Matrix database for historical analysis
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/insight_recorder
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        matrix_api: services/matrix/app.py
+
+steps:
+  - id: detect_fault
+    agent: fault_detector
+    input: |
+      Poll Matrix API for new incidents.
+
+      API Endpoint: {{MATRIX_API_URL}}/api/incidents?status=open
+
+      For each new incident:
+      1. Extract incident details:
+         - incident_id
+         - node_id (e.g., "plc-laptop", "travel-laptop")
+         - error_code
+         - error_message
+         - timestamp
+      2. Fetch associated tag snapshot from /api/tags
+      3. Check for video clips if available
+
+      Matrix API endpoints:
+      - GET /api/incidents - List incidents
+      - GET /api/tags - Current tag values
+      - GET /api/video_clips/{incident_id} - Associated video
+
+      Output format:
+      STATUS: done
+      INCIDENT_ID: <uuid>
+      NODE_ID: <node identifier>
+      ERROR_CODE: <code>
+      ERROR_MESSAGE: <message>
+      TAGS: {<current tag values as JSON>}
+      HAS_VIDEO: true|false
+      VIDEO_URL: <url if available>
+    expects: "INCIDENT_ID"
+    max_retries: 1
+
+  - id: run_cosmos_analysis
+    agent: cosmos_analyzer
+    input: |
+      Analyze incident using NVIDIA Cosmos Reason 2.
+
+      Incident context:
+      - Incident ID: {{INCIDENT_ID}}
+      - Node: {{NODE_ID}}
+      - Error: {{ERROR_CODE}} - {{ERROR_MESSAGE}}
+      - Tags: {{TAGS}}
+      - Video URL: {{VIDEO_URL}}
+
+      Call CosmosAgent.on_incident():
+      ```python
+      from cosmos.agent import CosmosAgent
+
+      agent = CosmosAgent()
+      insight = await agent.on_incident(
+          incident_id="{{INCIDENT_ID}}",
+          node_id="{{NODE_ID}}",
+          tags={{TAGS}},
+          video_url="{{VIDEO_URL}}"
+      )
+      ```
+
+      Cosmos analyzes:
+      - PLC tag patterns indicating fault conditions
+      - Video footage for visual anomalies
+      - Historical patterns for similar incidents
+
+      Output format:
+      STATUS: done
+      SUMMARY: <brief description of issue>
+      ROOT_CAUSE: <identified root cause>
+      CONFIDENCE: <0.0-1.0>
+      REASONING: <step-by-step analysis>
+      SUGGESTED_CHECKS: [<list of recommended actions>]
+      COSMOS_MODEL: nvidia/cosmos-reason2
+    expects: "CONFIDENCE"
+    max_retries: 2
+    on_fail:
+      escalate_to: human
+
+  - id: generate_diagnosis
+    agent: diagnosis_engine
+    input: |
+      Generate actionable diagnosis for technician.
+
+      PLC State from tags:
+      {{TAGS}}
+
+      Cosmos Insight:
+      - Summary: {{SUMMARY}}
+      - Root Cause: {{ROOT_CAUSE}}
+      - Confidence: {{CONFIDENCE}}
+      - Reasoning: {{REASONING}}
+      - Suggested Checks: {{SUGGESTED_CHECKS}}
+
+      Call Diagnosis Service:
+      ```
+      POST {{DIAGNOSIS_SERVICE_URL}}/diagnose
+      {
+        "incident_id": "{{INCIDENT_ID}}",
+        "tags": {{TAGS}},
+        "cosmos_insight": {
+          "summary": "{{SUMMARY}}",
+          "root_cause": "{{ROOT_CAUSE}}",
+          "confidence": {{CONFIDENCE}}
+        }
+      }
+      ```
+
+      Create diagnosis under 200 words:
+      1. Likely cause (plain language)
+      2. Immediate action (what to do first)
+      3. Preventive measures (avoid recurrence)
+
+      Output format:
+      STATUS: done
+      DIAGNOSIS: <technician-friendly explanation>
+      SEVERITY: critical|high|medium|low
+      IMMEDIATE_ACTION: <first step to take>
+      PREVENTIVE_MEASURES: [<list of recommendations>]
+    expects: "DIAGNOSIS"
+    max_retries: 1
+
+  - id: send_alert
+    agent: telegram_notifier
+    input: |
+      Send alert to operators via Telegram (Gus bot).
+
+      Alert data:
+      - Node: {{NODE_ID}}
+      - Error: {{ERROR_CODE}} - {{ERROR_MESSAGE}}
+      - Confidence: {{CONFIDENCE}}
+      - Diagnosis: {{DIAGNOSIS}}
+      - Severity: {{SEVERITY}}
+      - Immediate Action: {{IMMEDIATE_ACTION}}
+      - Suggested Checks: {{SUGGESTED_CHECKS}}
+
+      Message template:
+      ```
+      🚨 ALERT from Gus: Fault on {{NODE_ID}}
+
+      Error: {{ERROR_CODE}} — {{ERROR_MESSAGE}}
+
+      📊 Current State:
+      Motor: {{motor_status}}
+      Temp: {{temperature}}°C
+      Pressure: {{pressure}} PSI
+
+      🧠 AI Diagnosis ({{CONFIDENCE}}% confidence):
+      {{DIAGNOSIS}}
+
+      ⚡ Immediate Action:
+      {{IMMEDIATE_ACTION}}
+
+      🔍 Suggested Checks:
+      {{SUGGESTED_CHECKS}}
+
+      Severity: {{SEVERITY}}
+      ```
+
+      Send to allowed users from config.
+      Use Telegram Bot API via python-telegram-bot.
+
+      Output format:
+      STATUS: done
+      MESSAGE_SENT: true
+      RECIPIENTS: [<list of user IDs notified>]
+      MESSAGE_ID: <telegram message id>
+    expects: "MESSAGE_SENT: true"
+    max_retries: 2
+
+  - id: store_insight
+    agent: insight_recorder
+    input: |
+      Store Cosmos insight in Matrix database.
+
+      POST to {{MATRIX_API_URL}}/api/insights:
+      ```json
+      {
+        "incident_id": "{{INCIDENT_ID}}",
+        "summary": "{{SUMMARY}}",
+        "root_cause": "{{ROOT_CAUSE}}",
+        "confidence": {{CONFIDENCE}},
+        "reasoning": "{{REASONING}}",
+        "suggested_checks": {{SUGGESTED_CHECKS}},
+        "cosmos_model": "nvidia/cosmos-reason2",
+        "diagnosis": "{{DIAGNOSIS}}",
+        "severity": "{{SEVERITY}}",
+        "notification_sent": true,
+        "recipients": {{RECIPIENTS}}
+      }
+      ```
+
+      Also update incident status:
+      PATCH {{MATRIX_API_URL}}/api/incidents/{{INCIDENT_ID}}
+      ```json
+      {
+        "status": "analyzed",
+        "analyzed_at": "<timestamp>",
+        "insight_id": "<new insight uuid>"
+      }
+      ```
+
+      Output format:
+      STATUS: done
+      INSIGHT_ID: <uuid>
+      INCIDENT_UPDATED: true
+    expects: "INSIGHT_ID"
+    max_retries: 1
+
+triggers:
+  - type: poll
+    endpoint: "{{MATRIX_API_URL}}/api/incidents?status=open"
+    interval_seconds: 5
+  - type: webhook
+    path: /api/tags
+    method: POST
+
+integration:
+  services:
+    matrix_api:
+      url: "http://100.72.2.99:8000"
+      endpoints:
+        - /api/tags
+        - /api/incidents
+        - /api/insights
+        - /api/video_clips
+    diagnosis_service:
+      url: "http://100.68.120.99:8200"
+      endpoints:
+        - /diagnose
+        - /health
+    jarvis_nodes:
+      plc_laptop: "http://100.72.2.99:8765"
+      travel_laptop: "http://100.83.251.23:8765"
+  capabilities:
+    module: services.capabilities
+    client: CapabilityClient
+    used:
+      - factory
+      - telemetry
+      - nodes

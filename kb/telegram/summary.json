@@ -1,0 +1,16 @@
+{
+  "total_messages": 5428,
+  "user_messages": 2712,
+  "bot_messages": 2716,
+  "conversation_turns": 2706,
+  "unique_users": 0,
+  "date_range": "01.02.2026 to 31.01.2026",
+  "intents": {
+    "status": 113,
+    "diagnosis": 950,
+    "conversation": 1589,
+    "shell": 9,
+    "files": 44,
+    "screenshot": 1
+  }
+}

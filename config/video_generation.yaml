@@ -1,0 +1,160 @@
+# FactoryLM Video Generation Configuration
+# NVIDIA Cosmos Cookoff 2026
+
+# Cosmos-Predict2 Settings
+cosmos_predict:
+  # Model selection: 2B (dev), 7B (balanced), 14B (competition)
+  model_size: "14B"
+
+  # API Configuration
+  api_base_url: "https://integrate.api.nvidia.com/v1"
+  # API key from env: NVIDIA_COSMOS_API_KEY
+
+  # Generation parameters
+  generation:
+    max_segment_duration: 5.0  # Cosmos max per inference
+    guidance_scale: 7.5
+    num_inference_steps: 50
+    best_of_n: 5  # Generate N candidates, pick best
+
+  # Model-specific settings
+  models:
+    2B:
+      resolution: [1024, 576]
+      fps: 24
+      best_of_n: 2
+      description: "Fast iteration, lower quality"
+
+    7B:
+      resolution: [1280, 720]
+      fps: 24
+      best_of_n: 3
+      description: "Balanced quality/speed"
+
+    14B:
+      resolution: [1920, 1080]
+      fps: 30
+      best_of_n: 5
+      description: "Competition quality"
+
+# Quality Validation Thresholds
+quality_validator:
+  thresholds:
+    physics_consistency: 0.80
+    visual_coherence: 0.85
+    prompt_alignment: 0.90
+    motion_smoothness: 0.80
+    industrial_accuracy: 0.75
+
+  # Weights for overall score
+  weights:
+    physics_consistency: 0.20
+    visual_coherence: 0.20
+    prompt_alignment: 0.30
+    motion_smoothness: 0.15
+    industrial_accuracy: 0.15
+
+  # Frame extraction for analysis
+  frame_analysis:
+    max_frames: 12
+    key_frame_interval: auto  # Calculated from duration
+
+# Post-Processing Settings
+post_processor:
+  # Branding
+  branding:
+    intro_video: null  # Path to intro video
+    outro_video: null  # Path to outro video
+    watermark_image: "assets/factorylm_watermark.png"
+    watermark_position: "bottom-right"
+    watermark_opacity: 0.3
+    intro_duration: 3.0
+    outro_duration: 2.0
+
+  # Audio
+  audio:
+    narration_volume: 1.0
+    music_volume: 0.15  # Background at -20dB
+    ducking: true  # Lower music during narration
+    tts_provider: "edge"  # edge (free), openai (paid), elevenlabs (best)
+
+  # Compression presets
+  presets:
+    youtube_shorts:
+      crf: 20
+      preset: "medium"
+      max_bitrate: "12M"
+
+    youtube_standard:
+      crf: 18
+      preset: "slow"
+      max_bitrate: "20M"
+
+    competition:
+      crf: 16
+      preset: "slow"
+      max_bitrate: "25M"
+
+# Distribution Platforms
+distribution:
+  platforms:
+    youtube:
+      enabled: true
+      oauth_path: "config/youtube_oauth.json"
+      client_secrets: "config/client_secrets.json"
+      default_category: "Education"
+      default_tags:
+        - factorylm
+        - industrial
+        - plc
+        - automation
+        - ai
+        - shorts
+
+    github_pr:
+      enabled: true
+      repo: "Mikecranesync/factorylm"
+      # Token from env: GITHUB_TOKEN
+
+    competition:
+      enabled: true
+      submission_dir: "competition/submissions"
+      competition_url: "https://developer.nvidia.com/cosmos-cookoff"
+
+    social:
+      enabled: false  # Manual posting recommended
+
+# Content Judge Integration
+content_judge:
+  min_score_for_generation: 8.0
+  auto_revision_threshold: 7.0
+  max_revision_attempts: 2
+
+# Output Directories
+paths:
+  generated_videos: "output/generated"
+  validated_videos: "output/validated"
+  processed_videos: "output/processed"
+  competition_submissions: "competition/submissions"
+  temp_files: "${TEMP}/factorylm_video"
+
+# Competition Timeline (Feb 2026)
+competition:
+  name: "NVIDIA Cosmos Cookoff 2026"
+  deadline: "2026-02-26T17:00:00-08:00"
+  target_videos: 3
+  demo_duration: 60  # seconds
+
+  milestones:
+    cosmos_client: "2026-02-18"
+    quality_validator: "2026-02-19"
+    post_processor: "2026-02-20"
+    distribution: "2026-02-21"
+    demo_videos: "2026-02-23"
+    submission: "2026-02-26"
+
+# Logging
+logging:
+  level: "INFO"
+  format: "[%(asctime)s] %(levelname)s %(name)s: %(message)s"
+  file: "logs/video_generation.log"

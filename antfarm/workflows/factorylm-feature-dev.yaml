@@ -1,0 +1,257 @@
+id: factorylm-feature-dev
+name: FactoryLM Feature Development Pipeline
+version: 1
+description: Autonomous feature development using Ralph methodology with multi-agent orchestration
+
+agents:
+  - id: planner
+    name: Feature Planner
+    role: analysis
+    description: Analyzes requirements, breaks down into tasks, creates fix_plan.md with prioritized items
+    timeoutSeconds: 120
+    workspace:
+      baseDir: agents/planner
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        specs: .ralph/specs/
+
+  - id: implementer
+    name: Feature Implementer
+    role: coding
+    description: Implements features following fix_plan.md priorities using Claude Code CLI
+    timeoutSeconds: 900
+    workspace:
+      baseDir: agents/implementer
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        agent_config: .ralph/@AGENT.md
+        ralph_loop: my-ralph/ralph_loop.sh
+
+  - id: tester
+    name: Test Runner
+    role: testing
+    description: Runs test suites, validates implementation, reports coverage
+    timeoutSeconds: 300
+    workspace:
+      baseDir: agents/tester
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        testing_guide: my-ralph/TESTING.md
+
+  - id: reviewer
+    name: Code Reviewer
+    role: verification
+    description: Reviews changes against project conventions, checks quality standards
+    timeoutSeconds: 120
+    workspace:
+      baseDir: agents/reviewer
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+        standards: .github/copilot-instructions.md
+
+  - id: pr_creator
+    name: PR Creator
+    role: pr
+    description: Creates pull request with proper documentation and conventional commit format
+    timeoutSeconds: 60
+    workspace:
+      baseDir: agents/pr_creator
+      files:
+        AGENTS.md: antfarm/agents/AGENTS.md
+
+steps:
+  - id: analyze_requirements
+    agent: planner
+    input: |
+      Analyze the feature request and create a task breakdown.
+
+      Feature request: {{task}}
+
+      Steps:
+      1. Review existing specs in .ralph/specs/ directory
+      2. Check current @fix_plan.md for context
+      3. Search codebase to understand affected areas
+      4. Break down into prioritized tasks
+
+      Output a structured task breakdown:
+      ```
+      - [ ] P1: <highest priority task - must complete first>
+      - [ ] P2: <second priority - depends on P1>
+      - [ ] P3: <third priority>
+      ```
+
+      Consider:
+      - Which files need modification
+      - Dependencies between tasks
+      - Test requirements
+      - Documentation updates
+
+      Output format:
+      STATUS: done
+      TASKS_COUNT: <number of tasks>
+      FIX_PLAN: <markdown task list>
+      ESTIMATED_COMPLEXITY: low|medium|high
+    expects: "STATUS: done"
+    max_retries: 1
+
+  - id: implement_feature
+    agent: implementer
+    type: loop
+    loop:
+      over: tasks
+      completion: all_done
+      fresh_session: true
+      verify_each: true
+      verify_step: run_tests
+    input: |
+      Implement the current task from the fix plan.
+
+      Current task: {{current_story}}
+      Task ID: {{current_story_id}}
+      Progress: {{completed_stories}}/{{stories_remaining}} completed
+
+      Ralph Protocol:
+      1. Focus on ONE task per execution
+      2. Search codebase before making assumptions
+      3. Write tests for new functionality (max 20% of effort)
+      4. Update documentation if needed
+
+      At the end, output RALPH_STATUS block:
+      ```
+      ---RALPH_STATUS---
+      STATUS: IN_PROGRESS | COMPLETE
+      TASKS_COMPLETED_THIS_LOOP: <number>
+      FILES_MODIFIED: <count>
+      TESTS_STATUS: PASSING | FAILING | NOT_RUN
+      WORK_TYPE: IMPLEMENTATION | TESTING | DOCUMENTATION
+      EXIT_SIGNAL: false | true
+      RECOMMENDATION: <next action>
+      ---END_RALPH_STATUS---
+      ```
+
+      Circuit breaker rules:
+      - 3 loops with no progress = escalate
+      - 5 loops with same error = escalate
+      - Session timeout after 24 hours
+    expects: "---END_RALPH_STATUS---"
+    max_retries: 10
+    on_fail:
+      escalate_to: human
+
+  - id: run_tests
+    agent: tester
+    input: |
+      Run the test suite for modified code.
+
+      Modified areas:
+      {{files_modified}}
+
+      Test commands to run:
+      1. For my-ralph (bash): npm test
+      2. For Python services: pytest tests/ -v
+      3. For core library: pytest core/tests/ -v
+
+      Execute tests and report:
+      - Total tests run
+      - Passed/Failed/Skipped counts
+      - Coverage percentage (if available)
+      - Any regressions detected
+
+      Output format:
+      STATUS: done
+      TESTS_PASSED: <count>
+      TESTS_FAILED: <count>
+      TESTS_SKIPPED: <count>
+      COVERAGE: <percentage or N/A>
+      REGRESSIONS: none | <list of regressions>
+      VERDICT: PASSING | FAILING
+    expects: "VERDICT: PASSING"
+    max_retries: 2
+
+  - id: review_changes
+    agent: reviewer
+    input: |
+      Review all changes made in this feature development session.
+
+      Review checklist:
+      1. Code follows project conventions (.github/copilot-instructions.md)
+      2. Tests cover new functionality adequately
+      3. Documentation updated where needed
+      4. No security issues introduced (OWASP top 10)
+      5. Commit messages follow conventional commits
+      6. No hardcoded secrets or credentials
+      7. Error handling is appropriate
+
+      Engineering Commandments to verify:
+      - Meaningful commits
+      - Test before pushing
+      - Document changes
+      - No direct push to main
+
+      Output format:
+      STATUS: done
+      VERDICT: APPROVED | NEEDS_CHANGES
+      ISSUES_FOUND: <count>
+      ISSUES: [<list of issues if any>]
+      SUGGESTIONS: [<optional improvements>]
+    expects: "VERDICT: APPROVED"
+    max_retries: 1
+    on_fail:
+      retry_step: implement_feature
+
+  - id: create_pr
+    agent: pr_creator
+    input: |
+      Create a pull request for the completed feature.
+
+      Feature: {{task}}
+      Branch: {{branch}}
+      Base: main
+
+      PR creation command:
+      ```bash
+      gh pr create --title "{{pr_title}}" --body "$(cat <<'EOF'
+      ## Summary
+      {{summary}}
+
+      ## Changes
+      {{changes}}
+
+      ## Test Plan
+      {{test_plan}}
+
+      ## Checklist
+      - [ ] Tests pass locally
+      - [ ] Documentation updated
+      - [ ] No secrets committed
+      - [ ] Ready for review
+
+      ---
+      Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+      EOF
+      )"
+      ```
+
+      Output format:
+      STATUS: done
+      PR_NUMBER: <number>
+      PR_URL: <github url>
+      BRANCH: <branch name>
+    expects: "PR_URL"
+    max_retries: 1
+
+triggers:
+  - type: github_issue
+    filter: "label:feature"
+  - type: manual
+    command: "/ralph start"
+
+integration:
+  ralph_loop:
+    script: my-ralph/ralph_loop.sh
+    config:
+      MAX_CALLS_PER_HOUR: 100
+      CLAUDE_TIMEOUT_MINUTES: 15
+      CLAUDE_OUTPUT_FORMAT: json
+      CLAUDE_USE_CONTINUE: true
+  ci_workflow: my-ralph/.github/workflows/test.yml
