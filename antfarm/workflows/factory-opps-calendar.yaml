@@ -1,0 +1,139 @@
+id: factory-opps-calendar
+name: Factory Opportunities Calendar Pipeline
+version: 1
+description: Discover AI/ML/robotics/manufacturing opportunities and sync to Google Calendar. Runs TWICE DAILY at 8am and 8pm.
+
+agents:
+  - id: planner
+    name: Opportunities Planner
+    role: analysis
+    description: Designs the opportunities discovery and calendar sync system
+    timeoutSeconds: 120
+
+  - id: developer
+    name: Opportunities Developer
+    role: coding
+    description: Implements adapters, storage, and calendar sync
+    timeoutSeconds: 900
+
+  - id: verifier
+    name: Implementation Verifier
+    role: verification
+    description: Verifies all components match requirements
+    timeoutSeconds: 120
+
+  - id: tester
+    name: System Tester
+    role: testing
+    description: Tests adapters and calendar sync with mocks
+    timeoutSeconds: 300
+
+  - id: tracker
+    name: Progress Tracker
+    role: monitoring
+    description: Tracks progress towards opportunity deadlines and sends RAG status reports
+    timeoutSeconds: 180
+
+steps:
+  - id: plan
+    agent: planner
+    input: |
+      Design a system for FactoryLM opportunities to Google Calendar.
+
+      Requirements:
+      1. Opportunity type with fields: id, name, organizer, type, url,
+         cfp_deadline, application_deadline, event_start, event_end, timezone,
+         location, source, status, google_event_ids
+      2. SQLite storage with CRUD operations
+      3. Source adapters for:
+         - MLSys 2026 (https://mlsys.org/Conferences/2026/CallForPapers)
+         - FMSys 2026 (https://fmsys-org.github.io/2026/)
+         - AI in Manufacturing Summit (https://sites.psu.edu/aims/)
+         - Robotics accelerators (AWS, MassRobotics, etc.)
+      4. Google Calendar sync (create/update events)
+      5. CLI commands: refresh, sync-calendar, list-upcoming, track-progress
+
+      Output phases with acceptance criteria.
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: implement
+    agent: developer
+    input: |
+      Implement the opportunities pipeline per the plan.
+
+      Create in services/opportunities/:
+      - models.py - Opportunity dataclass
+      - storage.py - SQLite CRUD
+      - adapters/ - Source adapters (mlsys, fmsys, summit, accelerators)
+      - calendar_sync.py - Google Calendar API integration
+      - cli.py - CLI entrypoint
+
+      Use env vars for Google credentials (GOOGLE_CALENDAR_ID, etc.)
+      Include docstrings and minimal tests.
+
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: verify
+    agent: verifier
+    input: |
+      Verify implementation against requirements:
+      - [ ] Opportunity model has all required fields
+      - [ ] At least 4 source adapters implemented
+      - [ ] SQLite storage works (create, read, update, list)
+      - [ ] Calendar sync uses official Google Calendar API
+      - [ ] CLI has refresh, sync-calendar, list-upcoming, track-progress commands
+
+      List any missing items.
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: test
+    agent: tester
+    input: |
+      Write and run tests:
+      1. Test adapters with sample HTML fixtures
+      2. Test storage CRUD operations
+      3. Test calendar sync with mocked client
+
+      Report pass/fail counts.
+      STATUS: done
+      VERDICT: PASSING
+    expects: "VERDICT: PASSING"
+
+triggers:
+  - type: manual
+    command: "/opps build"
+  - type: cron
+    schedule: "0 8,20 * * *"  # TWICE DAILY: 8am and 8pm - runs full pipeline
+
+recurring_steps:
+  - id: progress_tracker
+    agent: tracker
+    schedule: "0 8,20 * * *"  # TWICE DAILY: 8am and 8pm
+    description: Track and report progress towards all opportunity deadlines
+    input: |
+      Run TWICE DAILY (8am and 8pm) to track progress towards each opportunity deadline.
+
+      For each opportunity in database:
+      1. Calculate days remaining until deadline
+      2. Check completion status of required materials:
+         - Paper draft (for conferences)
+         - Application form (for accelerators)
+         - Video pitch (if required)
+         - Supporting documents
+      3. Generate progress report with RAG status:
+         - GREEN: On track, >50% complete with >14 days remaining
+         - YELLOW: At risk, <50% complete OR <14 days remaining
+         - RED: Behind, <25% complete OR <7 days remaining
+      4. Send digest to Telegram via /jarvis notification
+
+      STATUS: done
+    expects: "STATUS: done"
+
+integration:
+  cli_module: services.opportunities.cli
+  database: ~/.factorylm/opportunities.db
+  notifications:
+    telegram: /jarvis
