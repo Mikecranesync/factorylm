@@ -22,18 +22,15 @@ POLLING_ENABLED = os.getenv('EDGE_POLLING_ENABLED', 'false').lower() == 'true'
 EDGE_GATEWAY_IP = os.getenv('EDGE_GATEWAY_IP')
 INFLUX_SENSORS_BUCKET = os.getenv('INFLUX_SENSORS_BUCKET', 'sensors')
 
-# PLC register mapping configuration
+# PLC register mapping — Allen-Bradley Micro 820
+# Holding registers 100-105 (see services/plc-modbus/CLAUDE.md)
 PLC_REGISTERS = {
-    # Core process variables (adjust based on your actual PLC)
-    "temperature": {"register": 0, "count": 1, "type": "float", "scale": 0.1},
-    "pressure": {"register": 1, "count": 1, "type": "float", "scale": 0.01},
-    "flow_rate": {"register": 2, "count": 1, "type": "float", "scale": 1.0},
-    "motor_speed": {"register": 10, "count": 1, "type": "int", "scale": 1.0},
-    "valve_position": {"register": 11, "count": 1, "type": "float", "scale": 0.1},
-    # Status registers
-    "system_status": {"register": 100, "count": 1, "type": "int", "scale": 1.0},
-    "alarm_flags": {"register": 101, "count": 1, "type": "int", "scale": 1.0},
-    "run_hours": {"register": 102, "count": 2, "type": "int", "scale": 1.0},  # 32-bit value
+    "motor_speed":     {"register": 100, "count": 1, "type": "int",   "scale": 1.0},
+    "motor_current":   {"register": 101, "count": 1, "type": "float", "scale": 0.01},
+    "temperature":     {"register": 102, "count": 1, "type": "float", "scale": 0.1},
+    "pressure":        {"register": 103, "count": 1, "type": "float", "scale": 1.0},
+    "conveyor_speed":  {"register": 104, "count": 1, "type": "int",   "scale": 1.0},
+    "error_code":      {"register": 105, "count": 1, "type": "int",   "scale": 1.0},
 }
 
 
