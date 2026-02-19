@@ -72,7 +72,7 @@ def read_plc_registers(
             return {"status": "error", "error": f"Cannot connect to {target_ip}:{DEFAULT_PORT}"}
 
         start = time.time()
-        result = client.read_holding_registers(register_start, count, slave=slave_id)
+        result = client.read_holding_registers(register_start, count=count, device_id=slave_id)
         latency_ms = round((time.time() - start) * 1000, 2)
 
         if result.isError():
