@@ -13,4 +13,5 @@ class Intent(str, Enum):
     DIAGNOSE = "DIAGNOSE"
     STATUS = "STATUS"
     IO = "IO"
+    TROUBLESHOOT = "TROUBLESHOOT"
     GENERAL = "GENERAL"

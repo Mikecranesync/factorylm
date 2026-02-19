@@ -1,0 +1,122 @@
+{
+  "slug": "high-temperature",
+  "title": "High Temperature Alarm",
+  "description": "Diagnose and resolve high temperature conditions",
+  "fault_codes": ["T001"],
+  "trigger_words": ["hot", "overheating", "temperature", "high temp", "heat", "thermal", "cooling"],
+  "equipment": "conveyor-cell",
+  "version": 1,
+  "is_active": true,
+  "tree": {
+    "root": "n1",
+    "nodes": {
+      "n1": {
+        "type": "question",
+        "text": "Temperature is reading high. Let's find out why. Check the cooling fan on the motor or drive enclosure — is it running?",
+        "hint": "Put your hand near the fan exhaust. You should feel airflow. If the fan is electric, listen for the motor hum.",
+        "plc_tag": "fan_running",
+        "options": [
+          {"label": "Yes, fan is running", "next": "n2", "transition": "Fan's running. So the cooling system is working, but it's not enough. Let's check airflow."},
+          {"label": "No, fan is stopped", "next": "n_fan", "transition": "There's your problem — no cooling. The equipment is just cooking."}
+        ]
+      },
+      "n2": {
+        "type": "question",
+        "text": "Check the air vents and filters. Are they blocked with dust, debris, or anything restricting airflow?",
+        "hint": "Look at both the intake and exhaust. In dusty environments, filters can clog in a matter of weeks.",
+        "options": [
+          {"label": "Yes, vents are blocked", "next": "n_blocked", "transition": "Restricted airflow — the fan is running but can't move enough air through."},
+          {"label": "No, airflow seems OK", "next": "n3", "transition": "Airflow is fine. Let's check the load."}
+        ]
+      },
+      "n3": {
+        "type": "question",
+        "text": "Is the equipment running at a higher load than usual? More product, higher speed, or heavier items than normal?",
+        "hint": "More load = more heat generation. If the process has changed recently, that could explain the temperature rise.",
+        "options": [
+          {"label": "Yes, higher than normal", "next": "n_load", "transition": "Higher load means more heat. The cooling system may not be sized for this duty."},
+          {"label": "No, normal operation", "next": "n4", "transition": "Normal load but overheating — something else is going on."}
+        ]
+      },
+      "n4": {
+        "type": "question",
+        "text": "Check the ambient temperature around the equipment. Is it unusually hot in the area? Direct sunlight, nearby heat sources, or HVAC issues?",
+        "hint": "Equipment is rated for a max ambient — usually 40C (104F). If the plant is hotter than that, everything runs warmer.",
+        "options": [
+          {"label": "Yes, it's hotter than usual", "next": "n_ambient", "transition": "High ambient is pushing the equipment over its thermal limit."},
+          {"label": "No, ambient seems normal", "next": "n_investigate", "transition": "Ambient is fine, load is normal, cooling is working. This needs deeper investigation."}
+        ]
+      },
+      "n_fan": {
+        "type": "resolution",
+        "text": "The cooling fan is dead. Without active cooling, the temperature will keep climbing until something trips or fails.",
+        "steps": [
+          "Reduce the load or stop the equipment to prevent thermal damage",
+          "Check the fan motor — is it getting power?",
+          "Check for a tripped breaker or blown fuse on the fan circuit",
+          "If the fan motor is burned out, replace it",
+          "Don't run the equipment without cooling — it'll damage VFD components or motor insulation"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_blocked": {
+        "type": "resolution",
+        "text": "Blocked vents are choking the cooling. Easy fix — clean them out.",
+        "steps": [
+          "Stop the equipment or reduce load while cleaning",
+          "Use compressed air to blow out the filters and vents (blow from inside out)",
+          "If filters are disposable, replace them",
+          "Clean the fan blades if they're caked with dust",
+          "Set a PM schedule to clean filters regularly — every 30 days in dusty environments"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_load": {
+        "type": "resolution",
+        "text": "The equipment is running hotter because the load has increased. You have a few options.",
+        "steps": [
+          "Reduce throughput or speed to bring temperature back into range",
+          "If the higher load is the new normal, the cooling system needs to be upgraded",
+          "Check motor current — overcurrent and overtemperature often go hand in hand",
+          "Consider adding supplemental cooling (external fan, duct to enclosure)",
+          "Monitor temperature trend after load adjustment"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_ambient": {
+        "type": "resolution",
+        "text": "High ambient temperature is the root cause. The equipment can't reject enough heat when the surroundings are too hot.",
+        "steps": [
+          "Improve ventilation in the area if possible — open doors, add fans",
+          "Check if HVAC to this area is working properly",
+          "Consider adding a panel air conditioner if this is a recurring issue",
+          "Reduce equipment load during peak heat times",
+          "Shield the equipment from direct sunlight if applicable"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_investigate": {
+        "type": "resolution",
+        "text": "Temperature is high but the usual suspects check out. This needs a closer look at the temperature sensor itself and the heat generation source.",
+        "steps": [
+          "Verify the temperature reading with an IR thermometer or contact probe",
+          "If the sensor reads high but the equipment feels normal, the sensor may be faulty",
+          "Check for bearing wear (generates friction heat)",
+          "Inspect drive belts for slippage (friction heat)",
+          "If temperature is genuinely high with no obvious cause, schedule a thermographic survey"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": true
+      }
+    }
+  }
+}

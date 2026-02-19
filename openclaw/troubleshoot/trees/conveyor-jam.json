@@ -1,0 +1,120 @@
+{
+  "slug": "conveyor-jam",
+  "title": "Conveyor Jam",
+  "description": "Clear and recover from a conveyor jam condition",
+  "fault_codes": ["C001"],
+  "trigger_words": ["conveyor jam", "jammed", "stuck", "blocked", "product stuck", "belt stuck", "backup"],
+  "equipment": "conveyor-cell",
+  "version": 1,
+  "is_active": true,
+  "tree": {
+    "root": "n1",
+    "nodes": {
+      "n1": {
+        "type": "question",
+        "text": "Both sensors are showing product present — that means something's stuck or backed up. Can you see where the jam is? Look at the transfer points and anywhere the belt changes direction.",
+        "hint": "Most jams happen at transfer points, diverters, or where product enters/exits the conveyor.",
+        "options": [
+          {"label": "Yes, I can see the jam", "next": "n2", "transition": "Good, you found it. Let's get it cleared safely."},
+          {"label": "No, nothing obvious", "next": "n3", "transition": "OK, might be a sensor issue then. Let's check."}
+        ]
+      },
+      "n2": {
+        "type": "question",
+        "text": "Stop the conveyor before clearing the jam. Is the jam something you can clear by hand, or is product wedged in tight?",
+        "hint": "If product is wedged under a guard or between rollers, don't force it — you could damage the belt or the product.",
+        "options": [
+          {"label": "Easy to clear", "next": "n_clear", "transition": "Great, straightforward fix."},
+          {"label": "It's wedged in tight", "next": "n_wedged", "transition": "Don't force it. Let's do this properly."}
+        ]
+      },
+      "n3": {
+        "type": "question",
+        "text": "Let's check if it's a sensor problem rather than an actual jam. Can you see the sensor indicators? Both sensors should have their LEDs on. Wave your hand in front of each one — do the LEDs respond?",
+        "hint": "Photoelectric sensors have an indicator LED that changes when the beam is blocked or reflected. Proximity sensors light up when metal is near.",
+        "options": [
+          {"label": "Sensors respond normally", "next": "n4", "transition": "Sensors are working. The jam might be downstream causing a backup."},
+          {"label": "One or both sensors seem stuck", "next": "n_sensor", "transition": "Sensor issue — that explains the false jam signal."}
+        ]
+      },
+      "n4": {
+        "type": "question",
+        "text": "Check downstream — is the next conveyor or machine station running? A backup from downstream will pile things up here.",
+        "hint": "If the downstream equipment is stopped or full, product has nowhere to go.",
+        "options": [
+          {"label": "Downstream is stopped", "next": "n_downstream", "transition": "There's your root cause. This conveyor is fine — the problem is downstream."},
+          {"label": "Downstream is running", "next": "n_alignment", "transition": "Downstream is clear. Let's check product alignment."}
+        ]
+      },
+      "n_clear": {
+        "type": "resolution",
+        "text": "Clear the jam and you should be good to go.",
+        "steps": [
+          "Stop the conveyor using the local stop button",
+          "Remove the jammed product by hand",
+          "Inspect the belt for any damage from the jam",
+          "Restart the conveyor and watch the first few products go through",
+          "If jams keep happening at the same spot, check the guide rail alignment"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_wedged": {
+        "type": "resolution",
+        "text": "Product is wedged — don't muscle it out or you'll damage something. Let's do this right.",
+        "steps": [
+          "Lock out and tag out the conveyor",
+          "Remove guards or covers to access the jam point",
+          "Carefully extract the jammed product (cut it out if needed)",
+          "Inspect the belt, rollers, and guides for damage",
+          "Check guide rail spacing — if product is catching, the rails may need adjustment",
+          "Replace guards and restart"
+        ],
+        "severity": "critical",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_sensor": {
+        "type": "resolution",
+        "text": "Sensor is giving a false jam signal. This is a sensor alignment or wiring issue, not an actual jam.",
+        "steps": [
+          "Clean the sensor lens — dust and debris cause false triggers on photoelectric sensors",
+          "Check sensor mounting — vibration can shift the alignment over time",
+          "Verify the sensor wiring connections are tight",
+          "Adjust the sensor sensitivity if it has a pot or teach button",
+          "If the sensor is damaged, replace it"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_downstream": {
+        "type": "resolution",
+        "text": "The jam here is caused by a downstream backup. Fix the downstream issue and this conveyor will clear itself.",
+        "steps": [
+          "Go check the downstream equipment — find out why it stopped",
+          "Clear any issues downstream first",
+          "Once downstream is running, product should flow through",
+          "If this happens frequently, consider adding accumulation logic to prevent backup jams"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_alignment": {
+        "type": "resolution",
+        "text": "Product may be misaligned on the belt, causing it to catch on guides or at transfer points. This is usually a setup issue.",
+        "steps": [
+          "Check product placement at the infeed — is it being placed straight on the belt?",
+          "Verify guide rail width and alignment along the full conveyor length",
+          "Look for any bent or damaged guide sections",
+          "If product shape has changed recently, the guides may need adjustment"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      }
+    }
+  }
+}

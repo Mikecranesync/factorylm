@@ -1,0 +1,133 @@
+{
+  "slug": "motor-overcurrent",
+  "title": "Motor Overcurrent",
+  "description": "Diagnose high motor current causing overload trips",
+  "fault_codes": ["M001"],
+  "trigger_words": ["overcurrent", "overload", "high current", "motor tripping", "overload trip", "thermal trip"],
+  "equipment": "conveyor-cell",
+  "version": 1,
+  "is_active": true,
+  "tree": {
+    "root": "n1",
+    "nodes": {
+      "n1": {
+        "type": "question",
+        "text": "Motor's pulling too much current. Let's figure out why. First — can you see the conveyor belt? Is there anything jammed or piled up on it?",
+        "hint": "Look along the full length of the belt, especially at transfer points and under guards.",
+        "options": [
+          {"label": "Yes, there's a jam", "next": "n_jam", "transition": "There's your problem. A jam makes the motor work way harder than it should."},
+          {"label": "No, belt looks clear", "next": "n2", "transition": "OK, belt's clear. Let's check the mechanical side."}
+        ]
+      },
+      "n2": {
+        "type": "question",
+        "text": "Put your hand near the motor housing (don't touch if it's hot). Can you feel excessive heat? And listen — any grinding or unusual noise from the bearings?",
+        "hint": "A healthy motor hums evenly. Grinding, squealing, or rattling means bearing trouble.",
+        "options": [
+          {"label": "Yes, hot and/or noisy", "next": "n_bearings", "transition": "That points to bearing failure. The motor is fighting itself."},
+          {"label": "No, seems normal", "next": "n3", "transition": "Good, motor itself seems OK mechanically. Let's look at the load."}
+        ]
+      },
+      "n3": {
+        "type": "question",
+        "text": "Check the belt tension — push down on the belt between pulleys. Does it deflect more than about half an inch, or does it feel really tight?",
+        "hint": "Too tight = extra load on the motor. Too loose = slipping, which also increases current.",
+        "options": [
+          {"label": "Too tight", "next": "n_tension", "transition": "That'll do it. Over-tensioned belt puts a constant extra load on the motor."},
+          {"label": "Too loose", "next": "n_tension", "transition": "A slipping belt makes the motor work harder trying to maintain speed."},
+          {"label": "Feels about right", "next": "n4", "transition": "Tension's fine. Let's look at the actual current reading."}
+        ]
+      },
+      "n4": {
+        "type": "question",
+        "text": "Let's get a current reading. If you've got a clamp meter, measure the motor current on one of the supply leads. What's the reading compared to the nameplate FLA?",
+        "hint": "Nameplate Full Load Amps is on the motor data plate. Current should be at or below FLA under normal load.",
+        "plc_tag": "motor_current",
+        "options": [
+          {"label": "Way over FLA (>120%)", "next": "n_overloaded", "transition": "That's significantly over nameplate. Something is loading this motor beyond its rating."},
+          {"label": "Near FLA or slightly over", "next": "n5", "transition": "It's borderline. Could be a sizing issue or gradually increasing load."},
+          {"label": "Can't measure right now", "next": "n5", "transition": "No worries, let's check a couple more things."}
+        ]
+      },
+      "n5": {
+        "type": "question",
+        "text": "One more thing — is this a VFD-driven motor? Check if there are any fault codes on the VFD display.",
+        "hint": "VFD faults like 'OC' (overcurrent) or 'OL' (overload) would confirm the issue. The VFD may also show real-time current.",
+        "options": [
+          {"label": "Yes, VFD shows fault", "next": "n_vfd", "transition": "The VFD caught it. Let's see what it's telling us."},
+          {"label": "No VFD, or no fault shown", "next": "n_overloaded", "transition": "Alright, let's address the overcurrent directly."}
+        ]
+      },
+      "n_jam": {
+        "type": "resolution",
+        "text": "Clear the jam and the current should come right back down. But don't just pull stuff out while it's running.",
+        "steps": [
+          "Stop the conveyor (use the normal stop, not E-stop unless it's urgent)",
+          "Lock out and tag out before reaching into the conveyor",
+          "Clear the jammed material",
+          "Inspect the belt and rollers for damage from the jam",
+          "Reset the overload relay if it tripped",
+          "Restart and verify current is back to normal"
+        ],
+        "severity": "critical",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_bearings": {
+        "type": "resolution",
+        "text": "Bearing failure is causing the overcurrent. The motor needs to come offline before it burns up.",
+        "steps": [
+          "Stop the motor immediately",
+          "Lock out and tag out the motor disconnect",
+          "Check if the shaft can be rotated by hand — if it's seized, the bearings are gone",
+          "Schedule motor bearing replacement or full motor swap",
+          "Check coupling alignment when reinstalling"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_tension": {
+        "type": "resolution",
+        "text": "Belt tension is off, which is making the motor draw extra current. Good news — this is an easy fix.",
+        "steps": [
+          "Stop the conveyor",
+          "Adjust the take-up to get proper belt tension (check the manual for spec)",
+          "Typical deflection is 1/2\" to 3/4\" between pulleys",
+          "Restart and verify motor current drops back to normal range"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_overloaded": {
+        "type": "resolution",
+        "text": "The motor is being overloaded beyond its capacity. This could be a process issue or a motor sizing issue.",
+        "steps": [
+          "Reduce the load on the conveyor if possible",
+          "Check if product weight or throughput has increased recently",
+          "Verify the motor HP matches the application requirement",
+          "If the overload keeps tripping, don't just bump up the OL setting — find the root cause",
+          "Consider upsizing the motor if the process legitimately needs more capacity"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_vfd": {
+        "type": "resolution",
+        "text": "The VFD is faulting on overcurrent. Let's clear it and address the root cause.",
+        "steps": [
+          "Record the VFD fault code before clearing",
+          "Check VFD parameters: acceleration time may be too fast (increase accel ramp)",
+          "Verify motor nameplate data matches VFD motor setup parameters",
+          "Clear the fault and restart",
+          "If it faults again immediately, the load is genuinely too high for the motor"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      }
+    }
+  }
+}
