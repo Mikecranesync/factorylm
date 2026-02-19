@@ -1,0 +1,182 @@
+{
+  "slug": "motor-stopped",
+  "title": "Motor Stopped Unexpectedly",
+  "description": "Diagnose why the motor stopped while it should be running",
+  "fault_codes": ["M002"],
+  "trigger_words": ["motor stopped", "motor won't start", "motor not running", "stopped unexpectedly", "conveyor stopped", "why did it stop"],
+  "equipment": "conveyor-cell",
+  "version": 1,
+  "is_active": true,
+  "tree": {
+    "root": "n1",
+    "nodes": {
+      "n1": {
+        "type": "question",
+        "text": "Alright, let's start at the contactor. Go check K1 in the starter panel — is the contactor pulled in? You should hear it click when someone hits the start button.",
+        "hint": "Look for the main motor contactor. When energized, the armature should be pulled in tight with no buzzing.",
+        "plc_tag": "motor_running",
+        "options": [
+          {"label": "Yes, it's energized", "next": "n2", "transition": "Good, it's energized. Power is getting through to the contactor at least."},
+          {"label": "No, it's not pulling in", "next": "n3", "transition": "OK so the contactor isn't pulling in. Let's figure out why."}
+        ]
+      },
+      "n2": {
+        "type": "question",
+        "text": "Contactor's in but motor isn't running. Check all 3 phases at the motor terminals with your meter. Getting voltage on all three?",
+        "hint": "Measure L1-L2, L2-L3, L1-L3 at the motor terminal box. All three should be within 2% of each other.",
+        "options": [
+          {"label": "Yes, all three phases present", "next": "n_seized", "transition": "Voltage at the motor but it won't spin — that's a motor problem."},
+          {"label": "Missing one or more phases", "next": "n_phase", "transition": "Lost a phase somewhere between the contactor and the motor."},
+          {"label": "No voltage at all", "next": "n_wiring", "transition": "Contactor's in but no voltage at the motor — there's a break in the wiring."}
+        ]
+      },
+      "n3": {
+        "type": "question",
+        "text": "Check the overload relay next — is the red trip flag showing?",
+        "hint": "The thermal overload relay (OLR) is usually mounted directly below the contactor. Look for a red trip indicator or a popped reset button.",
+        "options": [
+          {"label": "Yes, it's tripped", "next": "n_overload", "transition": "The overload tripped. That means the motor was drawing too much current before it stopped."},
+          {"label": "No, looks normal", "next": "n4", "transition": "Good, that rules out the overload. Now let's check the control circuit."}
+        ]
+      },
+      "n4": {
+        "type": "question",
+        "text": "Grab your meter and measure across the contactor coil terminals A1 and A2. Getting any voltage?",
+        "hint": "The coil voltage should match the control circuit — typically 24VDC or 120VAC depending on the design.",
+        "options": [
+          {"label": "Yes, voltage is there", "next": "n_contactor_bad", "transition": "Voltage at the coil but it won't pull in — that's your answer."},
+          {"label": "No voltage", "next": "n5", "transition": "No coil voltage. Something upstream in the control circuit is open."}
+        ]
+      },
+      "n5": {
+        "type": "question",
+        "text": "Let's trace the control circuit. Check these in order: Is the start/stop station wired correctly? Any auxiliary contacts in series that might be open? Any safety interlocks (door switches, light curtains)?",
+        "hint": "The control circuit is a series loop — any one open contact breaks it. Check the simplest things first: stop button not latched, door switch open.",
+        "options": [
+          {"label": "Found an open interlock/switch", "next": "n_interlock", "transition": "There it is. An open interlock is killing the control circuit."},
+          {"label": "Everything looks closed", "next": "n6", "transition": "Control circuit looks intact but still no coil voltage. Let's check the source."}
+        ]
+      },
+      "n6": {
+        "type": "question",
+        "text": "Check the control power source. Is the control transformer or 24V power supply outputting correct voltage?",
+        "hint": "Measure at the secondary of the control transformer, or the output of the 24V supply. Should match the coil rating.",
+        "options": [
+          {"label": "Yes, control power is good", "next": "n_llm", "transition": "OK this is getting tricky — control power is good, circuit looks complete, but no coil voltage."},
+          {"label": "No, control power is dead", "next": "n_control_power", "transition": "No control power — that explains everything."}
+        ]
+      },
+      "n_seized": {
+        "type": "resolution",
+        "text": "Motor has voltage on all phases but won't turn. It's likely mechanically seized or has an internal winding failure.",
+        "steps": [
+          "Lock out and tag out the motor disconnect",
+          "Try rotating the shaft by hand — if it won't turn, the motor is seized",
+          "Check all 3 phase-to-phase winding resistances with a megger or ohmmeter",
+          "If seized: check bearings, coupling, and driven load",
+          "If windings are bad: motor needs to be replaced or rewound"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_phase": {
+        "type": "resolution",
+        "text": "Single-phasing — you've lost a phase between the contactor and motor. Running on two phases will burn up a motor fast.",
+        "steps": [
+          "Lock out and tag out immediately",
+          "Check each wire from contactor output to motor terminals for continuity",
+          "Inspect contactor tips for pitting or welding — a burned contact won't pass current",
+          "Check for any fuses in the motor branch circuit",
+          "Repair the open circuit and megg the motor windings before restarting"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_wiring": {
+        "type": "resolution",
+        "text": "Contactor is engaged but no voltage at the motor. There's a break somewhere in the power wiring.",
+        "steps": [
+          "Lock out and tag out at the main disconnect",
+          "Check continuity from contactor load-side terminals to motor terminals",
+          "Inspect any disconnect switches or fused disconnects between contactor and motor",
+          "Look for damaged conduit or pulled wires, especially near flex connections"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_overload": {
+        "type": "resolution",
+        "text": "The thermal overload tripped, which means the motor was overcurrent before it stopped. Don't just reset it — figure out why it tripped first.",
+        "steps": [
+          "Wait 5 minutes for the OLR bimetal strips to cool",
+          "Check for obvious causes: jam, heavy load, binding",
+          "Verify the OLR is set to the correct FLA (check motor nameplate)",
+          "Reset the overload relay (press the blue reset button)",
+          "Restart and monitor current closely for the first few minutes",
+          "If it trips again, run the motor-overcurrent troubleshoot guide"
+        ],
+        "severity": "critical",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_contactor_bad": {
+        "type": "resolution",
+        "text": "Voltage at the coil but it won't pull in — the contactor is faulty. The coil might be open or the mechanism is jammed.",
+        "steps": [
+          "Lock out and tag out the motor disconnect",
+          "Measure the contactor coil resistance (should be a few hundred ohms, not open)",
+          "If coil is open: replace the contactor",
+          "If coil reads OK: check for mechanical binding in the contactor",
+          "Make sure the replacement has the same coil voltage rating",
+          "Test before putting back in service"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_interlock": {
+        "type": "resolution",
+        "text": "An open safety interlock or auxiliary contact was holding the control circuit open. That's actually the system working as designed — something triggered it.",
+        "steps": [
+          "Identify which interlock is open and WHY it opened",
+          "Don't bypass safety interlocks — fix the condition that triggered them",
+          "Close the guard door, clear the light curtain, or address whatever opened the interlock",
+          "Verify the control circuit is complete, then try starting again"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_control_power": {
+        "type": "resolution",
+        "text": "The control power source is dead — no voltage to drive any of the control circuitry. Everything downstream (contactors, relays, PLC outputs) is unpowered.",
+        "steps": [
+          "Check the control transformer primary fuse or breaker",
+          "If it's a 24V supply, check its input power and output LED",
+          "Replace fuse or reset breaker if tripped",
+          "If the transformer or supply is dead, it needs replacement",
+          "Once control power is restored, verify all interlocks clear and try restarting"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_llm": {
+        "type": "resolution",
+        "text": "We've checked the obvious causes and haven't found the issue. This might need someone with a scope or more detailed prints to trace the control logic further.",
+        "steps": [
+          "Review the electrical drawings for the full control circuit",
+          "Check for PLC-controlled outputs in the start circuit",
+          "Look for any timer or sequencing relays that might be holding the circuit open",
+          "If available, use PLC diagnostics to check output states"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": true
+      }
+    }
+  }
+}

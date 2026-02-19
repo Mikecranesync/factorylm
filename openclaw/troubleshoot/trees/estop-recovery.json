@@ -1,0 +1,94 @@
+{
+  "slug": "estop-recovery",
+  "title": "E-Stop Recovery",
+  "description": "Guide through safe E-stop reset and recovery sequence",
+  "fault_codes": ["E001"],
+  "trigger_words": ["estop", "e-stop", "emergency stop", "emergency", "all stopped"],
+  "equipment": "conveyor-cell",
+  "version": 1,
+  "is_active": true,
+  "tree": {
+    "root": "n1",
+    "nodes": {
+      "n1": {
+        "type": "question",
+        "text": "First things first — is the area around the machine clear and safe? No one near moving parts, nothing jammed in the mechanism?",
+        "hint": "Walk the perimeter before we touch anything.",
+        "options": [
+          {"label": "Yes, area is clear", "next": "n2", "transition": "Good. Safety first, always."},
+          {"label": "No, there's a hazard", "next": "n_hazard", "transition": "Stop right there. Don't reset anything yet."}
+        ]
+      },
+      "n2": {
+        "type": "question",
+        "text": "Alright, go ahead and twist the E-stop mushroom button to release it. Some units need a quarter-turn clockwise. Did it pop back out?",
+        "hint": "The button should spring back to its raised position when released properly.",
+        "options": [
+          {"label": "Yes, it released", "next": "n3", "transition": "Good, the E-stop circuit should be clearing now."},
+          {"label": "No, it's stuck", "next": "n_stuck", "transition": "That's unusual — the button mechanism might be damaged."}
+        ]
+      },
+      "n3": {
+        "type": "question",
+        "text": "Now check the PLC — is the E-stop fault cleared on the HMI or fault indicator? Some systems need a separate fault reset button after releasing the E-stop.",
+        "hint": "Look for a blue or green 'Reset' pushbutton near the HMI, or a reset option on screen.",
+        "plc_tag": "e_stop",
+        "options": [
+          {"label": "Yes, fault cleared", "next": "n_ok", "transition": "You're back in business."},
+          {"label": "No, still showing fault", "next": "n_reset", "transition": "The safety circuit hasn't fully cleared yet. Let's reset it."}
+        ]
+      },
+      "n_ok": {
+        "type": "resolution",
+        "text": "E-stop is recovered and the system is ready to restart. Before you hit start, do a quick visual check that everything looks right.",
+        "steps": [
+          "Verify all guards and doors are closed",
+          "Confirm no one is in the hazard zone",
+          "Press the Start button to resume operation",
+          "Watch the first cycle to make sure everything runs clean"
+        ],
+        "severity": "info",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_hazard": {
+        "type": "resolution",
+        "text": "Do NOT reset the E-stop until the hazard is cleared. This is a safety issue.",
+        "steps": [
+          "Clear the hazard — remove jammed material, move personnel clear",
+          "If there's equipment damage, lock out and tag out before investigating",
+          "Once the area is safe, come back and we'll walk through the reset"
+        ],
+        "severity": "emergency",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_stuck": {
+        "type": "resolution",
+        "text": "The E-stop button mechanism is stuck or damaged. Don't force it — you could break the contact block.",
+        "steps": [
+          "Lock out and tag out the machine at the main disconnect",
+          "Inspect the E-stop button assembly for damage or debris",
+          "Replace the E-stop unit if the mechanism is broken",
+          "Test the new E-stop before returning to service"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      },
+      "n_reset": {
+        "type": "resolution",
+        "text": "The safety circuit needs a manual fault reset. This is normal — it's a two-step process to prevent accidental restarts.",
+        "steps": [
+          "Find the fault reset button (usually blue, near the HMI or main panel)",
+          "Press and hold for 2 seconds",
+          "Verify the E-stop indicator clears on the HMI",
+          "If it still won't clear, power-cycle the safety relay module"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      }
+    }
+  }
+}

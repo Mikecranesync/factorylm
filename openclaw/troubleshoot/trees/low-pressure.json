@@ -1,0 +1,112 @@
+{
+  "slug": "low-pressure",
+  "title": "Low Air Pressure",
+  "description": "Diagnose low pneumatic system pressure",
+  "fault_codes": ["P001"],
+  "trigger_words": ["low pressure", "air pressure", "pneumatic", "no air", "compressor", "regulator"],
+  "equipment": "conveyor-cell",
+  "version": 1,
+  "is_active": true,
+  "tree": {
+    "root": "n1",
+    "nodes": {
+      "n1": {
+        "type": "question",
+        "text": "System pressure is low. Let's start at the source. Check the main air supply valve to this machine — is it open? And what does the supply gauge read?",
+        "hint": "The main shutoff valve is usually a quarter-turn ball valve on the drop from the overhead air main. Should be parallel to the pipe = open.",
+        "options": [
+          {"label": "Valve is closed or supply is low", "next": "n_supply", "transition": "Found it — no supply, no pressure. Simple as that."},
+          {"label": "Valve is open, supply reads normal", "next": "n2", "transition": "Supply is fine. The problem is between the supply and the machine. Let's narrow it down."}
+        ]
+      },
+      "n2": {
+        "type": "question",
+        "text": "Listen carefully around the machine. Can you hear any air leaking? A hissing sound, even a faint one, means you're losing pressure somewhere.",
+        "hint": "Check fittings, hoses, cylinders, and valve manifolds. Soapy water on connections will bubble at a leak.",
+        "options": [
+          {"label": "Yes, I can hear a leak", "next": "n_leak", "transition": "Air leak found. Every leak is like leaving a faucet running — it drains your supply."},
+          {"label": "No obvious leaks", "next": "n3", "transition": "No leaks. Let's check the filter and regulator."}
+        ]
+      },
+      "n3": {
+        "type": "question",
+        "text": "Check the FRL unit (Filter-Regulator-Lubricator). Is the filter bowl full of water or contamination? And what's the regulator set to?",
+        "hint": "The filter bowl should be mostly clear. A water-logged filter restricts airflow. The regulator gauge should show your required operating pressure (typically 80-90 PSI).",
+        "options": [
+          {"label": "Filter is clogged/full", "next": "n_filter", "transition": "Clogged filter is choking the air supply. That's an easy fix."},
+          {"label": "Regulator is set too low", "next": "n_regulator", "transition": "The regulator is limiting the pressure. Just needs adjustment."},
+          {"label": "Both look OK", "next": "n_compressor", "transition": "FRL is fine. The issue might be the compressor or the main air system."}
+        ]
+      },
+      "n_supply": {
+        "type": "resolution",
+        "text": "The main air supply to the machine is shut off or the plant air system pressure is low. This is upstream of the machine.",
+        "steps": [
+          "Open the supply valve if it was closed (someone may have shut it during maintenance)",
+          "If plant air is low, check the compressor — is it running?",
+          "Check for a large leak somewhere else in the plant that's dragging down system pressure",
+          "Verify the machine's supply pressure comes up to operating range before restarting"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_leak": {
+        "type": "resolution",
+        "text": "Air leak is draining your pressure. Fix the leak and pressure should recover.",
+        "steps": [
+          "Locate the exact leak point — spray soapy water on suspect fittings and watch for bubbles",
+          "Tighten loose fittings (hand-tight plus one turn with a wrench)",
+          "Replace cracked or cut hoses",
+          "Check cylinder rod seals — worn seals leak at the rod",
+          "After repairs, monitor pressure to verify it holds"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_filter": {
+        "type": "resolution",
+        "text": "The air filter is clogged with water or contamination, restricting airflow to the machine.",
+        "steps": [
+          "Drain the filter bowl — open the drain petcock at the bottom",
+          "If the filter element is discolored or damaged, replace it",
+          "Check the auto-drain if one is installed — it may be stuck closed",
+          "If you're getting a lot of water, the plant air dryer may need service",
+          "Set a PM reminder to check the filter weekly"
+        ],
+        "severity": "warning",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_regulator": {
+        "type": "resolution",
+        "text": "The regulator is set below the required operating pressure. Simple adjustment.",
+        "steps": [
+          "Pull up on the regulator knob to unlock it",
+          "Turn clockwise to increase pressure to the required setpoint",
+          "Push the knob back down to lock it",
+          "Verify downstream pressure stabilizes at the new setpoint",
+          "If the regulator won't hold pressure, it may need replacement"
+        ],
+        "severity": "info",
+        "requires_maintenance": false,
+        "llm_handoff": false
+      },
+      "n_compressor": {
+        "type": "resolution",
+        "text": "Machine-side components are fine. The issue is likely the plant air compressor or main distribution system.",
+        "steps": [
+          "Check compressor status — is it running? Any faults displayed?",
+          "Check the receiver tank pressure — if it's low, the compressor can't keep up with demand",
+          "Look for large leaks in the main air distribution system",
+          "If the compressor is running but can't build pressure, it may need service (valves, rings, or motor)",
+          "Contact facilities/maintenance for plant air system issues"
+        ],
+        "severity": "critical",
+        "requires_maintenance": true,
+        "llm_handoff": false
+      }
+    }
+  }
+}

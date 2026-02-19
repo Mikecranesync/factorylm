@@ -60,6 +60,14 @@ INTENT_PATTERNS: dict[str, list[str]] = {
         "inputs",
         "outputs",
     ],
+    Intent.TROUBLESHOOT: [
+        "troubleshoot",
+        "walk me through",
+        "step by step",
+        "guide me",
+        "how do i fix",
+        "/troubleshoot",
+    ],
 }
 
 

@@ -172,11 +172,13 @@ class LiveBotTester:
                 user_msg = step_def.get("user", "")
                 expect_contains = step_def.get("expect_contains", [])
                 expect_not_contains = step_def.get("expect_not_contains", [])
+                expect_contains_any = step_def.get("expect_contains_any")
                 max_length = step_def.get("max_length")
 
                 resp = self.send_message(user_msg)
                 passed, failures = self._check_assertions(
-                    resp["text"], expect_contains, expect_not_contains, max_length
+                    resp["text"], expect_contains, expect_not_contains, max_length,
+                    expect_contains_any=expect_contains_any,
                 )
 
                 step = StepResult(
@@ -192,10 +194,10 @@ class LiveBotTester:
 
                 if passed:
                     result.passed += 1
-                    self.log(f"  [PASS] Step {i+1}: \"{user_msg[:40]}\" → {resp.get('intent', '?')} ({resp['latency_ms']}ms)")
+                    self.log(f"  [PASS] Step {i+1}: \"{user_msg[:40]}\" -> {resp.get('intent', '?')} ({resp['latency_ms']}ms)")
                 else:
                     result.failed += 1
-                    self.log(f"  [FAIL] Step {i+1}: \"{user_msg[:40]}\" → {failures}")
+                    self.log(f"  [FAIL] Step {i+1}: \"{user_msg[:40]}\" -> {failures}")
 
         result.duration_ms = int((time.time() - start) * 1000)
         return result
@@ -245,6 +247,7 @@ class LiveBotTester:
         expect_contains: list,
         expect_not_contains: list,
         max_length: int = None,
+        expect_contains_any: list = None,
     ) -> tuple:
         """Check response against assertions. Returns (passed, failures)."""
         failures = []
@@ -253,6 +256,10 @@ class LiveBotTester:
         for keyword in expect_contains:
             if keyword.lower() not in text_lower:
                 failures.append(f"Missing: '{keyword}'")
+
+        if expect_contains_any:
+            if not any(kw.lower() in text_lower for kw in expect_contains_any):
+                failures.append(f"Missing any of: {expect_contains_any}")
 
         for keyword in expect_not_contains:
             if keyword.lower() in text_lower:
