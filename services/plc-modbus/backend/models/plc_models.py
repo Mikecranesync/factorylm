@@ -30,15 +30,15 @@ class ConnectResponse(BaseModel):
 
 
 class CoilData(BaseModel):
-    """Program variable coils (0-6)."""
+    """Program variable coils (0-6) — From A to B scene."""
 
-    motor_running: bool = False
-    motor_stopped: bool = False
-    fault_alarm: bool = False
-    conveyor_running: bool = False
-    sensor_1_active: bool = False
-    sensor_2_active: bool = False
-    e_stop_active: bool = False
+    Conveyor: bool = False       # Coil 0: belt motor output
+    Emitter: bool = False        # Coil 1: item spawner output
+    SensorStart: bool = False    # Coil 2: entry sensor input
+    SensorEnd: bool = False      # Coil 3: exit sensor input
+    RunCommand: bool = False     # Coil 4: remote start/stop
+    program_var_5: bool = False
+    program_var_6: bool = False
 
 
 class InputData(BaseModel):
@@ -65,12 +65,12 @@ class OutputData(BaseModel):
 class RegisterData(BaseModel):
     """Holding registers (100-105)."""
 
-    motor_speed: int = 0
-    motor_current: int = 0
-    temperature: int = 0
-    pressure: int = 0
-    conveyor_speed: int = 0
-    error_code: int = 0
+    ItemCount: int = 0
+    register_101: int = 0
+    register_102: int = 0
+    register_103: int = 0
+    register_104: int = 0
+    register_105: int = 0
 
 
 class IOResponse(BaseModel):
