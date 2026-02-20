@@ -92,8 +92,11 @@ async def run_claude(message: str, workspace: Optional[Path] = None, timeout: in
 
         if process.returncode != 0:
             error = stderr.decode("utf-8", errors="replace").strip()
-            logger.error(f"Claude error: {error}")
-            return f"Error: {error[:500]}"
+            if error:
+                logger.error(f"Claude error (rc={process.returncode}): {error}")
+            else:
+                logger.error(f"Claude failed (rc={process.returncode}), stdout: {response[:200]}")
+            return f"Error: {error or response or f'exit code {process.returncode}'}"[:500]
 
         return response or "Claude returned empty response"
 

@@ -9,7 +9,7 @@ from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
-from prompts import NAMEPLATE_PROMPT
+from prompts import DIAGNOSIS_PROMPT, NAMEPLATE_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,12 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         file = await context.bot.get_file(photo.file_id)
         photo_bytes = bytes(await file.download_as_bytearray())
 
-        diagnosis = await groq.analyze_image(photo_bytes)
+        caption = update.message.caption or ""
+        if caption:
+            prompt = f"{DIAGNOSIS_PROMPT}\n\nTECHNICIAN'S NOTE: {caption}"
+        else:
+            prompt = DIAGNOSIS_PROMPT
+        diagnosis = await groq.analyze_image(photo_bytes, prompt)
 
         # Store in session
         session.last_photo = photo_bytes
