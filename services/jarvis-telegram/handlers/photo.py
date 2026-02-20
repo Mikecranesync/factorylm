@@ -9,7 +9,7 @@ from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
-from ..prompts import NAMEPLATE_PROMPT
+from prompts import NAMEPLATE_PROMPT
 
 logger = logging.getLogger(__name__)
 

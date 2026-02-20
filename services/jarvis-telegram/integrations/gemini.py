@@ -9,7 +9,7 @@ from typing import Optional
 
 import google.generativeai as genai
 
-from ..prompts import DIAGNOSIS_PROMPT, WORK_ORDER_PROMPT
+from prompts import DIAGNOSIS_PROMPT, WORK_ORDER_PROMPT
 
 logger = logging.getLogger(__name__)
 

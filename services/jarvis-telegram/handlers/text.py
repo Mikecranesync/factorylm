@@ -9,8 +9,8 @@ from pathlib import Path
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from ..integrations.claude_bridge import run_claude
-from ..prompts import VOICE_PROMPT
+from integrations.claude_bridge import run_claude
+from prompts import VOICE_PROMPT
 
 logger = logging.getLogger(__name__)
 
