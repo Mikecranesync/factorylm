@@ -1,0 +1,38 @@
+{
+  "Executive Team (2)": [
+    "AICEOAgent",
+    "AIChiefOfStaffAgent"
+  ],
+  "Research & Knowledge (6)": [
+    "ResearchAgent",
+    "AtomBuilderAgent",
+    "AtomLibrarianAgent",
+    "QualityCheckerAgent",
+    "OEMPDFScraperAgent",
+    "AtomBuilderFromPDF"
+  ],
+  "Content Production (8)": [
+    "MasterCurriculumAgent",
+    "ContentStrategyAgent",
+    "ScriptwriterAgent",
+    "SEOAgent",
+    "ThumbnailAgent",
+    "ContentCuratorAgent",
+    "TrendScoutAgent",
+    "VideoQualityReviewerAgent"
+  ],
+  "Media & Publishing (4)": [
+    "VoiceProductionAgent",
+    "VideoAssemblyAgent",
+    "PublishingStrategyAgent",
+    "YouTubeUploaderAgent"
+  ],
+  "Engagement & Analytics (3)": [
+    "CommunityAgent",
+    "AnalyticsAgent",
+    "SocialAmplifierAgent"
+  ],
+  "Orchestration (1)": [
+    "MasterOrchestratorAgent"
+  ]
+}
