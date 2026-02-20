@@ -81,14 +81,14 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     if cmms:
         cmms_ok = await cmms.test_connection()
 
-    gemini_ok = config.gemini_api_key is not None
+    groq_ok = config.groq_api_key is not None
     claude_ok = context.bot_data.get("claude_available", False)
 
     lines = [
         "*JARVIS STATUS*",
         f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         "",
-        f"{'✅' if gemini_ok else '❌'} Gemini Vision",
+        f"{'✅' if groq_ok else '❌'} Groq (Vision + Text + Voice)",
         f"{'✅' if claude_ok else '❌'} Claude CLI Bridge",
         f"{'✅' if cmms_ok else '❌'} CMMS ({config.cmms_url or 'not configured'})",
         f"✅ Bot Online",
@@ -157,7 +157,7 @@ async def cmd_metrics(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         f"Total messages: {total_messages}",
         "",
         "*Integrations*",
-        f"Gemini: {'configured' if config.gemini_api_key else 'not configured'}",
+        f"Groq: {'configured' if config.groq_api_key else 'not configured'}",
         f"CMMS: {'configured' if config.cmms_url else 'not configured'}",
         f"Claude CLI: {'available' if context.bot_data.get('claude_available') else 'unavailable'}",
     ]

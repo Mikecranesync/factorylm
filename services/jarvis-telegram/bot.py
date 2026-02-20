@@ -13,7 +13,7 @@ Usage:
 Environment:
     TELEGRAM_BOT_TOKEN   — Required, from @BotFather
     TELEGRAM_ALLOWED_USERS — Comma-separated user IDs
-    GEMINI_API_KEY       — For photo/voice analysis
+    GROQ_API_KEY         — For photo/voice/text analysis (Groq)
     CMMS_URL             — Atlas CMMS endpoint
     CMMS_EMAIL           — CMMS login
     CMMS_PASSWORD        — CMMS password
@@ -37,7 +37,7 @@ from telegram.ext import (
     filters,
 )
 
-from config import TelegramConfig
+from config import TelegramConfig, RateLimiter
 from conversation import ConversationManager
 from handlers.photo import handle_photo, handle_photo_callback, cmd_wo, cmd_history
 from handlers.voice import handle_voice
@@ -99,6 +99,8 @@ def main() -> None:
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
         handlers=[logging.StreamHandler()],
     )
+    # Quiet httpx polling spam (getUpdates every 10s)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
     # Load config
     try:
@@ -112,14 +114,17 @@ def main() -> None:
     # Init conversation manager
     conv = ConversationManager()
 
-    # Init Gemini (optional)
-    gemini = None
-    if config.gemini_api_key:
-        from integrations.gemini import GeminiClient
-        gemini = GeminiClient(config.gemini_api_key)
-        logger.info("Gemini Vision enabled")
+    # Init Groq (optional)
+    groq = None
+    if config.groq_api_key:
+        from integrations.groq_client import GroqClient
+        groq = GroqClient(config.groq_api_key)
+        logger.info("Groq enabled (vision + text + voice)")
     else:
-        logger.warning("GEMINI_API_KEY not set — photo/voice analysis disabled")
+        logger.warning("GROQ_API_KEY not set — photo/voice/text analysis disabled")
+
+    # Init rate limiter
+    rate_limiter = RateLimiter(max_per_minute=config.rate_limit)
 
     # Init CMMS (optional)
     cmms = None
@@ -139,9 +144,10 @@ def main() -> None:
     # Store shared state in bot_data
     app.bot_data["config"] = config
     app.bot_data["conversation_manager"] = conv
-    app.bot_data["gemini"] = gemini
+    app.bot_data["groq"] = groq
     app.bot_data["cmms"] = cmms
     app.bot_data["claude_available"] = claude_available
+    app.bot_data["rate_limiter"] = rate_limiter
 
     # Register handlers
     app.add_handler(CommandHandler("start", start))

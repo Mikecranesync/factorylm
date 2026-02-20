@@ -8,8 +8,29 @@ Provides:
 """
 
 import os
-from typing import Optional, List
+import time
+from typing import Optional, List, Dict
 from pydantic import BaseModel, Field, field_validator
+
+
+class RateLimiter:
+    """Sliding-window rate limiter per user."""
+
+    def __init__(self, max_per_minute: int = 10):
+        self.limits: Dict[int, list] = {}
+        self.max = max_per_minute
+
+    def check(self, user_id: int) -> bool:
+        """Return True if allowed, False if rate-limited."""
+        now = time.time()
+        timestamps = self.limits.get(user_id, [])
+        timestamps = [t for t in timestamps if now - t < 60]
+        if len(timestamps) >= self.max:
+            self.limits[user_id] = timestamps
+            return False
+        timestamps.append(now)
+        self.limits[user_id] = timestamps
+        return True
 
 
 class TelegramConfig(BaseModel):
@@ -88,9 +109,9 @@ class TelegramConfig(BaseModel):
     )
 
     # Integrations
-    gemini_api_key: Optional[str] = Field(
+    groq_api_key: Optional[str] = Field(
         default=None,
-        description="Gemini API key for photo/voice analysis",
+        description="Groq API key for photo/voice/text analysis",
     )
 
     cmms_url: Optional[str] = Field(
@@ -137,7 +158,7 @@ class TelegramConfig(BaseModel):
         - TELEGRAM_BOT_TOKEN (required)
         - TELEGRAM_ALLOWED_USERS (optional, comma-separated)
         - TELEGRAM_RATE_LIMIT (optional)
-        - GEMINI_API_KEY (optional)
+        - GROQ_API_KEY (optional)
         - CMMS_URL (optional)
         - CMMS_EMAIL (optional)
         - CMMS_PASSWORD (optional)
@@ -166,7 +187,7 @@ class TelegramConfig(BaseModel):
             rate_limit=int(os.getenv("TELEGRAM_RATE_LIMIT", "10")),
             allowed_users=allowed_users,
             log_conversations=os.getenv("TELEGRAM_LOG_CONVERSATIONS", "false").lower() == "true",
-            gemini_api_key=os.getenv("GEMINI_API_KEY"),
+            groq_api_key=os.getenv("GROQ_API_KEY"),
             cmms_url=os.getenv("CMMS_URL"),
             cmms_email=os.getenv("CMMS_EMAIL"),
             cmms_password=os.getenv("CMMS_PASSWORD"),

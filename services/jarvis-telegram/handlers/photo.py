@@ -17,14 +17,26 @@ logger = logging.getLogger(__name__)
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Process an equipment photo and return a structured diagnosis."""
     config = context.bot_data["config"]
-    gemini = context.bot_data["gemini"]
+    groq = context.bot_data["groq"]
     conv = context.bot_data["conversation_manager"]
+    rate_limiter = context.bot_data["rate_limiter"]
 
     user_id = update.effective_user.id
     if not config.is_user_allowed(user_id):
         return
 
+    if not rate_limiter.check(user_id):
+        await update.message.reply_text("Rate limited — please wait a moment.")
+        return
+
+    if not groq:
+        await update.message.reply_text("Photo analysis not configured (GROQ_API_KEY missing).")
+        return
+
     session = conv.get_or_create_session(str(user_id))
+
+    # Typing indicator while processing
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     status_msg = await update.message.reply_text("Analyzing...")
 
     try:
@@ -32,7 +44,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         file = await context.bot.get_file(photo.file_id)
         photo_bytes = bytes(await file.download_as_bytearray())
 
-        diagnosis = await gemini.analyze_image(photo_bytes)
+        diagnosis = await groq.analyze_image(photo_bytes)
 
         # Store in session
         session.last_photo = photo_bytes
@@ -64,7 +76,7 @@ async def handle_photo_callback(update: Update, context: ContextTypes.DEFAULT_TY
     """Handle inline button callbacks from photo diagnosis."""
     query = update.callback_query
     config = context.bot_data["config"]
-    gemini = context.bot_data["gemini"]
+    groq = context.bot_data["groq"]
     cmms = context.bot_data.get("cmms")
     conv = context.bot_data["conversation_manager"]
 
@@ -82,7 +94,7 @@ async def handle_photo_callback(update: Update, context: ContextTypes.DEFAULT_TY
 
         await query.edit_message_text("Creating work order...")
 
-        wo_data = await gemini.generate_work_order_json(session.last_diagnosis)
+        wo_data = await groq.generate_work_order_json(session.last_diagnosis)
         if not wo_data:
             await query.edit_message_text("Failed to generate work order details")
             return
@@ -111,7 +123,7 @@ async def handle_photo_callback(update: Update, context: ContextTypes.DEFAULT_TY
     elif query.data == "reanalyze":
         if session.last_photo:
             await query.edit_message_text("Re-analyzing...")
-            diagnosis = await gemini.analyze_image(session.last_photo)
+            diagnosis = await groq.analyze_image(session.last_photo)
             session.add_diagnosis(diagnosis)
             await query.edit_message_text(diagnosis)
         else:
@@ -120,7 +132,7 @@ async def handle_photo_callback(update: Update, context: ContextTypes.DEFAULT_TY
     elif query.data == "nameplate":
         if session.last_photo:
             await query.edit_message_text("Focusing on nameplate...")
-            result = await gemini.analyze_image(session.last_photo, NAMEPLATE_PROMPT)
+            result = await groq.analyze_image(session.last_photo, NAMEPLATE_PROMPT)
             await query.edit_message_text(
                 f"*NAMEPLATE DATA*\n\n{result}",
                 parse_mode="Markdown",
@@ -128,11 +140,18 @@ async def handle_photo_callback(update: Update, context: ContextTypes.DEFAULT_TY
         else:
             await query.edit_message_text("No photo. Send a photo of the nameplate.")
 
+    elif query.data == "followup":
+        await query.edit_message_text(
+            f"*Previous diagnosis:*\n{session.last_diagnosis[:500] if session.last_diagnosis else 'None'}\n\n"
+            "Type your follow-up question below:",
+            parse_mode="Markdown",
+        )
+
 
 async def cmd_wo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Quick /wo command — create work order from last diagnosis."""
     config = context.bot_data["config"]
-    gemini = context.bot_data["gemini"]
+    groq = context.bot_data["groq"]
     cmms = context.bot_data.get("cmms")
     conv = context.bot_data["conversation_manager"]
 
@@ -151,7 +170,7 @@ async def cmd_wo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await update.message.reply_text("Creating work order...")
 
-    wo_data = await gemini.generate_work_order_json(session.last_diagnosis)
+    wo_data = await groq.generate_work_order_json(session.last_diagnosis)
     if wo_data:
         result = await cmms.create_work_order(
             title=wo_data.get("title", "Equipment Issue"),
