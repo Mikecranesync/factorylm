@@ -1,6 +1,7 @@
 # Restored from: main:installers/claude-telegram-bridge/claude_telegram_bridge.py
 """
-Text message handler — routes text to Claude CLI or Groq depending on context.
+Text message handler — routes text through LLM fallback chain (Groq → Cerebras → OpenRouter),
+with Claude CLI as last resort.
 """
 
 import logging
@@ -14,12 +15,23 @@ from prompts import VOICE_PROMPT
 
 logger = logging.getLogger(__name__)
 
+SYSTEM_PROMPT = VOICE_PROMPT
+
+
+def _build_messages(session, message: str) -> list[dict]:
+    """Build OpenAI-format messages from session context."""
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if session.last_diagnosis:
+        messages.append({"role": "system", "content": f"Previous equipment diagnosis:\n{session.last_diagnosis[:500]}"})
+    messages.append({"role": "user", "content": message})
+    return messages
+
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Process a text message — uses Claude CLI bridge if available, else Groq."""
+    """Process a text message — uses LLM fallback chain, Claude CLI as last resort."""
     config = context.bot_data["config"]
     conv = context.bot_data["conversation_manager"]
-    groq = context.bot_data.get("groq")
+    llm_chain = context.bot_data.get("llm_chain")
     claude_available = context.bot_data.get("claude_available", False)
     rate_limiter = context.bot_data["rate_limiter"]
 
@@ -41,16 +53,17 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if config.typing_indicator:
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
 
-    # Route: Claude CLI if available, else Groq with context
-    if claude_available:
+    # Route: LLM fallback chain (Groq → Cerebras → OpenRouter), Claude CLI as last resort
+    if llm_chain:
+        messages = _build_messages(session, message)
+        response, provider = await llm_chain.chat(messages)
+        logger.info(f"Text response via {provider} for user {user_id}")
+    elif claude_available:
         workspace = Path(config.claude_workspace) if config.claude_workspace else None
-        response = await run_claude(message, workspace=workspace)
-    elif groq:
-        context_parts = [VOICE_PROMPT]
+        enriched = message
         if session.last_diagnosis:
-            context_parts.append(f"Previous diagnosis:\n{session.last_diagnosis[:500]}")
-        context_parts.append(f"Technician asks: {message}")
-        response = await groq.generate_text(context_parts)
+            enriched = f"Previous equipment diagnosis:\n{session.last_diagnosis[:500]}\n\nTechnician's follow-up: {message}"
+        response = await run_claude(enriched, workspace=workspace)
     else:
         response = "No AI backend configured. Set GROQ_API_KEY or install Claude CLI."
 
