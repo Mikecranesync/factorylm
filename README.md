@@ -2,14 +2,14 @@
 
 **Industrial AI Platform — The Vision**
 
-**Version:** 0.25  
-**Author:** Mike Harper  
-**Status:** CANONICAL — This document IS the vision. Everything references this.  
-**Last Updated:** February 3, 2026
+**Version:** 0.26
+**Author:** Mike Harper
+**Status:** CANONICAL — This document IS the vision. Everything references this.
+**Last Updated:** February 21, 2026
 
 ---
 
-## ⚠️ READ THIS FIRST
+## WARNING: READ THIS FIRST
 
 This README IS the vision statement for FactoryLM.
 
@@ -27,6 +27,30 @@ This README IS the vision statement for FactoryLM.
 
 ---
 
+## Component Maturity
+
+This is the honest state of the codebase as of February 2026. Vision items appear in the Roadmap section below.
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Telegram Bot (jarvis-telegram) | Production | 9/9 baseline tests passing, multi-provider LLM fallback |
+| PLC Modbus Client | Production | Micro 820 + Factory I/O verified, 162 tests |
+| LLM Core Library | Production | 148 tests, Groq/Anthropic/Gemini/OpenAI providers |
+| My-Ralph Dev Agent | Production | 321 tests, Bash + Python |
+| Diagnosis Service | Working | PLC-to-LLM bridge, no automated tests yet |
+| Cosmos Vision AI | Demo/Stub | `cosmos/agent.py` scaffolded, not calling Cosmos API |
+| CMMS Web App | Prototype | Forked upstream, not yet rebranded |
+| Matrix/Voltron | Prototype | Basic endpoints, no modern UI |
+| Docker Compose | Partial | Postgres only, unified compose pending |
+| CI/CD Pipeline | Missing | GitHub Actions PR pending |
+| WhatsApp Adapter | Planned | Telegram is current primary channel |
+| AR / Halo Glasses | Vision | No code yet |
+| Edge LLM (Raspberry Pi) | Vision | Architecture defined, not deployed |
+| Local GPU Server (Layer 2) | Vision | Architecture defined, not deployed |
+| Air-Gapped Deployment | Vision | Architecture defined, not deployed |
+
+---
+
 ## Core Philosophy
 
 ### Intelligence Flows Downward
@@ -34,9 +58,9 @@ This README IS the vision statement for FactoryLM.
 The goal is NOT to use more AI. The goal is to use LESS AI over time.
 
 ```
-Day 1:   Query → Cloud AI (Claude) → Answer
-Day 30:  Same query → Pattern recognized → Workflow created  
-Day 60:  Same query → Code executes → Instant answer (no AI)
+Day 1:   Query -> Cloud AI (Claude) -> Answer
+Day 30:  Same query -> Pattern recognized -> Workflow created
+Day 60:  Same query -> Code executes -> Instant answer (no AI)
 ```
 
 Every trace, every workflow, every observation pushes intelligence DOWN the stack.
@@ -46,40 +70,41 @@ Every trace, every workflow, every observation pushes intelligence DOWN the stac
 ## The Stack
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  LAYER 3: CLOUD AI                                          │
-│  Claude, GPT-4, etc.                                        │
-│  Complex reasoning, novel problems                          │
-│  Response: 1-2 seconds | Cost: $0.01-0.10                   │
-│  OPTIONAL — Customer chooses based on security needs        │
-├─────────────────────────────────────────────────────────────┤
-│  LAYER 2: LOCAL GPU SERVER                                  │
-│  Llama 70B, Mixtral, etc.                                   │
-│  Medium complexity, diagnostics, analysis                   │
-│  Response: 2-3 seconds | Cost: Electricity only             │
-│  AIR-GAPPED — No internet required                          │
-├─────────────────────────────────────────────────────────────┤
-│  LAYER 1: EDGE LLM (Raspberry Pi)                           │
-│  Qwen 0.5B, Llama 1B, Phi-2                                 │
-│  Simple NL parsing, command translation                     │
-│  Response: 0.5-1 second | Cost: None                        │
-│  ON-DEVICE — Runs on the Pi itself                          │
-├─────────────────────────────────────────────────────────────┤
-│  LAYER 0: DETERMINISTIC CODE + KNOWLEDGE BASE               │
-│                                                             │
-│  Components:                                                │
-│  • Vector DB — Semantic search over all documentation       │
-│  • Plane — Workflow orchestration and task management       │
-│  • Wiseflow — Automated knowledge gathering and indexing    │
-│  • Logic Gates — Pattern-matched responses from manuals     │
-│  • Workflows — Captured from successful AI interactions     │
-│                                                             │
-│  Response: <100ms | Cost: None                              │
-│  THIS IS WHERE WE WANT EVERYTHING TO END UP                 │
-└─────────────────────────────────────────────────────────────┘
++-------------------------------------------------------------+
+|  LAYER 3: CLOUD AI                                          |
+|  Claude, GPT-4, Groq (currently active)                     |
+|  Complex reasoning, novel problems                          |
+|  Response: 1-2 seconds | Cost: $0.01-0.10                   |
+|  OPTIONAL -- Customer chooses based on security needs       |
++-------------------------------------------------------------+
+|  LAYER 2: LOCAL GPU SERVER                    [ROADMAP]     |
+|  Llama 70B, Mixtral, etc.                                   |
+|  Medium complexity, diagnostics, analysis                   |
+|  Response: 2-3 seconds | Cost: Electricity only             |
+|  AIR-GAPPED -- No internet required                         |
++-------------------------------------------------------------+
+|  LAYER 1: EDGE LLM (Raspberry Pi)             [ROADMAP]     |
+|  Qwen 0.5B, Llama 1B, Phi-2                                 |
+|  Simple NL parsing, command translation                     |
+|  Response: 0.5-1 second | Cost: None                        |
+|  ON-DEVICE -- Runs on the Pi itself                         |
++-------------------------------------------------------------+
+|  LAYER 0: DETERMINISTIC CODE + KNOWLEDGE BASE [ROADMAP]     |
+|                                                             |
+|  Components:                                                |
+|  * Vector DB -- Semantic search over all documentation      |
+|  * Plane -- Workflow orchestration and task management      |
+|  * Wiseflow -- Automated knowledge gathering and indexing   |
+|  * Logic Gates -- Pattern-matched responses from manuals    |
+|  * Workflows -- Captured from successful AI interactions    |
+|                                                             |
+|  Response: <100ms | Cost: None                              |
+|  THIS IS WHERE WE WANT EVERYTHING TO END UP                 |
++-------------------------------------------------------------+
 ```
 
-**Layer 0 is the goal.** Everything else is fallback.
+**Layer 3 (Cloud AI via Groq/Anthropic) is what's live today.**
+Layers 0-2 are the architecture we are building toward.
 
 ---
 
@@ -87,36 +112,36 @@ Every trace, every workflow, every observation pushes intelligence DOWN the stac
 
 Users interact via their preferred platform:
 
-### Primary (Must Work First)
-- **WhatsApp** — Primary channel, especially Latin America
-- **Phone** — Standard messaging interface
+### Active Today
+- **Telegram** -- Primary working channel (jarvis-telegram service, production)
 
-### Secondary  
-- **Telegram** — Power users, developers
-- **Slack** — Enterprise teams
-- **Halo Glasses** — Hands-free on factory floor
-- **Web Dashboard** — Admin and analytics
+### Roadmap
+- **WhatsApp** -- Planned primary channel, especially Latin America
+- **Phone** -- Standard messaging interface
+- **Slack** -- Enterprise teams
+- **Halo Glasses** -- Hands-free on factory floor (no code yet)
+- **Web Dashboard** -- Admin and analytics
 
 ### All Adapters Are Dumb
 
 ```
-┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-│ WhatsApp │ │ Telegram │ │  Slack   │ │  Phone   │ │   Halo   │
-│ Adapter  │ │ Adapter  │ │ Adapter  │ │ Adapter  │ │ Adapter  │
-└────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘
-     │            │            │            │            │
-     └────────────┴────────────┼────────────┴────────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   Message Router    │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │  Intelligence Stack │
-                    │    (Layers 0-3)     │
-                    └─────────────────────┘
++----------+ +----------+ +----------+ +----------+ +----------+
+| WhatsApp | | Telegram | |  Slack   | |  Phone   | |   Halo   |
+| Adapter  | | Adapter  | | Adapter  | | Adapter  | | Adapter  |
++----+-----+ +----+-----+ +----+-----+ +----+-----+ +----+-----+
+     |            |            |            |            |
+     +-----------++-----------++-----------++-----------+
+                              |
+                              v
+                   +---------------------+
+                   |   Message Router    |
+                   +----------+----------+
+                              |
+                              v
+                   +---------------------+
+                   |  Intelligence Stack |
+                   |    (Layers 0-3)     |
+                   +---------------------+
 ```
 
 Adapters handle I/O ONLY. All intelligence lives in the core.
@@ -125,7 +150,7 @@ Adapters handle I/O ONLY. All intelligence lives in the core.
 
 ## Layer 0: The Knowledge Engine
 
-This is NOT AI. This is CODE. It's fast. It's free. It's reliable.
+This is NOT AI. This is CODE. It is fast. It is free. It is reliable.
 
 ### Components
 
@@ -149,11 +174,11 @@ This is NOT AI. This is CODE. It's fast. It's free. It's reliable.
 
 When a technician encounters equipment:
 
-1. **Identify** — OCR/barcode/RFID reads tag
-2. **Gather** — Rivet Pro fetches ALL available knowledge
-3. **Store** — Vectorize, index, tag in knowledge base
-4. **Deliver** — Semantic search returns instant answer
-5. **Learn** — New info captured, gaps identified and filled
+1. **Identify** -- OCR/barcode/RFID reads tag
+2. **Gather** -- Rivet Pro fetches ALL available knowledge
+3. **Store** -- Vectorize, index, tag in knowledge base
+4. **Deliver** -- Semantic search returns instant answer
+5. **Learn** -- New info captured, gaps identified and filled
 
 **No LLM required for known information.**
 
@@ -167,24 +192,27 @@ def route_query(query, context):
     kb_result = knowledge_base.search(query)
     if kb_result.confidence > 0.9:
         return kb_result
-    
+
     # LAYER 0: Check for matching workflow
     workflow = plane.match_workflow(query)
     if workflow:
         return workflow.execute()
-    
+
     # LAYER 1: Edge LLM for simple commands
     if is_simple_command(query):
         return edge_llm.process(query)
-    
+
     # LAYER 2: Local GPU for medium complexity
     if gpu_server.available:
         return gpu_server.process(query)
-    
+
     # LAYER 3: Cloud as last resort
     if cloud.available and not air_gapped:
         return cloud.process(query)
 ```
+
+Today, the system enters at Layer 3 (Groq/Anthropic) and works downward as
+knowledge accumulates. The routing logic above is the target architecture.
 
 ---
 
@@ -193,13 +221,13 @@ def route_query(query, context):
 Every query is traced. Patterns become code.
 
 ```
-Query → Trace Logged → Pattern Found → Workflow Created → Layer 0 Grows
+Query -> Trace Logged -> Pattern Found -> Workflow Created -> Layer 0 Grows
 ```
 
 ### Tools
-- **LangSmith** — LLM interaction tracing
-- **Phoenix** — Observability and debugging
-- **Custom Logging** — Business-specific metrics
+- **Axiom** -- Log aggregation via Vector shippers (VPS)
+- **Honeycomb** -- Distributed tracing via OTel SDK (all services)
+- **Custom Logging** -- Business-specific metrics
 
 ### Metrics We Track
 - Queries per layer (should shift toward Layer 0)
@@ -214,30 +242,30 @@ Query → Trace Logged → Pattern Found → Workflow Created → Layer 0 Grows
 ### FactoryLM Edge (Raspberry Pi 4)
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                 FactoryLM Edge                          │
-├─────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │   Modbus    │  │  EtherNet/  │  │   OPC UA    │     │
-│  │   TCP/RTU   │  │     IP      │  │   Client    │     │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘     │
-│         └────────────────┼────────────────┘             │
-│                          ▼                              │
-│                 ┌─────────────────┐                     │
-│                 │   Tag Engine    │                     │
-│                 └────────┬────────┘                     │
-│         ┌────────────────┼────────────────┐             │
-│         ▼                ▼                ▼             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │  Vector DB  │  │  Edge LLM   │  │  Workflow   │     │
-│  │  (Layer 0)  │  │  (Layer 1)  │  │   Engine    │     │
-│  └─────────────┘  └─────────────┘  └─────────────┘     │
-│                          │                              │
-│                          ▼                              │
-│                 ┌─────────────────┐                     │
-│                 │   API Server    │                     │
-│                 └─────────────────┘                     │
-└─────────────────────────────────────────────────────────┘
++---------------------------------------------------------+
+|                 FactoryLM Edge                          |
++---------------------------------------------------------+
+|  +-------------+  +-------------+  +-------------+     |
+|  |   Modbus    |  |  EtherNet/  |  |   OPC UA    |     |
+|  |   TCP/RTU   |  |     IP      |  |   Client    |     |
+|  +------+------+  +------+------+  +------+------+     |
+|         +-----------------+-----------------+           |
+|                           v                             |
+|                  +-----------------+                    |
+|                  |   Tag Engine    |                    |
+|                  +--------+--------+                    |
+|         +------------------+-----------------+          |
+|         v                  v                 v          |
+|  +-------------+  +-------------+  +-------------+     |
+|  |  Vector DB  |  |  Edge LLM   |  |  Workflow   |     |
+|  |  (Layer 0)  |  |  (Layer 1)  |  |   Engine    |     |
+|  +-------------+  +-------------+  +-------------+     |
+|                           |                             |
+|                           v                             |
+|                  +-----------------+                    |
+|                  |   API Server    |                    |
+|                  +-----------------+                    |
++---------------------------------------------------------+
 ```
 
 ### Supported Protocols
@@ -264,9 +292,9 @@ Query → Trace Logged → Pattern Found → Workflow Created → Layer 0 Grows
 ## Deployment Scenarios
 
 ### A: Full Stack (Internet Available)
-All layers available. Maximum intelligence.
+All layers available. Maximum intelligence. **This is the current demo configuration.**
 
-### B: Air-Gapped (Defense/ITAR)  
+### B: Air-Gapped (Defense/ITAR) [Roadmap]
 Layer 3 disabled. 70B local model. Data never leaves facility.
 
 ### C: Budget (No GPU Server)
@@ -282,11 +310,11 @@ Layer 0 only. Completely isolated.
 FactoryLM is a **diagnostic tool**, not a control system.
 
 ```
-✓ Read tag values        ✗ Write to PLCs
-✓ Monitor I/O states     ✗ Change setpoints  
-✓ Record fault codes     ✗ Start/stop equipment
-✓ Analyze trends         ✗ Modify programs
-✓ Suggest actions        ✗ Execute actions
+OK  Read tag values          NOT OK  Write to PLCs
+OK  Monitor I/O states       NOT OK  Change setpoints
+OK  Record fault codes       NOT OK  Start/stop equipment
+OK  Analyze trends           NOT OK  Modify programs
+OK  Suggest actions          NOT OK  Execute actions
 ```
 
 **Why:** Eliminates fear, simplifies IT approval, removes liability.
@@ -295,9 +323,9 @@ FactoryLM is a **diagnostic tool**, not a control system.
 
 ## NVIDIA Cosmos Cookoff 2026
 
-FactoryLM is entered in the [NVIDIA Cosmos Cookoff](https://forums.developer.nvidia.com/t/the-nvidia-cosmos-cookoff-is-here/359090) (Jan 29 – Feb 26, 2026).
+FactoryLM is entered in the [NVIDIA Cosmos Cookoff](https://forums.developer.nvidia.com/t/the-nvidia-cosmos-cookoff-is-here/359090) (Jan 29 - Feb 26, 2026).
 
-**Entry concept:** Voltron/Matrix provides the PLC "nervous system" (data pipeline + HMIs), and NVIDIA Cosmos Reason 2 acts as the "brain" — interpreting sensor data and video to explain faults, check physical plausibility, and guide maintenance.
+**Entry concept:** Voltron/Matrix provides the PLC "nervous system" (data pipeline + HMIs), and NVIDIA Cosmos Reason 2 acts as the "brain" -- interpreting sensor data and video to explain faults, check physical plausibility, and guide maintenance.
 
 | Document | Description |
 |----------|-------------|
@@ -305,13 +333,13 @@ FactoryLM is entered in the [NVIDIA Cosmos Cookoff](https://forums.developer.nvi
 | [Cosmos Architecture](docs/cosmos_architecture.md) | Data flow, connector spec, Postgres schema |
 | [Goals](docs/goals.md) | Tracked objectives and sub-goals |
 
-**Connector stub:** `cosmos/agent.py` — scaffolded, not yet calling Cosmos API.
+**Current state:** `cosmos/agent.py` is scaffolded (stub) -- it is not yet calling the Cosmos API. Responses are hardcoded for demo purposes until the API key and integration are wired in.
 
 ---
 
 ## Local Quickstart
 
-Run everything locally — no VPS required. See [docs/local_setup.md](docs/local_setup.md) for full instructions.
+Run everything locally -- no VPS required. See [docs/local_setup.md](docs/local_setup.md) for full instructions.
 
 ```bash
 git clone https://github.com/Mikecranesync/factorylm.git
@@ -325,10 +353,39 @@ cd services/plc-modbus && PLC_USE_MOCK=true uvicorn backend.main:app --reload
 
 ---
 
+## Roadmap
+
+These features are part of the vision but have no production code yet.
+
+### Channels
+- **WhatsApp adapter** -- Planned primary channel for Latin America markets
+- **Slack adapter** -- Enterprise team integration
+- **Halo Glasses / AR overlay** -- Hands-free factory floor interface
+
+### Infrastructure
+- **Air-gapped deployment** -- Layer 3 disabled, local 70B model only
+- **vLLM self-hosting** -- Run open-weight models on local GPU (Vast.ai or bare metal)
+- **Raspberry Pi Edge node** -- Layer 1 on-device LLM (Qwen 0.5B / Phi-2)
+- **CI/CD pipeline** -- GitHub Actions for automated test + deploy
+
+### Intelligence
+- **Vector DB / Layer 0** -- Deterministic KB with semantic search over manuals
+- **Workflow capture** -- Auto-promote successful AI traces to deterministic code
+- **Plane integration** -- Workflow orchestration and task planning
+- **Wiseflow integration** -- Automated knowledge gathering and indexing
+
+### Platform
+- **Unified Docker Compose** -- Single compose file for all services
+- **Web dashboard** -- Admin, analytics, and observability UI
+- **CMMS rebrand** -- Fork of Atlas CMMS fully rebranded to FactoryLM
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.26 | 2026-02-21 | Added maturity table, roadmap section, honest status of Cosmos/WhatsApp/AR |
 | 0.25 | 2026-02-03 | Initial canonical vision document |
 
 ---
@@ -337,15 +394,15 @@ cd services/plc-modbus && PLC_USE_MOCK=true uvicorn backend.main:app --reload
 
 This document must be referenced by:
 - Every `CLAUDE.md` file
-- Every `AGENTS.md` file  
+- Every `AGENTS.md` file
 - Every `.github/copilot-instructions.md`
 - Root README of every FactoryLM repo
 
-**When Mike says "update the README" — update THIS VISION.**
+**When Mike says "update the README" -- update THIS VISION.**
 
 ---
 
-**FactoryLM — AI for the Factory Floor**
+**FactoryLM -- AI for the Factory Floor**
 
 ---
 
@@ -375,7 +432,7 @@ Every PR must reference: `Fixes #123`
 Production deployments require explicit approval.
 
 ## VII. Meaningful Commits
-`type: short description` — explain what and why.
+`type: short description` -- explain what and why.
 
 ## VIII. Test Before Pushing
 Verify locally. Test happy path AND edge cases.
@@ -388,7 +445,7 @@ Fix properly, document, add safeguards, share learnings.
 
 ### The Workflow
 ```
-Issue → Branch → Code → PR → Approval → Merge → Deploy → Trello
+Issue -> Branch -> Code -> PR -> Approval -> Merge -> Deploy -> Trello
 ```
 
 ---
@@ -434,4 +491,4 @@ Build for durability. Code others can maintain. Architecture that scales.
 
 ---
 
-*Commandments v1.0 | Constitution v1.0 | Vision v0.25*
+*Commandments v1.0 | Constitution v1.0 | Vision v0.26*
