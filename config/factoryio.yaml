@@ -31,24 +31,36 @@ factoryio:
   # Default addresses match the Allen-Bradley Micro 820 convention
   # used throughout this repo (see services/plc-modbus/CLAUDE.md).
 
+  # Total mapped I/O: 19 (10 coils + 9 holding registers)
   coils:
+    # --- Program variables (addresses 0-6) ---
     0: motor_running        # Main conveyor motor state
     1: motor_stopped        # Motor stopped indicator
     2: fault_alarm          # Any fault active
     3: conveyor_running     # Conveyor belt running
     4: sensor_1_active      # Entry photoeye (part detected)
     5: sensor_2_active      # Exit photoeye (part detected)
-    6: e_stop_active        # Emergency stop engaged
+    6: e_stop_active        # Emergency stop (program variable)
+    # --- Physical I/O coils added to reach 19-register target ---
+    7: entry_sensor         # _IO_EM_DI_00 — 3-pos switch CENTER / entry detect
+    8: estop_contact_no     # _IO_EM_DI_01 — E-stop NO contact (ON when pressed)
+    10: selector_switch_right  # _IO_EM_DI_03 — 3-pos switch RIGHT position
 
   registers:
+    # --- Original 6 holding registers ---
     100: motor_speed        # Motor speed 0-100%
     101: motor_current      # Motor current (raw ÷ 10 = Amps)
     102: temperature        # Temperature (raw ÷ 10 = °C)
     103: pressure           # Pressure (PSI)
     104: conveyor_speed     # Conveyor belt speed 0-100%
     105: error_code         # 0=OK, 1=Overload, 2=Overheat, 3=Jam, 4=Sensor, 5=Comms
+    # --- Added holding registers to reach 19-register target ---
+    106: part_count         # Parts processed since last reset (raw integer)
+    107: production_rate    # Parts per minute (rolling 60-second window)
+    108: cycle_time_ms      # Last part cycle time in milliseconds
 
   # Scale factors for registers (applied automatically by the bridge)
   scale:
     motor_current: 0.1     # raw * 0.1 = Amps
     temperature: 0.1       # raw * 0.1 = °C
+    # part_count, production_rate, cycle_time_ms: no scaling, raw integers

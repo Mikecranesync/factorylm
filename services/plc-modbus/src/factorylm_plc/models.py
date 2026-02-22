@@ -70,17 +70,34 @@ class FactoryState(MachineState):
 
     Includes conveyor, sensors, e-stop, and error code interpretation
     specific to Factory I/O simulation.
+
+    Register coverage (19 total):
+      Holding registers (9): motor_speed, motor_current, temperature, pressure,
+          conveyor_speed, error_code, part_count, production_rate, cycle_time_ms
+      Coils (10): motor_running, motor_stopped, fault_alarm, conveyor_running,
+          sensor_1, sensor_2, e_stop, entry_sensor, estop_contact_no,
+          selector_switch_right
     """
     # Conveyor state
     conveyor_speed: int = 0
     conveyor_running: bool = False
 
-    # Sensor states
+    # Program-variable sensor coils
     sensor_1_active: bool = False
     sensor_2_active: bool = False
 
+    # Physical I/O coils (added to reach 19-register target)
+    entry_sensor_active: bool = False       # _IO_EM_DI_00: 3-pos switch CENTER / entry photoeye
+    estop_contact_no: bool = False          # _IO_EM_DI_01: E-stop NO contact (True when pressed)
+    selector_switch_right: bool = False     # _IO_EM_DI_03: 3-pos switch RIGHT position
+
     # Safety
     e_stop_active: bool = False
+
+    # Production counters (added to reach 19-register target)
+    part_count: int = 0         # Parts processed since last reset
+    production_rate: int = 0    # Parts per minute (rolling 60-second window)
+    cycle_time_ms: int = 0      # Last part cycle time in milliseconds
 
     # Error handling
     error_code: int = 0
@@ -132,13 +149,23 @@ class FactoryState(MachineState):
         else:
             error_str = "None"
 
+        # Physical I/O coil status
+        entry = "PART" if self.entry_sensor_active else "clear"
+        sw_right = "RIGHT" if self.selector_switch_right else "off"
+        estop_hw = "PRESSED" if self.estop_contact_no else "released"
+
+        # Production stats
+        cycle_s = f"{self.cycle_time_ms / 1000:.1f}s" if self.cycle_time_ms else "N/A"
+
         return f"""Current Factory State ({self.scene_name}):
 - Motor: {motor_str}
 - Motor Current: {self.motor_current}A
 - Temperature: {self.temperature}C
 - Pressure: {self.pressure} PSI
 - Conveyor: {conveyor_str}
-- Sensors: S1={s1}, S2={s2}
-- E-Stop: {estop_str}
+- Sensors: S1={s1}, S2={s2}, Entry={entry}
+- Selector Switch: {sw_right}
+- E-Stop (program): {estop_str}, E-Stop (HW contact): {estop_hw}
+- Production: {self.part_count} parts, {self.production_rate} parts/min, cycle={cycle_s}
 - Errors: {error_str}
 - Timestamp: {self.timestamp.strftime('%H:%M:%S')}"""
