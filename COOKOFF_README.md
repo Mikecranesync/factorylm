@@ -2,7 +2,11 @@
 
 **NVIDIA Cosmos Cookoff 2026 Entry**
 
-FactoryLM connects to real PLC hardware (Allen-Bradley Micro 820) via Modbus TCP, streams live sensor data through an intelligent pipeline, and uses **NVIDIA Cosmos Reason 2** to diagnose equipment faults from video + sensor data — delivering root-cause analysis to the operator in seconds.
+> **DEMO MODE:** The Cosmos Reason 2 integration currently returns hardcoded stub responses.
+> Real Cosmos API calls require an `NVIDIA_COSMOS_API_KEY`. See [Environment Variables](#-environment-variables) below.
+> Self-hosted vLLM / Vast.ai / RunPod fine-tuning are planned — see [Roadmap](#-roadmap).
+
+FactoryLM connects to real PLC hardware (Allen-Bradley Micro 820) via Modbus TCP, streams live sensor data through an intelligent pipeline, and demonstrates how **NVIDIA Cosmos Reason 2** can diagnose equipment faults from video + sensor data — delivering root-cause analysis to the operator in seconds.
 
 > **Read-only by design.** FactoryLM never writes to PLCs. It observes, reasons, and advises.
 
@@ -159,7 +163,25 @@ Verifies the full pipeline end-to-end: Matrix API → tag ingestion → incident
 | `MATRIX_URL` | No | Matrix API URL (default: http://localhost:8000) |
 | `MATRIX_DB_PATH` | No | SQLite DB path (default: matrix.db) |
 
-Without `NVIDIA_COSMOS_API_KEY`, the system uses intelligent stub responses that mimic real Cosmos output — suitable for demos and testing.
+**Demo Mode (default — no API key needed):** Without `NVIDIA_COSMOS_API_KEY`, all Cosmos calls return hardcoded stub responses keyed on `error_code`. These mimic real Cosmos output structure and are suitable for demos and CI. No external API is contacted.
+
+**Live Mode:** Set `NVIDIA_COSMOS_API_KEY` to call the real NVIDIA Cosmos Reason 2 endpoint at `https://integrate.api.nvidia.com/v1`. The client includes automatic fallback to `meta/llama-3.1-70b-instruct` if the Cosmos model returns a 404.
+
+---
+
+## 🗺 Roadmap
+
+The following capabilities are **planned but not yet implemented**:
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Self-hosted vLLM inference endpoint | Planned | Replace cloud API with on-premise vLLM server |
+| Fine-tuning Cosmos Reason 2-2B | Planned | SFT on factory fault video using NVIDIA Cosmos Cookbook |
+| Vast.ai / RunPod GPU training | Planned | A100 SXM 80GB rental for fine-tuning run (~$57-78) |
+| Air-gapped Layer 2 deployment | Planned | Fine-tuned model running locally, no cloud dependency |
+| Video training dataset (125 clips) | Planned | Factory I/O screen captures per fault type |
+
+The current submission uses **Groq Cloud API** (with NVIDIA cloud API as the configured target) and hardcoded stub responses for all demo scenarios. The architecture is designed so that a real Cosmos or vLLM endpoint can be swapped in by setting `NVIDIA_COSMOS_API_KEY` and updating `config/cosmos.yaml`.
 
 ---
 

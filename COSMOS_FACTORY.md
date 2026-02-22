@@ -1,20 +1,27 @@
 # 🏭 Cosmos Factory — FactoryLM × NVIDIA Cosmos Cookoff 2026
 
-*"Who'll stop the rain on the factory floor? Cosmos will."*  
+*"Who'll stop the rain on the factory floor? Cosmos will."*
 — Named after Creedence Clearwater Revival's *Cosmo's Factory* (1970)
 
-**Deadline:** Feb 26, 2026 5 PM PT  
-**Status:** ACTIVE — Fine-tuning Cosmos Reason 2-2B on factory fault video  
-**Budget:** ~$67 GPU rental  
-**Last Updated:** 2026-02-17
+**Deadline:** Feb 26, 2026 5 PM PT
+**Status:** DEMO MODE — Cosmos integration uses hardcoded stub responses (no API key set)
+**Budget:** ~$67 GPU rental (planned — see Roadmap)
+**Last Updated:** 2026-02-21
+
+> **Honest Status Note:** The Cosmos Reason 2 client (`cosmos/client.py`) is fully wired
+> but defaults to stub responses when `NVIDIA_COSMOS_API_KEY` is not set. This is the
+> standard mode for demos and CI. Real API calls, self-hosted vLLM, Vast.ai GPU rental,
+> and fine-tuning are all planned work — see the [Roadmap](#-roadmap) section below.
 
 ---
 
 ## 🎯 The Pitch (30 seconds)
 
-FactoryLM fine-tunes **NVIDIA Cosmos Reason 2** on factory floor video to diagnose equipment faults — conveyor jams, motor overloads, sensor failures — from video + PLC sensor data. The fine-tuned model runs **locally, air-gapped**, on a Layer 2 GPU server. No cloud required. Successful diagnoses flow downward into deterministic Layer 0 code, requiring *less* AI over time.
+FactoryLM demonstrates how **NVIDIA Cosmos Reason 2** can diagnose industrial equipment faults — conveyor jams, motor overloads, sensor failures — from video + PLC sensor data. The current demo uses stub responses that mirror Cosmos output structure. The roadmap calls for fine-tuning the model on factory floor video and deploying it **locally, air-gapped**, on a Layer 2 GPU server. Successful diagnoses flow downward into deterministic Layer 0 code, requiring *less* AI over time.
 
-**Pipeline:** `Factory I/O Simulation → Modbus TCP → Matrix API → Fine-Tuned Cosmos Reason 2 → Root-Cause Diagnosis`
+**Current Demo Pipeline:** `Factory I/O Simulation → Modbus TCP → Matrix API → Cosmos Client (Stub) → Root-Cause Diagnosis`
+
+**Planned Pipeline:** `Factory I/O Simulation → Modbus TCP → Matrix API → Fine-Tuned Cosmos Reason 2 → Root-Cause Diagnosis`
 
 ---
 
@@ -163,33 +170,37 @@ If fine-tuning doesn't converge by Day 5:
 
 ---
 
-## ✅ What's Already Built
+## ✅ What's Already Built (Demo-Ready)
 
-| Component | Status | File |
-|-----------|--------|------|
+| Component | Status | Notes |
+|-----------|--------|-------|
 | Matrix API (tag ingestion, incidents, insights, web HMI) | ✅ Working | `services/matrix/app.py` |
-| Cosmos client (real API + Llama fallback + stubs) | ✅ Working | `cosmos/client.py` |
+| Cosmos client — stub mode | ✅ Working | `cosmos/client.py` — returns hardcoded responses, no API key needed |
+| Cosmos client — real NVIDIA API | Requires key | Set `NVIDIA_COSMOS_API_KEY` to activate |
 | Cosmos watcher (polls incidents, calls Cosmos) | ✅ Working | `cosmos/watcher.py` |
 | Factory I/O bridge (Modbus + simulator) | ✅ Working | `sim/factoryio_bridge.py` |
 | PLC simulator (5 fault types, interactive injection) | ✅ Working | `sim/plc_simulator.py` |
-| End-to-end smoke test (6/6 steps pass in 2.4s) | ✅ Working | `scripts/smoke_test.py` |
+| End-to-end smoke test (6/6 steps pass in 2.4s) | ✅ Working | `scripts/smoke_test.py` — uses stubs |
 | Discord adapter bot | ✅ Built | `services/discord-adapter/bot.py` |
 | Network architecture diagrams | ✅ Published | [Gist](https://gist.github.com/Mikecranesync/e8f95da626fd0b4adcb8df13bb62ba96) |
 | Cosmos agent (SQLite incident watcher) | ✅ Working | `cosmos/agent.py` |
 | Web HMI dashboard (live tags + incidents + Cosmos insights) | ✅ Working | `services/matrix/app.py` (inline HTML) |
 | Video diary pipeline | ✅ Exists | `video/*.py` |
 
-## 🔲 What Still Needs Doing
+## 🗺 Roadmap
 
-| Task | Owner | Day |
-|------|-------|-----|
-| Spin up RunPod A100 | Mike (manual) | 1 |
-| Record 125 Factory I/O fault videos | Mike (manual) | 2 |
-| Build training data pipeline | Automated | 3 |
-| Fine-tune Cosmos Reason 2-2B | Automated | 4-5 |
-| Deploy + integrate fine-tuned model | Automated | 6 |
-| Record demo video | Mike (manual) | 7-8 |
-| Submit | Mike (manual) | 9 |
+The following items are **planned but not yet implemented**:
+
+| Task | Owner | Notes |
+|------|-------|-------|
+| Spin up RunPod / Vast.ai A100 for training | Mike (manual) | GPU rental, ~$57-78 total |
+| Record 125 Factory I/O fault videos | Mike (manual) | Screen capture per fault type |
+| Build training data pipeline (JSONL) | Automated | Pair videos with PLC tags + labels |
+| Fine-tune Cosmos Reason 2-2B | Automated | SFT using NVIDIA Cosmos Cookbook recipe |
+| Deploy fine-tuned model via vLLM | Automated | Point `cosmos/client.py` at local endpoint |
+| Self-hosted vLLM inference server | Infrastructure | Air-gapped Layer 2 GPU server |
+| Record + edit demo video | Mike (manual) | 2-4 min showing full pipeline |
+| Submit cookoff entry | Mike (manual) | Due Feb 26, 2026 5 PM PT |
 
 ---
 
@@ -276,13 +287,13 @@ Also: **Cosmos** (the model) + **Factory** (the domain) = **Cosmos Factory**. It
 
 ## 📊 Competition Differentiators
 
-1. **Real hardware integration** — Modbus TCP to Allen-Bradley PLC, not just simulated data
-2. **Fine-tuned Cosmos** — Domain-adapted using NVIDIA's own cookbook, not generic inference
-3. **4-layer intelligence stack** — AI gets LESS important over time (unique philosophy)
-4. **Air-gapped capable** — Model runs locally, no cloud dependency
-5. **Read-only safety** — System never writes to PLCs
-6. **End-to-end pipeline** — Video + PLC tags → diagnosis → operator dashboard
-7. **Open source** — Full codebase on GitHub
+1. **Real hardware integration** — Modbus TCP to Allen-Bradley PLC, not just simulated data (working)
+2. **4-layer intelligence stack** — AI gets LESS important over time (unique philosophy) (working)
+3. **Read-only safety** — System never writes to PLCs (working)
+4. **End-to-end pipeline** — PLC tags → diagnosis → operator dashboard (working, stub AI)
+5. **Open source** — Full codebase on GitHub (working)
+6. **Fine-tuned Cosmos** — Domain-adapted using NVIDIA's own cookbook (planned — see Roadmap)
+7. **Air-gapped capable** — Model runs locally via vLLM, no cloud dependency (planned — see Roadmap)
 
 ---
 

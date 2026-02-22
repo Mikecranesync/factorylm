@@ -3,6 +3,18 @@ Cosmos Reason 2 API client — NVIDIA Cosmos Cookoff 2026.
 
 Loads settings from config/cosmos.yaml and exposes analyze_incident().
 Uses real NVIDIA API when NVIDIA_COSMOS_API_KEY is set, otherwise falls back to stub.
+
+DEMO MODE NOTE
+--------------
+By default (no NVIDIA_COSMOS_API_KEY set), this client returns hardcoded stub responses.
+Stub mode is the standard operating mode for demos and CI — no real Cosmos API is called.
+
+To enable real Cosmos Reason 2 inference:
+  1. Obtain an API key from https://build.nvidia.com
+  2. Set the environment variable: NVIDIA_COSMOS_API_KEY=<your-key>
+  3. (Optional) Update config/cosmos.yaml to point at a self-hosted vLLM endpoint.
+
+See docs/cosmos_integration_stub.md for the full swap-in guide.
 """
 
 import datetime
@@ -19,7 +31,12 @@ logger = logging.getLogger(__name__)
 
 
 class CosmosClient:
-    """HTTP client for NVIDIA Cosmos Reason 2 API with Llama fallback."""
+    """HTTP client for NVIDIA Cosmos Reason 2 API with Llama fallback.
+
+    DEMO MODE: When NVIDIA_COSMOS_API_KEY is not set (the default), all methods
+    return hardcoded stub responses. This is intentional for demos and testing.
+    Set NVIDIA_COSMOS_API_KEY to switch to real Cosmos API calls.
+    """
 
     def __init__(self, config_path: str | None = None) -> None:
         cfg_file = Path(config_path) if config_path else Path("config/cosmos.yaml")
