@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FactoryLM — Live Conveyor Control</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .container {
+    max-width: 640px;
+    width: 100%;
+    padding: 16px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  header .brand {
+    font-size: 13px;
+    color: #76b900;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .video-box {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .video-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .video-box .offline {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .live-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #c00;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .controls button {
+    flex: 1;
+    max-width: 160px;
+    padding: 14px 0;
+    font-size: 15px;
+    font-weight: 600;
+    border: 1px solid #333;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #1a1a24;
+    color: #e0e0e0;
+  }
+
+  .controls button:hover:not(:disabled) {
+    background: #252535;
+    border-color: #555;
+  }
+
+  .controls button:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .controls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .controls button.active-fwd {
+    background: #1a3a1a;
+    border-color: #2d8a2d;
+    color: #5c5;
+  }
+
+  .controls button.active-rev {
+    background: #3a2a1a;
+    border-color: #8a6a2d;
+    color: #da5;
+  }
+
+  .controls button.stop-btn {
+    background: #2a1a1a;
+    border-color: #8a2d2d;
+    color: #e55;
+  }
+
+  .speed-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+
+  .speed-row label {
+    font-size: 13px;
+    color: #999;
+    white-space: nowrap;
+  }
+
+  .speed-row input[type="range"] {
+    flex: 1;
+    accent-color: #76b900;
+    height: 6px;
+  }
+
+  .speed-row .speed-val {
+    font-size: 14px;
+    font-weight: 600;
+    color: #76b900;
+    min-width: 50px;
+    text-align: right;
+  }
+
+  .status-panel {
+    background: #111118;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .status-panel .indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .indicator.running { background: #4c4; }
+  .indicator.stopped { background: #888; }
+  .indicator.fault   { background: #e44; }
+  .indicator.offline { background: #666; }
+
+  .explainer {
+    background: #0d0d14;
+    border: 1px solid #1a1a2a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #999;
+    margin-bottom: 16px;
+  }
+
+  .explainer strong {
+    color: #ccc;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #c00;
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .toast.show { opacity: 1; }
+
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: #555;
+    padding: 8px 0 16px;
+  }
+
+  footer a { color: #76b900; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Live Factory View</h1>
+    <a class="brand" href="https://factorylm.com" target="_blank">FactoryLM</a>
+  </header>
+
+  <div class="video-box">
+    <span class="live-badge">LIVE</span>
+    <img id="webcam" src="/api/stream" alt="Live webcam feed"
+         onerror="this.style.display='none'; document.getElementById('offline-msg').style.display='flex';">
+    <div id="offline-msg" class="offline" style="display:none;">Camera offline</div>
+  </div>
+
+  <div class="controls">
+    <button id="btn-rev" onclick="sendCommand('reverse')">&#9664; Reverse</button>
+    <button id="btn-stop" class="stop-btn" onclick="sendCommand('stop')">&#9724; Stop</button>
+    <button id="btn-fwd" onclick="sendCommand('forward')">Forward &#9654;</button>
+  </div>
+
+  <div class="speed-row">
+    <label>Speed:</label>
+    <input type="range" id="speed-slider" min="1" max="60" value="30"
+           oninput="document.getElementById('speed-display').textContent = this.value + ' Hz'">
+    <span id="speed-display" class="speed-val">30 Hz</span>
+    <button style="padding:6px 14px; font-size:12px; border:1px solid #333; border-radius:6px;
+                   background:#1a1a24; color:#e0e0e0; cursor:pointer;"
+            onclick="sendCommand('set_speed', document.getElementById('speed-slider').value)">Set</button>
+  </div>
+
+  <div class="status-panel" id="status-panel">
+    <span class="indicator offline"></span> Connecting...
+  </div>
+
+  <div class="explainer">
+    <strong>You're controlling a real Allen-Bradley Micro 820 PLC</strong> running a conveyor belt
+    in Lakeland, Florida. Every button press sends a command from your browser to the cloud,
+    which forwards it to the PLC on the factory floor. The webcam shows the belt responding in real time.
+    <br><br>
+    Now imagine instead of you pressing the button, an AI watches the camera and the machine's sensors
+    at the same time. When something goes wrong, the AI tells the technician what happened and what to
+    check. <strong>That's FactoryLM.</strong>
+  </div>
+
+  <footer>
+    Powered by <a href="https://factorylm.com" target="_blank">FactoryLM</a>
+    &middot; NVIDIA Cosmos Cookoff 2026
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';  // Same origin
+let cooldown = false;
+const COOLDOWN_MS = 3200;
+
+const btnFwd  = document.getElementById('btn-fwd');
+const btnStop = document.getElementById('btn-stop');
+const btnRev  = document.getElementById('btn-rev');
+
+async function sendCommand(action, value) {
+  if (cooldown) return showToast('Wait a moment between commands');
+
+  const body = { action };
+  if (value !== undefined) body.value = Number(value);
+
+  // Disable buttons during cooldown
+  cooldown = true;
+  [btnFwd, btnStop, btnRev].forEach(b => b.disabled = true);
+
+  try {
+    const resp = await fetch(API + '/api/command', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (resp.status === 429) {
+      showToast('Rate limited — wait a few seconds');
+    } else if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      showToast(err.detail || 'Command failed');
+    }
+    // Immediately refresh status
+    fetchStatus();
+  } catch (e) {
+    showToast('Network error');
+  }
+
+  setTimeout(() => {
+    cooldown = false;
+    [btnFwd, btnStop, btnRev].forEach(b => b.disabled = false);
+  }, COOLDOWN_MS);
+}
+
+async function fetchStatus() {
+  try {
+    const resp = await fetch(API + '/api/status');
+    if (!resp.ok) throw new Error();
+    const s = resp.json ? await resp.json() : {};
+    updateStatusPanel(s);
+  } catch {
+    document.getElementById('status-panel').innerHTML =
+      '<span class="indicator offline"></span> Relay offline';
+  }
+}
+
+function updateStatusPanel(s) {
+  const state = s.runState || 'offline';
+  const dir = s.direction || '-';
+  const cmdHz = s.commandHz != null ? s.commandHz : '-';
+  const actualHz = s.actualHz != null ? Number(s.actualHz).toFixed(1) : '-';
+  const current = s.motorCurrent != null ? Number(s.motorCurrent).toFixed(2) : '-';
+  const cmds = s.commandCount != null ? s.commandCount : '-';
+
+  // Highlight active direction button
+  btnFwd.className = '';
+  btnRev.className = '';
+  if (state === 'running' && dir === 'forward') btnFwd.className = 'active-fwd';
+  if (state === 'running' && dir === 'reverse') btnRev.className = 'active-rev';
+
+  const indicator = `<span class="indicator ${state}"></span>`;
+  let label = state.charAt(0).toUpperCase() + state.slice(1);
+  if (state === 'running') label += ` ${dir} @ ${actualHz} Hz`;
+  if (state === 'fault') label += ` (${s.faultText || 'unknown'})`;
+
+  document.getElementById('status-panel').innerHTML =
+    `${indicator} <strong>${label}</strong><br>` +
+    `Command: ${cmdHz} Hz &middot; Motor: ${current} A &middot; ` +
+    `Commands today: ${cmds}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Poll status every 2 seconds
+fetchStatus();
+setInterval(fetchStatus, 2000);
+</script>
+</body>
+</html>
