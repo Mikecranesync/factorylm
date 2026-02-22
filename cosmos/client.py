@@ -200,7 +200,15 @@ Format your response as JSON with keys: summary, root_cause, confidence, reasoni
         tags: dict,
         video_url: str,
     ) -> CosmosInsight:
-        """Return stub response for testing without API key."""
+        """Return stub response for testing without API key.
+
+        IMPORTANT — DEMO STUBS, NOT LIVE DETECTION:
+        All responses in this method are pre-written example outputs keyed on the
+        error_code tag.  No real-time PLC register correlation occurs here.
+        The "motor paradox" scenario (error_code=3, motor energized + speed zero)
+        is a hardcoded demo response — in production it would be detected by
+        comparing motor_running and speed_feedback registers dynamically.
+        """
 
         # Build a realistic stub response based on the tags provided
         fault_type = tags.get("error_code", 0)
@@ -262,6 +270,12 @@ Format your response as JSON with keys: summary, root_cause, confidence, reasoni
                     "Check thermal paste on heat sinks",
                 ],
             },
+            # DEMO SCENARIO: The "motor paradox" (motor energized but belt speed zero)
+            # is a hardcoded example response triggered by error_code=3.
+            # It is NOT detected by comparing live PLC registers in real-time.
+            # In production, this would be detected by correlating the motor_running
+            # register with the speed_feedback/conveyor_speed register dynamically,
+            # flagging the contradiction without relying on a pre-set error_code value.
             3: {
                 "summary": "Conveyor jam detected. Material flow interrupted.",
                 "root_cause": "Physical obstruction in conveyor path",

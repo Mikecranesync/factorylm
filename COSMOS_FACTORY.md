@@ -113,6 +113,8 @@ Factory I/O (Conveyor Sim)
 | E-Stop | 5 | Emergency stop pressed | 15 clips |
 | **Total** | | | **~125 clips** |
 
+> **Demo scenario note:** The conveyor jam / motor paradox condition (`error_code=3`, motor energized + belt speed zero) is currently a **hardcoded stub response** in `cosmos/client.py` — it is not detected by live PLC register correlation. The fine-tuning plan above is the path to replacing this stub with a model that identifies the pattern from video and sensor data in real time.
+
 Each clip is 10-30 seconds of Factory I/O screen capture paired with:
 - PLC tag snapshot (motor_current, temperature, conveyor_speed, error_code, etc.)
 - Expected diagnosis (summary, root_cause, confidence, suggested_checks)

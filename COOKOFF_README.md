@@ -54,6 +54,8 @@ Cosmos Reason 2 returns a **structured diagnosis**:
 
 The system handles **5 fault types**: motor overload, high temperature, conveyor jam, sensor failure, and communication loss — each with context-aware analysis.
 
+> **Note — Demo scenario:** The conveyor jam / motor paradox response shown above (motor energized, belt speed zero, `error_code=3`) is a pre-defined stub response used when no `NVIDIA_COSMOS_API_KEY` is set. It is not detected by live PLC register correlation. In production, the system would compare the `motor_running` and `speed_feedback` registers in real time to flag this condition without relying on a pre-set error code.
+
 ---
 
 ## 🏗️ Architecture
@@ -121,6 +123,8 @@ POST a faulted tag to create an incident:
 curl -X POST http://localhost:8000/api/tags -H "Content-Type: application/json" \
   -d '{"timestamp":"2026-02-17T10:00:00Z","node_id":"sim-micro820","motor_running":true,"motor_speed":60,"motor_current":8.5,"temperature":35.0,"pressure":100,"conveyor_running":true,"conveyor_speed":0,"sensor_1":true,"sensor_2":false,"fault_alarm":true,"e_stop":false,"error_code":3,"error_message":"Conveyor jam"}'
 ```
+
+> **Demo scenario — motor paradox (`error_code=3`):** When no `NVIDIA_COSMOS_API_KEY` is set, this returns a pre-defined stub response. The diagnosis ("motor energized, belt speed zero") is a hardcoded example, not live PLC register correlation. In production, the bridge would detect this condition by comparing `motor_running` and `conveyor_speed` registers dynamically.
 
 The Cosmos Watcher will automatically analyze the incident and the dashboard will show the AI diagnosis.
 

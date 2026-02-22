@@ -24,7 +24,7 @@ def test_stub_mode():
         node_id="test-node",
         tags={
             "motor_running": True,
-            "error_code": 3,  # Jam
+            "error_code": 3,  # DEMO SCENARIO: triggers hardcoded "conveyor jam / motor paradox" stub response
             "motor_current": 8.5,
             "temperature": 45.2,
         },
