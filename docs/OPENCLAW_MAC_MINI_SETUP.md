@@ -567,5 +567,25 @@ Both are fully optional for first boot.
 
 ---
 
+## Part 12 — Discovery Prompt (Give This to Claude Code)
+
+Once Claude Code is running on the Mac and the setup is complete, paste this prompt to have the agent verify everything and report back:
+
+> You are the new OpenClaw instance on Mac Mini "Macaroni". Read `docs/OPENCLAW_MAC_MINI_SETUP.md` in this repo for your setup guide. After setup, do a full discovery:
+>
+> 1. Report this machine's hardware (CPU, RAM, disk)
+> 2. Report the Tailscale IP and ping all mesh devices (100.68.120.99 VPS, 100.72.2.99 PLC laptop, 100.83.251.23 travel laptop)
+> 3. Hit every known health endpoint and report what's live:
+>    - `curl http://100.68.120.99:18789/health` (VPS OpenClaw)
+>    - `curl http://100.72.2.99:8765/health` (PLC laptop Jarvis Node)
+>    - `curl http://100.83.251.23:8765/health` (Travel laptop Jarvis Node)
+> 4. Verify the OpenClaw gateway starts and responds on this machine
+> 5. Check clawdbot version matches across instances
+> 6. Verify Telegram bot token is valid and can receive messages
+> 7. Map the factorylm monorepo structure — read the README (the vision), read `docs/OPENCLAW_INSTANCES.md`
+> 8. Send a test message summary to Telegram with the full status report
+
+---
+
 *All instances run the same codebase: https://github.com/Mikecranesync/clawdbot (private)*
 *Instance map: `docs/OPENCLAW_INSTANCES.md` in the FactoryLM monorepo*
