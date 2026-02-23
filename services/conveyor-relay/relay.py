@@ -105,10 +105,15 @@ async def _proxy_command(action: str, value: float | None = None) -> dict:
     """Translate relay actions to conveyor-lab backend API calls."""
     async with httpx.AsyncClient(timeout=10.0) as http:
         if action == "forward":
-            # Set direction forward, then start
+            # Set direction forward, set speed, then start
             await http.post(
                 f"{CONVEYOR_BACKEND_URL}/api/command",
                 json={"action": "set_direction", "value": "forward"},
+            )
+            speed = value if value is not None else 30
+            await http.post(
+                f"{CONVEYOR_BACKEND_URL}/api/command",
+                json={"action": "set_speed", "value": speed},
             )
             resp = await http.post(
                 f"{CONVEYOR_BACKEND_URL}/api/command",
@@ -118,6 +123,11 @@ async def _proxy_command(action: str, value: float | None = None) -> dict:
             await http.post(
                 f"{CONVEYOR_BACKEND_URL}/api/command",
                 json={"action": "set_direction", "value": "reverse"},
+            )
+            speed = value if value is not None else 30
+            await http.post(
+                f"{CONVEYOR_BACKEND_URL}/api/command",
+                json={"action": "set_speed", "value": speed},
             )
             resp = await http.post(
                 f"{CONVEYOR_BACKEND_URL}/api/command",
