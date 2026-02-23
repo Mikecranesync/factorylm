@@ -1,0 +1,241 @@
+id: robot-advisor
+name: Robot Program Change Advisor
+version: 1
+description: >
+  Safety-first pipeline for reviewing robot program changes.
+  Analyzes change requests, checks safety envelopes, generates
+  human-reviewable diffs, and gates approval before deployment.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: change_analyzer
+    name: Change Analyzer
+    role: analysis
+    description: Analyzes change request context and version diffs
+    timeoutSeconds: 45
+    workspace:
+      baseDir: agents/change-analyzer
+      files:
+        AGENTS.md: agents/change-analyzer/AGENTS.md
+
+  - id: safety_checker
+    name: Safety Checker
+    role: verification
+    description: Flags risky changes to speed, envelope, payload, or safety zones
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/safety-checker
+      files:
+        AGENTS.md: agents/safety-checker/AGENTS.md
+
+  - id: diff_generator
+    name: Diff Generator
+    role: coding
+    description: Generates human-readable diffs with annotations
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/diff-generator
+      files:
+        AGENTS.md: agents/diff-generator/AGENTS.md
+
+  - id: reviewer
+    name: Review Gate
+    role: verification
+    description: Final review gate — approves, requests changes, or escalates
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/reviewer
+      files:
+        AGENTS.md: agents/reviewer/AGENTS.md
+
+steps:
+  - id: analyze_change
+    agent: change_analyzer
+    input: |
+      Analyze the incoming robot program change request.
+
+      Change request:
+      - Program: {{PROGRAM_NAME}}
+      - Robot: {{ROBOT_ID}}
+      - Controller: {{CONTROLLER_TYPE}}
+      - Change type: {{CHANGE_TYPE}}
+      - Description: {{CHANGE_DESCRIPTION}}
+      - Submitted by: {{SUBMITTER}}
+      - Current version: {{CURRENT_VERSION}}
+      - Proposed version: {{PROPOSED_VERSION}}
+
+      Analysis steps:
+      1. Parse both program versions (TP, KAREL, KRL, RAPID, etc.)
+      2. Identify modified sections:
+         - Motion instructions (J, L, C moves)
+         - Speed/acceleration settings
+         - I/O assignments
+         - Tool/frame definitions
+         - Logic branches and conditions
+      3. Classify change impact:
+         - COSMETIC: Comments, naming, formatting
+         - LOGIC: Branching, conditions, counters
+         - MOTION: Path changes, new positions
+         - SPEED: Velocity or acceleration modifications
+         - SAFETY: Zone, payload, or envelope changes
+         - IO: Signal remapping
+
+      Output format:
+      STATUS: done
+      CHANGE_IMPACT: COSMETIC|LOGIC|MOTION|SPEED|SAFETY|IO
+      SECTIONS_MODIFIED: <count>
+      MOTION_CHANGES: <count>
+      SPEED_CHANGES: <count>
+      IO_CHANGES: <count>
+      RISK_LEVEL: low|medium|high|critical
+      SUMMARY: <1-2 sentence description of what changed>
+    expects: "CHANGE_IMPACT"
+    max_retries: 1
+
+  - id: check_safety
+    agent: safety_checker
+    input: |
+      Check safety implications of the proposed changes.
+
+      Change context:
+      - Program: {{PROGRAM_NAME}}
+      - Robot: {{ROBOT_ID}}
+      - Impact: {{CHANGE_IMPACT}}
+      - Risk level: {{RISK_LEVEL}}
+      - Motion changes: {{MOTION_CHANGES}}
+      - Speed changes: {{SPEED_CHANGES}}
+      - Summary: {{SUMMARY}}
+
+      Safety checks:
+      1. **Envelope check**: Do new positions stay within defined workspace?
+         - Compare against robot reach limits
+         - Check for collision zones
+      2. **Speed check**: Do velocity changes exceed safe limits?
+         - Max TCP speed for payload
+         - Acceleration within servo limits
+      3. **Payload check**: Is tool/payload definition consistent?
+         - Weight, center of gravity, inertia
+      4. **Zone check**: Are safety zones (DCS/SLS) still valid?
+         - Cartesian space limits
+         - Axis range limits
+      5. **I/O safety**: Are safety-rated I/O assignments preserved?
+         - Emergency stop circuits
+         - Light curtain signals
+         - Safety gate interlocks
+
+      Safety verdicts:
+      - PASS: No safety concerns
+      - WARN: Minor concerns, proceed with caution
+      - HOLD: Significant concerns, requires human review
+      - BLOCK: Safety violation detected, cannot proceed
+
+      Output format:
+      STATUS: done
+      SAFETY_VERDICT: PASS|WARN|HOLD|BLOCK
+      ENVELOPE_OK: true|false
+      SPEED_OK: true|false
+      PAYLOAD_OK: true|false
+      ZONES_OK: true|false
+      IO_SAFETY_OK: true|false
+      FLAGS: <comma-separated concerns or "none">
+      RECOMMENDATION: <action to take>
+    expects: "SAFETY_VERDICT"
+    max_retries: 1
+
+  - id: generate_diff
+    agent: diff_generator
+    input: |
+      Generate a human-readable annotated diff.
+
+      Context:
+      - Program: {{PROGRAM_NAME}}
+      - Impact: {{CHANGE_IMPACT}}
+      - Safety verdict: {{SAFETY_VERDICT}}
+      - Flags: {{FLAGS}}
+      - Summary: {{SUMMARY}}
+
+      Generate:
+      1. Side-by-side diff of changed sections (not full file)
+      2. Annotations for each change:
+         - What changed (plain English)
+         - Why it matters (safety/performance/logic)
+         - Risk flag if applicable
+      3. Motion path visualization (ASCII):
+         - Show old path vs new path
+         - Mark speed changes with arrows
+      4. Summary table:
+         - Lines added / removed / modified
+         - Safety flags
+         - Reviewer notes
+
+      Output as markdown for Gist or Telegram delivery.
+
+      Output format:
+      STATUS: done
+      DIFF_LINES: <total lines in diff>
+      ANNOTATIONS: <count>
+      DIFF_MD: <markdown diff content>
+      VISUALIZATION: <ASCII path comparison>
+    expects: "DIFF_MD"
+    max_retries: 1
+
+  - id: review_gate
+    agent: reviewer
+    input: |
+      Final review gate for robot program change.
+
+      Review package:
+      - Program: {{PROGRAM_NAME}}
+      - Robot: {{ROBOT_ID}}
+      - Submitter: {{SUBMITTER}}
+      - Impact: {{CHANGE_IMPACT}}
+      - Risk: {{RISK_LEVEL}}
+      - Safety: {{SAFETY_VERDICT}}
+      - Flags: {{FLAGS}}
+      - Diff: {{DIFF_MD}}
+
+      Decision matrix:
+      - SAFETY_VERDICT == BLOCK → REJECT (always)
+      - SAFETY_VERDICT == HOLD → ESCALATE to Mike
+      - RISK_LEVEL == critical → ESCALATE to Mike
+      - SAFETY_VERDICT == PASS && RISK_LEVEL in (low, medium) → APPROVE
+      - SAFETY_VERDICT == WARN → APPROVE_WITH_CONDITIONS
+
+      For APPROVE:
+      1. Generate approval stamp with timestamp
+      2. Log to change history
+      3. Notify submitter via Telegram
+
+      For ESCALATE:
+      1. Package review summary
+      2. Send to Mike (8445149012) via Telegram
+      3. Await human decision
+
+      Output format:
+      STATUS: done
+      DECISION: APPROVE|APPROVE_WITH_CONDITIONS|ESCALATE|REJECT
+      CONDITIONS: <conditions if applicable or "none">
+      NOTIFIED: <recipient>
+      CHANGE_LOG_ENTRY: <summary for audit trail>
+    expects: "DECISION"
+    max_retries: 1
+    on_fail:
+      escalate_to: human
+
+triggers:
+  - type: command
+    pattern: "/robot-review"
+  - type: webhook
+    path: /api/robot-changes
+    method: POST
+
+integration:
+  services:
+    telegram:
+      bot: "@FactoryLM_bot"
+      description: Gus bot for review notifications
+  capabilities:
+    module: services.capabilities
+    client: CapabilityClient
+    used:
+      - factory
