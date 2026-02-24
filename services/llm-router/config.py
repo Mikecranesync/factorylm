@@ -21,14 +21,7 @@ class ProviderConfig:
 
 
 PROVIDERS: dict[str, ProviderConfig] = {
-    "cerebras": ProviderConfig(
-        name="cerebras",
-        base_url="https://api.cerebras.ai/v1",
-        model="gpt-oss-120b",
-        api_key_env="CEREBRAS_API_KEY",
-        daily_budget=1_000_000,
-        budget_type="tokens",
-    ),
+    # --- primary providers (round-robin hits these first) ---
     "groq": ProviderConfig(
         name="groq",
         base_url="https://api.groq.com/openai/v1",
@@ -45,10 +38,10 @@ PROVIDERS: dict[str, ProviderConfig] = {
         daily_budget=400_000,
         budget_type="tokens",
     ),
-    "openrouter-r1": ProviderConfig(
-        name="openrouter-r1",
+    "openrouter-hermes": ProviderConfig(
+        name="openrouter-hermes",
         base_url="https://openrouter.ai/api/v1",
-        model="deepseek/deepseek-r1-0528:free",
+        model="nousresearch/hermes-3-llama-3.1-405b:free",
         api_key_env="OPENROUTER_API_KEY",
         daily_budget=200,
         budget_type="requests",
@@ -56,18 +49,27 @@ PROVIDERS: dict[str, ProviderConfig] = {
     "openrouter-qwen3": ProviderConfig(
         name="openrouter-qwen3",
         base_url="https://openrouter.ai/api/v1",
-        model="qwen/qwen3-235b-a22b:free",
+        model="qwen/qwen3-coder:free",
         api_key_env="OPENROUTER_API_KEY",
         daily_budget=200,
         budget_type="requests",
     ),
-    "openrouter-maverick": ProviderConfig(
-        name="openrouter-maverick",
+    "openrouter-llama70b": ProviderConfig(
+        name="openrouter-llama70b",
         base_url="https://openrouter.ai/api/v1",
-        model="meta-llama/llama-4-maverick:free",
+        model="meta-llama/llama-3.3-70b-instruct:free",
         api_key_env="OPENROUTER_API_KEY",
         daily_budget=200,
         budget_type="requests",
+    ),
+    # --- last-resort fallback ---
+    "cerebras": ProviderConfig(
+        name="cerebras",
+        base_url="https://api.cerebras.ai/v1",
+        model="gpt-oss-120b",
+        api_key_env="CEREBRAS_API_KEY",
+        daily_budget=1_000_000,
+        budget_type="tokens",
     ),
 }
 
@@ -78,8 +80,8 @@ MODEL_TO_PROVIDER: dict[str, str] = {
 
 # Task-type → ordered list of preferred providers
 TASK_TYPE_ROUTES: dict[str, list[str]] = {
-    "fast": ["cerebras", "groq"],
-    "reasoning": ["openrouter-r1", "deepseek", "openrouter-qwen3"],
-    "structured": ["groq"],
-    "coding": ["deepseek", "cerebras"],
+    "fast": ["groq", "deepseek"],
+    "reasoning": ["openrouter-hermes", "deepseek", "openrouter-qwen3"],
+    "structured": ["groq", "deepseek"],
+    "coding": ["deepseek", "groq"],
 }

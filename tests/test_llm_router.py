@@ -41,25 +41,25 @@ def _mock_complete_result():
 
 
 class TestTaskTypeRouting(unittest.TestCase):
-    """fast->cerebras/groq, reasoning->r1/deepseek/qwen3."""
+    """fast->groq/deepseek, reasoning->r1/deepseek/qwen3."""
 
-    def test_fast_routes_to_cerebras_or_groq(self):
+    def test_fast_routes_to_groq_or_deepseek(self):
         req = _make_request(task_type=TaskType.fast)
         router = SmartRouter()
         candidates = router._resolve_candidates(req)
-        self.assertEqual(candidates[:2], ["cerebras", "groq"])
+        self.assertEqual(candidates[:2], ["groq", "deepseek"])
 
-    def test_reasoning_routes_to_r1_deepseek_qwen3(self):
+    def test_reasoning_routes_to_hermes_deepseek_qwen3(self):
         req = _make_request(task_type=TaskType.reasoning)
         router = SmartRouter()
         candidates = router._resolve_candidates(req)
-        self.assertEqual(candidates[:3], ["openrouter-r1", "deepseek", "openrouter-qwen3"])
+        self.assertEqual(candidates[:3], ["openrouter-hermes", "deepseek", "openrouter-qwen3"])
 
-    def test_coding_routes_to_deepseek_cerebras(self):
+    def test_coding_routes_to_deepseek_groq(self):
         req = _make_request(task_type=TaskType.coding)
         router = SmartRouter()
         candidates = router._resolve_candidates(req)
-        self.assertEqual(candidates[:2], ["deepseek", "cerebras"])
+        self.assertEqual(candidates[:2], ["deepseek", "groq"])
 
     def test_structured_routes_to_groq(self):
         req = _make_request(task_type=TaskType.structured)
@@ -147,11 +147,11 @@ class TestDirectModelRouting(unittest.TestCase):
         candidates = router._resolve_candidates(req)
         self.assertEqual(candidates, ["deepseek"])
 
-    def test_openrouter_r1_model_resolves(self):
-        req = _make_request(model="deepseek/deepseek-r1-0528:free")
+    def test_openrouter_hermes_model_resolves(self):
+        req = _make_request(model="nousresearch/hermes-3-llama-3.1-405b:free")
         router = SmartRouter()
         candidates = router._resolve_candidates(req)
-        self.assertEqual(candidates, ["openrouter-r1"])
+        self.assertEqual(candidates, ["openrouter-hermes"])
 
     def test_provider_name_as_model(self):
         req = _make_request(model="cerebras")
