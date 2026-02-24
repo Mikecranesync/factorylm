@@ -354,7 +354,7 @@ cmd_run() {
 
     cd "$REPO_ROOT"
     exec doppler run --project factorylm --config prd -- \
-        python3 -m services.plc_monitor.main
+        "$SERVICE_DIR/.venv/bin/python3" -m services.plc_monitor.main
 }
 
 cmd_uninstall() {

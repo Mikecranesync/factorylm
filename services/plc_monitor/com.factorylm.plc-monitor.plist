@@ -9,7 +9,7 @@
     <array>
         <string>/bin/bash</string>
         <string>-c</string>
-        <string>mkdir -p /tmp/plc-monitor &amp;&amp; doppler run --project factorylm --config prd -- /opt/homebrew/bin/python3 -m services.plc_monitor.main</string>
+        <string>mkdir -p /tmp/plc-monitor &amp;&amp; doppler run --project factorylm --config prd -- /Users/factorylm/factorylm/services/plc_monitor/.venv/bin/python3 -m services.plc_monitor.main</string>
     </array>
 
     <key>WorkingDirectory</key>
