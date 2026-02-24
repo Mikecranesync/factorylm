@@ -9,7 +9,7 @@
     <array>
         <string>/bin/bash</string>
         <string>-c</string>
-        <string>doppler run --project openclaw --config prd -- /Users/factorylm/.local/bin/uvicorn main:app --app-dir services/llm-router --host 0.0.0.0 --port 7100</string>
+        <string>doppler run --project openclaw --config prd -- /opt/homebrew/bin/uvicorn main:app --app-dir services/llm-router --host 0.0.0.0 --port 7100</string>
     </array>
 
     <key>WorkingDirectory</key>
@@ -30,7 +30,7 @@
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/usr/local/bin:/usr/bin:/bin:/Users/factorylm/.local/bin</string>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Users/factorylm/.local/bin</string>
     </dict>
 </dict>
 </plist>
