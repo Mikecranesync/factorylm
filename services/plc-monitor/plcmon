@@ -353,7 +353,7 @@ cmd_run() {
     echo ""
 
     cd "$REPO_ROOT"
-    exec doppler run --project openclaw --config prd -- \
+    exec doppler run --project factorylm --config prd -- \
         python3 -m services.plc_monitor.main
 }
 
