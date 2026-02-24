@@ -79,10 +79,14 @@ format_uptime() {
 cmd_install() {
     label "Installing PLC Monitor..."
 
-    # 1. Install Python deps
+    # 1. Create venv and install Python deps
+    if [[ ! -d "$SERVICE_DIR/.venv" ]]; then
+        info "Creating virtualenv"
+        python3 -m venv "$SERVICE_DIR/.venv"
+    fi
     if [[ -f "$SERVICE_DIR/requirements.txt" ]]; then
         info "Installing Python dependencies"
-        pip3 install -q -r "$SERVICE_DIR/requirements.txt"
+        "$SERVICE_DIR/.venv/bin/pip" install -q -r "$SERVICE_DIR/requirements.txt"
     fi
 
     # 2. Create log dir
