@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "factorylm"
+version = "0.1.0"
+description = "Connect any PLC to Discord and the cloud. Industrial monitoring CLI."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+keywords = ["plc", "modbus", "industrial", "scada", "automation", "discord", "monitoring"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Manufacturing",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Hardware",
+    "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
+]
+dependencies = [
+    "typer[all]>=0.12",
+    "rich>=13.0",
+    "httpx>=0.27",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+modbus = ["pymodbus>=3.6"]
+enip = ["pycomm3>=1.2"]
+s7 = ["python-snap7>=1.3"]
+discord = ["discord.py>=2.6"]
+api = ["fastapi>=0.110", "uvicorn>=0.29"]
+cosmos = ["pyyaml>=6.0"]
+all = ["factorylm[modbus,enip,s7,discord,api,cosmos]"]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[project.scripts]
+factorylm = "factorylm.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/Mikecranesync/factorylm"
+Issues = "https://github.com/Mikecranesync/factorylm/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
