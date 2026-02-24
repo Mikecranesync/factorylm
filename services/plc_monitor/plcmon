@@ -1,0 +1,428 @@
+#!/usr/bin/env bash
+# plcmon — PLC Monitor service CLI
+# Usage: plcmon {install|start|stop|restart|status|logs|run|uninstall}
+set -euo pipefail
+
+# ── Paths (all absolute, no cwd dependency) ──────────────────────────────────
+readonly SERVICE_DIR="$(cd "$(dirname "$0")" && pwd)"
+readonly REPO_ROOT="$(cd "$SERVICE_DIR/../.." && pwd)"
+readonly LABEL="com.factorylm.plc-monitor"
+readonly PLIST_SRC="$SERVICE_DIR/$LABEL.plist"
+readonly PLIST_DST="$HOME/Library/LaunchAgents/$LABEL.plist"
+readonly LOG_DIR="/tmp/plc-monitor"
+readonly HEALTH_PORT=7200
+readonly HEALTH_URL="http://localhost:$HEALTH_PORT/health"
+readonly SYMLINK_PATH="/usr/local/bin/plcmon"
+
+# ── Color helpers (disabled when not a tty) ──────────────────────────────────
+if [[ -t 1 ]]; then
+    RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'
+    CYAN='\033[0;36m'; BOLD='\033[1m'; DIM='\033[2m'; RESET='\033[0m'
+else
+    RED=''; GREEN=''; YELLOW=''; CYAN=''; BOLD=''; DIM=''; RESET=''
+fi
+
+info()  { printf "${GREEN}●${RESET} %s\n" "$*"; }
+warn()  { printf "${YELLOW}●${RESET} %s\n" "$*"; }
+err()   { printf "${RED}●${RESET} %s\n" "$*" >&2; }
+label() { printf "${BOLD}%s${RESET}\n" "$*"; }
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+is_loaded() {
+    launchctl list "$LABEL" &>/dev/null
+}
+
+get_pid() {
+    # launchctl list <label> output: "<pid>\t<status>\t<label>"
+    # pid is "-" when not running
+    local pid
+    pid=$(launchctl list "$LABEL" 2>/dev/null | awk '{print $1}') || true
+    if [[ "$pid" =~ ^[0-9]+$ ]]; then
+        echo "$pid"
+    fi
+}
+
+is_running() {
+    [[ -n "$(get_pid)" ]]
+}
+
+health_json() {
+    # Use Python (always available on macOS) to parse JSON
+    local response
+    response=$(curl -s --max-time 3 "$HEALTH_URL" 2>/dev/null) || return 1
+    echo "$response"
+}
+
+health_field() {
+    local json="$1" field="$2"
+    python3 -c "import json,sys; d=json.loads(sys.stdin.read()); print(d.get('$field',''))" <<< "$json" 2>/dev/null
+}
+
+format_uptime() {
+    local secs="$1"
+    if [[ -z "$secs" || "$secs" == "0" ]]; then
+        echo "just started"
+        return
+    fi
+    local d=$((secs / 86400)) h=$(( (secs % 86400) / 3600 )) m=$(( (secs % 3600) / 60 )) s=$((secs % 60))
+    local parts=()
+    (( d > 0 )) && parts+=("${d}d")
+    (( h > 0 )) && parts+=("${h}h")
+    (( m > 0 )) && parts+=("${m}m")
+    (( s > 0 || ${#parts[@]} == 0 )) && parts+=("${s}s")
+    echo "${parts[*]}"
+}
+
+# ── Commands ─────────────────────────────────────────────────────────────────
+
+cmd_install() {
+    label "Installing PLC Monitor..."
+
+    # 1. Install Python deps
+    if [[ -f "$SERVICE_DIR/requirements.txt" ]]; then
+        info "Installing Python dependencies"
+        pip3 install -q -r "$SERVICE_DIR/requirements.txt"
+    fi
+
+    # 2. Create log dir
+    mkdir -p "$LOG_DIR"
+    info "Created $LOG_DIR"
+
+    # 3. Copy plist
+    mkdir -p "$HOME/Library/LaunchAgents"
+    cp "$PLIST_SRC" "$PLIST_DST"
+    info "Installed plist → $PLIST_DST"
+
+    # 4. Symlink CLI
+    if [[ -L "$SYMLINK_PATH" || -e "$SYMLINK_PATH" ]]; then
+        warn "Removing existing $SYMLINK_PATH"
+        sudo rm -f "$SYMLINK_PATH"
+    fi
+    sudo ln -s "$SERVICE_DIR/plcmon" "$SYMLINK_PATH"
+    info "Symlinked $SYMLINK_PATH → $SERVICE_DIR/plcmon"
+
+    echo ""
+    info "Install complete. Run ${BOLD}plcmon start${RESET} to launch."
+}
+
+cmd_start() {
+    label "Starting PLC Monitor..."
+
+    # Create log dir (survives macOS /tmp cleanup on reboot)
+    mkdir -p "$LOG_DIR"
+
+    # Check plist is installed
+    if [[ ! -f "$PLIST_DST" ]]; then
+        err "Plist not installed. Run: plcmon install"
+        exit 1
+    fi
+
+    # If loaded but not running (crash state), unload first
+    if is_loaded && ! is_running; then
+        warn "Service loaded but not running (stale). Unloading first..."
+        launchctl unload "$PLIST_DST" 2>/dev/null || true
+        sleep 1
+    fi
+
+    if is_running; then
+        local pid
+        pid=$(get_pid)
+        warn "Already running (PID $pid)"
+        return 0
+    fi
+
+    launchctl load "$PLIST_DST"
+    info "Loaded plist into launchd"
+
+    # Wait for process to start
+    printf "  Waiting for process..."
+    local tries=0
+    while (( tries < 10 )); do
+        sleep 0.5
+        if is_running; then
+            break
+        fi
+        (( tries++ ))
+    done
+
+    local pid
+    pid=$(get_pid)
+    if [[ -z "$pid" ]]; then
+        err "Process did not start. Check logs: plcmon logs"
+        exit 1
+    fi
+    printf "\r${GREEN}●${RESET} Process started (PID %s)\n" "$pid"
+
+    # Wait for health endpoint
+    printf "  Waiting for health endpoint..."
+    tries=0
+    while (( tries < 10 )); do
+        sleep 0.5
+        if curl -s --max-time 1 "$HEALTH_URL" &>/dev/null; then
+            break
+        fi
+        (( tries++ ))
+    done
+
+    if curl -s --max-time 2 "$HEALTH_URL" &>/dev/null; then
+        printf "\r${GREEN}●${RESET} Health endpoint OK (%s)\n" "$HEALTH_URL"
+    else
+        warn "Health endpoint not responding yet (may still be starting)"
+    fi
+
+    echo ""
+    info "PLC Monitor is running. Use ${BOLD}plcmon status${RESET} for details."
+}
+
+cmd_stop() {
+    label "Stopping PLC Monitor..."
+
+    if ! is_loaded; then
+        warn "Service is not loaded"
+        return 0
+    fi
+
+    local pid
+    pid=$(get_pid)
+
+    launchctl unload "$PLIST_DST" 2>/dev/null || true
+    info "Unloaded from launchd"
+
+    if [[ -n "$pid" ]]; then
+        # Wait for process to exit
+        local tries=0
+        while (( tries < 10 )); do
+            if ! kill -0 "$pid" 2>/dev/null; then
+                break
+            fi
+            sleep 0.5
+            (( tries++ ))
+        done
+        if kill -0 "$pid" 2>/dev/null; then
+            warn "Process $pid still alive, sending SIGKILL"
+            kill -9 "$pid" 2>/dev/null || true
+        fi
+    fi
+
+    info "PLC Monitor stopped"
+}
+
+cmd_restart() {
+    cmd_stop
+    sleep 1
+    cmd_start
+}
+
+cmd_status() {
+    label "PLC Monitor Status"
+    echo ""
+
+    # Plist
+    if [[ -f "$PLIST_DST" ]]; then
+        printf "  ${DIM}Plist:${RESET}     ${GREEN}installed${RESET} (%s)\n" "$PLIST_DST"
+    else
+        printf "  ${DIM}Plist:${RESET}     ${RED}not installed${RESET}\n"
+    fi
+
+    # Launchd
+    if is_loaded; then
+        local pid
+        pid=$(get_pid)
+        if [[ -n "$pid" ]]; then
+            printf "  ${DIM}Launchd:${RESET}   ${GREEN}loaded${RESET} (PID %s)\n" "$pid"
+        else
+            printf "  ${DIM}Launchd:${RESET}   ${YELLOW}loaded but not running${RESET}\n"
+        fi
+    else
+        printf "  ${DIM}Launchd:${RESET}   ${RED}not loaded${RESET}\n"
+    fi
+
+    # Health endpoint
+    local json
+    json=$(health_json 2>/dev/null) || json=""
+    if [[ -n "$json" ]]; then
+        local uptime matrix_ok
+        uptime=$(health_field "$json" "uptime_seconds")
+        matrix_ok=$(health_field "$json" "matrix_reachable")
+
+        printf "  ${DIM}Health:${RESET}    ${GREEN}responding${RESET} (%s)\n" "$HEALTH_URL"
+        printf "  ${DIM}Uptime:${RESET}    %s\n" "$(format_uptime "$uptime")"
+
+        if [[ "$matrix_ok" == "True" ]]; then
+            printf "  ${DIM}Matrix:${RESET}    ${GREEN}reachable${RESET}\n"
+        else
+            printf "  ${DIM}Matrix:${RESET}    ${RED}unreachable${RESET}\n"
+        fi
+
+        # Stats from health JSON
+        local cosmos_ok telegram_ok incidents twins divergences alerts
+        cosmos_ok=$(health_field "$json" "cosmos_available")
+        telegram_ok=$(health_field "$json" "telegram_configured")
+        incidents=$(health_field "$json" "incidents_processed")
+        twins=$(health_field "$json" "twin_comparisons")
+        divergences=$(health_field "$json" "divergences_detected")
+        alerts=$(health_field "$json" "alerts_sent")
+
+        if [[ -n "$cosmos_ok" ]]; then
+            if [[ "$cosmos_ok" == "True" ]]; then
+                printf "  ${DIM}Cosmos:${RESET}    ${GREEN}available${RESET}\n"
+            else
+                printf "  ${DIM}Cosmos:${RESET}    ${YELLOW}not configured${RESET}\n"
+            fi
+        fi
+
+        if [[ -n "$telegram_ok" ]]; then
+            if [[ "$telegram_ok" == "True" ]]; then
+                printf "  ${DIM}Telegram:${RESET}  ${GREEN}configured${RESET}\n"
+            else
+                printf "  ${DIM}Telegram:${RESET}  ${YELLOW}not configured${RESET}\n"
+            fi
+        fi
+
+        if [[ -n "$incidents" || -n "$twins" ]]; then
+            echo ""
+            label "  Stats"
+            [[ -n "$incidents" ]]  && printf "  ${DIM}Incidents:${RESET}  %s\n" "$incidents"
+            [[ -n "$twins" ]]      && printf "  ${DIM}Twin cmps:${RESET}  %s\n" "$twins"
+            [[ -n "$divergences" ]] && printf "  ${DIM}Divergences:${RESET} %s\n" "$divergences"
+            [[ -n "$alerts" ]]     && printf "  ${DIM}Alerts:${RESET}     %s\n" "$alerts"
+        fi
+    else
+        printf "  ${DIM}Health:${RESET}    ${RED}not responding${RESET}\n"
+    fi
+
+    # Log files
+    echo ""
+    label "  Logs"
+    for log in "$LOG_DIR/stdout.log" "$LOG_DIR/stderr.log"; do
+        if [[ -f "$log" ]]; then
+            local size
+            size=$(du -h "$log" | cut -f1 | xargs)
+            printf "  ${DIM}%s${RESET} (%s)\n" "$log" "$size"
+        else
+            printf "  ${DIM}%s${RESET} (not found)\n" "$log"
+        fi
+    done
+    echo ""
+}
+
+cmd_logs() {
+    local follow=true
+    local lines=50
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --no-follow) follow=false; shift ;;
+            -n)          lines="$2"; shift 2 ;;
+            *)           err "Unknown option: $1"; exit 1 ;;
+        esac
+    done
+
+    local log_files=()
+    for f in "$LOG_DIR/stdout.log" "$LOG_DIR/stderr.log"; do
+        [[ -f "$f" ]] && log_files+=("$f")
+    done
+
+    if [[ ${#log_files[@]} -eq 0 ]]; then
+        err "No log files found in $LOG_DIR"
+        exit 1
+    fi
+
+    if $follow; then
+        tail -n "$lines" -f "${log_files[@]}"
+    else
+        tail -n "$lines" "${log_files[@]}"
+    fi
+}
+
+cmd_run() {
+    label "PLC Monitor — Foreground Mode"
+
+    # Warn if launchd service is already running (port conflict)
+    if is_running; then
+        local pid
+        pid=$(get_pid)
+        err "launchd service already running (PID $pid) — port $HEALTH_PORT will conflict"
+        err "Stop it first: plcmon stop"
+        exit 1
+    fi
+
+    info "Starting in foreground (Ctrl-C to stop)"
+    info "Working dir: $REPO_ROOT"
+    echo ""
+
+    cd "$REPO_ROOT"
+    exec doppler run --project factorylm --config prd -- \
+        "$SERVICE_DIR/.venv/bin/python3" -m services.plc_monitor.main
+}
+
+cmd_uninstall() {
+    label "Uninstalling PLC Monitor..."
+
+    # Stop if running
+    if is_loaded; then
+        cmd_stop
+    fi
+
+    # Remove plist
+    if [[ -f "$PLIST_DST" ]]; then
+        rm "$PLIST_DST"
+        info "Removed $PLIST_DST"
+    fi
+
+    # Remove symlink
+    if [[ -L "$SYMLINK_PATH" ]]; then
+        sudo rm -f "$SYMLINK_PATH"
+        info "Removed $SYMLINK_PATH"
+    fi
+
+    info "Uninstall complete"
+}
+
+cmd_help() {
+    cat <<EOF
+${BOLD}plcmon${RESET} — PLC Monitor service manager
+
+${BOLD}USAGE${RESET}
+    plcmon <command> [options]
+
+${BOLD}COMMANDS${RESET}
+    install     Install deps, plist, and symlink
+    start       Start the service via launchd
+    stop        Stop the service
+    restart     Stop + start
+    status      Show service status dashboard
+    logs        Tail log files (--no-follow, -n NUM)
+    run         Run in foreground (dev/debug)
+    uninstall   Remove plist and symlink
+    help        Show this help
+
+${BOLD}EXAMPLES${RESET}
+    plcmon install          # First-time setup
+    plcmon start            # Launch the service
+    plcmon status           # Check everything
+    plcmon logs -n 100      # Last 100 lines, follow
+    plcmon logs --no-follow # Last 50 lines, exit
+    plcmon run              # Dev mode (foreground)
+EOF
+}
+
+# ── Main dispatch ────────────────────────────────────────────────────────────
+
+case "${1:-help}" in
+    install)   cmd_install ;;
+    start)     cmd_start ;;
+    stop)      cmd_stop ;;
+    restart)   cmd_restart ;;
+    status)    cmd_status ;;
+    logs)      shift; cmd_logs "$@" ;;
+    run)       cmd_run ;;
+    uninstall) cmd_uninstall ;;
+    help|-h|--help) cmd_help ;;
+    *)
+        err "Unknown command: $1"
+        echo "Run 'plcmon help' for usage"
+        exit 1
+        ;;
+esac
