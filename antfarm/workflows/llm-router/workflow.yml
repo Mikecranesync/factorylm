@@ -1,0 +1,194 @@
+id: llm-router
+name: "Feature 003 — LLM Router Service"
+version: 1
+description: >
+  Antfarm Feature 003. Builds a standalone FastAPI service that exposes an
+  OpenAI-compatible /v1/chat/completions endpoint. Routes requests across
+  6 free-tier LLM providers (Cerebras, Groq, DeepSeek, 3x OpenRouter) with
+  daily budget tracking, circuit breakers, and task-type routing.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: designer
+    name: Provider Designer
+    role: analysis
+    description: Validates provider configs, budget limits, and routing tables against live APIs
+    workspace:
+      files:
+        AGENTS.md: agents/designer/AGENTS.md
+
+  - id: dev
+    name: Service Developer
+    role: coding
+    description: Implements the FastAPI LLM router service (7 files)
+    workspace:
+      files:
+        AGENTS.md: agents/dev/AGENTS.md
+
+  - id: dev-ops
+    name: Deployment Agent
+    role: coding
+    description: Creates launchd plist, deploys service, verifies auto-restart
+    workspace:
+      files:
+        AGENTS.md: agents/dev-ops/AGENTS.md
+
+  - id: tester
+    name: E2E Tester
+    role: coding
+    description: Runs tests, verifies each provider, checks round-robin and Redis logging
+    workspace:
+      files:
+        AGENTS.md: agents/tester/AGENTS.md
+
+steps:
+  - id: plan_providers
+    agent: designer
+    input: |
+      Validate the 6 provider configurations against their live APIs.
+
+      Providers:
+        1. cerebras — gpt-oss-120b — 1M tokens/day
+        2. groq — llama-3.3-70b-versatile — 14.4K requests/day
+        3. deepseek — deepseek-chat — 400K tokens/day
+        4. openrouter-r1 — deepseek/deepseek-r1-0528:free — 200 requests/day
+        5. openrouter-qwen3 — qwen/qwen3-235b-a22b:free — 200 requests/day
+        6. openrouter-maverick — meta-llama/llama-4-maverick:free — 200 requests/day
+
+      Routing rules:
+        - Direct model name → specific provider
+        - prefer_provider field → try that first
+        - task_type routing: fast→cerebras/groq, reasoning→r1/deepseek/qwen3, structured→groq, coding→deepseek/cerebras
+        - Round-robin fallback across all eligible providers
+
+      Verify:
+        - Each provider's base_url is reachable
+        - API key env var names are correct in Doppler
+        - Budget limits match provider documentation
+        - Routing table covers all task types
+
+      Reply with:
+      PROVIDER_COUNT: 6
+      BUDGET_LIMITS: cerebras=1M tok, groq=14.4K req, deepseek=400K tok, openrouter=200 req each
+      ROUTING_RULES: direct, prefer, task_type, round-robin
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: implement_service
+    agent: dev
+    input: |
+      Create 7 files under services/llm-router/:
+
+      1. models.py — Pydantic schemas (OpenAI-compatible ChatRequest/ChatResponse), TaskType enum
+      2. config.py — Load providers from Doppler env vars, define ProviderConfig with budget limits
+      3. providers.py — UnifiedProvider class: single AsyncOpenAI(base_url=...) wrapper per provider
+      4. router.py — SmartRouter: budget tracking + circuit breaker + task-type routing + round-robin
+      5. redis_logger.py — Log every call to Redis sorted sets + daily counters (llm-router:* keys)
+      6. main.py — FastAPI app: POST /v1/chat/completions, GET /health, GET /health/stats
+      7. requirements.txt — openai (only new dep)
+
+      Inline ProviderBudget (17 lines from openclaw/llm/budget.py pattern) into router.py.
+      Inline ProviderHealth + circuit breaker (15 lines from vps-patches/router.py pattern) into router.py.
+      Copy OpenRouter HTTP-Referer headers into providers.py.
+
+      Port: 7100. Secrets: doppler run --project openclaw --config prd.
+
+      Reply with:
+      FILES_CREATED: 7
+      PROVIDERS: cerebras, groq, deepseek, openrouter-r1, openrouter-qwen3, openrouter-maverick
+      ENDPOINTS: /v1/chat/completions, /health, /health/stats
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: create_tests
+    agent: dev
+    input: |
+      Create tests/test_llm_router.py with provider and routing tests.
+
+      Tests:
+        - test_task_type_routing() — fast→cerebras/groq, reasoning→r1/deepseek/qwen3
+        - test_round_robin() — 6 requests with model=auto, verify different providers used
+        - test_circuit_breaker() — 3 failures open circuit, verify provider skipped
+        - test_budget_tracking() — exhaust budget, verify provider excluded
+        - test_direct_model_routing() — specific model name → correct provider
+        - test_openai_compatible_response() — response matches OpenAI schema
+
+      Use unittest + unittest.mock.patch for provider calls.
+
+      Reply with:
+      TEST_FILE: tests/test_llm_router.py
+      TEST_COUNT: 6
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: test_e2e
+    agent: tester
+    input: |
+      Start the LLM router service and run end-to-end tests.
+
+      1. Run: pytest tests/test_llm_router.py — verify all pass
+      2. Start service: doppler run -- uvicorn services.llm-router.main:app --port 7100
+      3. Hit /health — verify all 6 providers listed with budgets
+      4. Test each provider: 6 curl calls with specific model names
+      5. Test model=auto + task_type=fast — verify x_provider is cerebras or groq
+      6. Run 6 requests with model=auto — verify round-robin via x_provider header
+      7. Check Redis: redis-cli hgetall llm-router:totals
+
+      Reply with:
+      TESTS_PASSED: 6/6
+      E2E_PROVIDERS: cerebras, groq, deepseek, openrouter-r1, openrouter-qwen3, openrouter-maverick
+      REDIS_LOGGING: confirmed
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: deploy_launchd
+    agent: dev-ops
+    input: |
+      Create and install launchd plist for the LLM router service.
+
+      1. Create com.factorylm.llm-router.plist:
+         - Label: com.factorylm.llm-router
+         - Program: /bin/bash -c "doppler run --project openclaw --config prd -- uvicorn services.llm-router.main:app --host 0.0.0.0 --port 7100"
+         - WorkingDirectory: /Users/factorylm/factorylm
+         - KeepAlive: true (auto-restart on crash)
+         - ThrottleInterval: 5
+         - Logs: /tmp/llm-router/stdout.log, /tmp/llm-router/stderr.log
+      2. Install: cp to ~/Library/LaunchAgents/
+      3. Load: launchctl load ~/Library/LaunchAgents/com.factorylm.llm-router.plist
+      4. Verify: curl localhost:7100/health
+
+      Reply with:
+      PLIST_PATH: ~/Library/LaunchAgents/com.factorylm.llm-router.plist
+      SERVICE_STATUS: running
+      HEALTH_CHECK: pass
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: smoke_test
+    agent: tester
+    input: |
+      Final smoke test of the deployed LLM router service.
+
+      1. curl localhost:7100/health — all 6 providers with budgets
+      2. Test each provider: 6 curl calls with specific model names
+      3. Test model=auto + task_type=fast — verify x_provider is cerebras or groq
+      4. Run 6 requests with model=auto — verify round-robin via x_provider
+      5. redis-cli hgetall llm-router:totals — verify Redis logging
+      6. Kill process → verify launchd restarts within 6s
+      7. Python OpenAI client test:
+         OpenAI(base_url="http://localhost:7100/v1", api_key="x")
+
+      Reply with:
+      PROVIDERS_TESTED: 6/6
+      ROUND_ROBIN: confirmed
+      REDIS_LOGGING: confirmed
+      AUTO_RESTART: confirmed
+      OPENAI_CLIENT: compatible
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
