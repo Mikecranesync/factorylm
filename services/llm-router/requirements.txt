@@ -1,0 +1,3 @@
+# LLM Router — only new dependency
+# FastAPI, uvicorn, pydantic, redis already installed system-wide
+openai>=1.0.0

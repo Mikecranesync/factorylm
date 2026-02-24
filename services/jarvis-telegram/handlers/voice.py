@@ -51,7 +51,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         conv.add_bot_message(session, response, metadata={"source": "voice"})
 
-        await status_msg.edit_text(response)
+        await status_msg.edit_text(f"{response}\n\n— via groq")
         logger.info(f"Voice processed for user {user_id}")
 
     except Exception as e:
