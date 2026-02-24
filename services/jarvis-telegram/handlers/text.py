@@ -64,18 +64,23 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         if session.last_diagnosis:
             enriched = f"Previous equipment diagnosis:\n{session.last_diagnosis[:500]}\n\nTechnician's follow-up: {message}"
         response = await run_claude(enriched, workspace=workspace)
+        provider = "claude"
     else:
         response = "No AI backend configured. Set GROQ_API_KEY or install Claude CLI."
+        provider = None
 
     conv.add_bot_message(session, response)
 
+    # Byline only in Telegram display, not in conversation history
+    display = f"{response}\n\n— via {provider}" if provider else response
+
     # Telegram has 4096 char limit — split if needed
-    if len(response) > 4000:
-        chunks = [response[i : i + 4000] for i in range(0, len(response), 4000)]
+    if len(display) > 4000:
+        chunks = [display[i : i + 4000] for i in range(0, len(display), 4000)]
         for chunk in chunks:
             await update.message.reply_text(chunk)
     else:
-        await update.message.reply_text(response)
+        await update.message.reply_text(display)
 
 
 async def cmd_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
