@@ -28,7 +28,7 @@ class MonitorConfig:
     @classmethod
     def from_env(cls) -> "MonitorConfig":
         return cls(
-            matrix_url=os.getenv("MATRIX_URL", "http://100.72.2.99:8000"),
+            matrix_url=os.getenv("MATRIX_URL", "http://100.72.2.99:8001"),
             factoryio_host=os.getenv("FACTORYIO_HOST", "127.0.0.1"),
             factoryio_port=int(os.getenv("FACTORYIO_PORT", "502")),
             nvidia_cosmos_api_key=os.getenv("NVIDIA_COSMOS_API_KEY", ""),
