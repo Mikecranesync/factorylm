@@ -1,0 +1,145 @@
+id: state-machine-tester
+name: "Feature 003 — State Machine + Capability Monitor Tester"
+version: 1
+description: >
+  Antfarm tester workflow for Feature 003. Runs smoke checks (import state.py,
+  monitor.py), 20 unit tests, E2E tests against live VPS, and regression checks
+  against existing stories. Produces a consolidated pass/fail report.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: smoke-checker
+    name: Smoke Checker
+    role: analysis
+    description: Validates imports of state.py and monitor.py classes
+    workspace:
+      files:
+        AGENTS.md: agents/smoke-checker/AGENTS.md
+
+  - id: unit-runner
+    name: Unit Test Runner
+    role: coding
+    description: Runs 20 state machine unit tests via unittest
+    workspace:
+      files:
+        AGENTS.md: agents/unit-runner/AGENTS.md
+
+  - id: e2e-runner
+    name: E2E VPS Runner
+    role: coding
+    description: Runs E2E tests against live VPS health/state endpoints
+    workspace:
+      files:
+        AGENTS.md: agents/e2e-runner/AGENTS.md
+
+  - id: regression-checker
+    name: Regression Checker
+    role: coding
+    description: Runs live_bot_tester.py against all stories (SKIP if VPS offline)
+    workspace:
+      files:
+        AGENTS.md: agents/regression-checker/AGENTS.md
+
+  - id: reporter
+    name: Report Aggregator
+    role: analysis
+    description: Collects results from all steps and produces OVERALL pass/fail
+    workspace:
+      files:
+        AGENTS.md: agents/reporter/AGENTS.md
+
+steps:
+  - id: smoke_check
+    agent: smoke-checker
+    input: |
+      Run smoke checks for Feature 003:
+
+      1. Import the state machine types and classes from tests/test_state_machine.py:
+         - BotState, CapabilityStatus, StateMachine, Capability
+      2. Verify StateMachine() starts in BOOTING state
+      3. Verify register() adds capabilities to the dict
+      4. Verify the test file has 20 test classes
+
+      Reply with:
+      IMPORTS: pass/fail
+      INIT_STATE: booting
+      REGISTER: pass/fail
+      TEST_COUNT: 20
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: run_unit_tests
+    agent: unit-runner
+    input: |
+      Run the state machine unit test suite:
+
+        python3 -m unittest tests.test_state_machine -v
+
+      Expect 20/20 tests to pass. Report any failures with full traceback.
+
+      Reply with:
+      TESTS_RUN: 20
+      TESTS_PASSED: 20
+      TESTS_FAILED: 0
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: run_e2e
+    agent: e2e-runner
+    input: |
+      Run E2E tests against the live VPS:
+
+        python3 tests/test_state_machine_e2e.py
+
+      Tests hit http://100.68.120.99:8340 endpoints.
+      If VPS is offline, report SKIP.
+
+      Reply with:
+      VPS_STATUS: online | offline
+      TESTS_RUN: N (or 0 if offline)
+      TESTS_PASSED: N
+      TESTS_FAILED: N
+      RESULT: pass | skip
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: check_regression
+    agent: regression-checker
+    input: |
+      Run regression tests against live VPS bot:
+
+        python3 tests/live_bot_tester.py --all --ci
+
+      If VPS is offline (connection refused), report SKIP — not a blocker.
+
+      Reply with:
+      VPS_STATUS: online | offline
+      STORIES_RUN: N (or 0 if offline)
+      STORIES_PASSED: N
+      STORIES_FAILED: N
+      RESULT: pass | skip
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: report_results
+    agent: reporter
+    input: |
+      Aggregate results from all prior steps:
+
+      - smoke_check: {{smoke_check.RESULT}}
+      - run_unit_tests: {{run_unit_tests.RESULT}}
+      - run_e2e: {{run_e2e.RESULT}}
+      - check_regression: {{check_regression.RESULT}}
+
+      Determine OVERALL: pass if all are pass/skip, fail if any are fail.
+
+      Reply with:
+      SMOKE: pass/fail
+      UNIT: pass/fail
+      E2E: pass/fail/skip
+      REGRESSION: pass/fail/skip
+      OVERALL: pass/fail
+      STATUS: done
+    expects: "STATUS: done"

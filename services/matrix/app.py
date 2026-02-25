@@ -95,6 +95,11 @@ def init_db():
             cosmos_model TEXT,
             FOREIGN KEY (clip_id) REFERENCES video_clips(id)
         );
+        CREATE TABLE IF NOT EXISTS live_tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+            tags_json TEXT NOT NULL
+        );
     """)
     conn.commit()
     conn.close()
@@ -243,6 +248,43 @@ async def list_tags(limit: int = 50, node_id: str | None = None):
                 "SELECT * FROM tag_snapshots ORDER BY id DESC LIMIT ?", (limit,)
             ).fetchall()
         return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+# --- Live Tags (raw PLC I/O from plc_reader.py) ---
+
+@app.post("/api/tags/live")
+async def ingest_live_tags(request: Request):
+    """Ingest a raw tag snapshot from plc_reader.py (all 18 coils + 6 registers)."""
+    body = await request.json()
+    conn = get_db()
+    try:
+        conn.execute(
+            "INSERT INTO live_tags (timestamp, tags_json) VALUES (datetime('now'), ?)",
+            (json.dumps(body),),
+        )
+        # Keep only last 500 rows to prevent unbounded growth
+        conn.execute(
+            "DELETE FROM live_tags WHERE id NOT IN (SELECT id FROM live_tags ORDER BY id DESC LIMIT 500)"
+        )
+        conn.commit()
+        return {"ok": True}
+    finally:
+        conn.close()
+
+
+@app.get("/api/tags/live")
+async def get_live_tags():
+    """Return the latest live tag snapshot."""
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "SELECT * FROM live_tags ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        if not row:
+            return {"tags": None, "timestamp": None}
+        return {"tags": json.loads(row["tags_json"]), "timestamp": row["timestamp"]}
     finally:
         conn.close()
 
@@ -531,6 +573,22 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
   </div>
 </div>
 
+<div class="grid" style="margin-top:16px;">
+  <div class="card" id="pio-card">
+    <h2>🔌 Physical I/O (Micro 820)</h2>
+    <table id="pio-table">
+      <tr><th>Coil</th><th>Label</th><th>State</th></tr>
+    </table>
+    <p id="pio-status" style="color:#666;font-size:0.75rem;margin-top:6px;">Waiting for plc_reader...</p>
+  </div>
+  <div class="card" id="pio-regs-card">
+    <h2>📈 Holding Registers (Micro 820)</h2>
+    <table id="pio-regs-table">
+      <tr><th>Register</th><th>Value</th></tr>
+    </table>
+  </div>
+</div>
+
 <div id="insight-detail" style="margin-top:16px;"></div>
 <div id="status">Connecting...</div>
 
@@ -538,34 +596,58 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 const API = '';
 
 async function fetchTags() {
+  let hasData = false;
+  let faultActive = false;
+  let estopActive = false;
+
+  // 1) Fetch live PLC data FIRST (real hardware — always available when plc_reader runs)
+  try {
+    const liveRes = await fetch(API + '/api/tags/live');
+    const liveData = await liveRes.json();
+    if (liveData.tags && Object.keys(liveData.tags).length) {
+      hasData = true;
+      const lt = liveData.tags;
+      if ('e_stop_active' in lt) estopActive = lt.e_stop_active;
+      if ('fault_alarm' in lt) faultActive = lt.fault_alarm;
+      if ('DI_01' in lt && lt.DI_01) estopActive = true;
+    }
+  } catch(e) {}
+
+  // 2) Fetch factoryio_bridge data (simulation tags — may not be running)
   try {
     const res = await fetch(API + '/api/tags?limit=1');
     const data = await res.json();
-    if (!data.length) return;
-    const t = data[0];
-    document.getElementById('t-motor').textContent = t.motor_running ? 'RUNNING' : 'STOPPED';
-    document.getElementById('t-speed').textContent = t.motor_speed + '%';
-    document.getElementById('t-current').textContent = t.motor_current.toFixed(2) + ' A';
-    document.getElementById('t-temp').textContent = t.temperature.toFixed(1) + '°C';
-    document.getElementById('t-pressure').textContent = t.pressure + ' PSI';
-    document.getElementById('t-conveyor').textContent = t.conveyor_running ? t.conveyor_speed + '%' : 'STOPPED';
-    document.getElementById('t-s1').textContent = t.sensor_1 ? 'PART' : 'clear';
-    document.getElementById('t-s2').textContent = t.sensor_2 ? 'PART' : 'clear';
-
-    const faultEl = document.getElementById('t-fault');
-    faultEl.textContent = t.fault_alarm ? 'ACTIVE' : 'None';
-    faultEl.className = t.fault_alarm ? 'fault-val' : 'tag-val';
-
-    const estopEl = document.getElementById('t-estop');
-    estopEl.textContent = t.e_stop ? 'ENGAGED' : 'Clear';
-    estopEl.className = t.e_stop ? 'fault-val' : 'tag-val';
-
-    document.getElementById('t-error').textContent = t.error_code ? t.error_message + ' (' + t.error_code + ')' : 'None';
-    document.getElementById('t-error').className = t.error_code ? 'fault-val' : 'tag-val';
-
-    const card = document.getElementById('live-tags-card');
-    card.className = t.fault_alarm ? 'card fault' : 'card ok';
+    if (data.length) {
+      hasData = true;
+      const t = data[0];
+      document.getElementById('t-motor').textContent = t.motor_running ? 'RUNNING' : 'STOPPED';
+      document.getElementById('t-speed').textContent = t.motor_speed + '%';
+      document.getElementById('t-current').textContent = t.motor_current.toFixed(2) + ' A';
+      document.getElementById('t-temp').textContent = t.temperature.toFixed(1) + '°C';
+      document.getElementById('t-pressure').textContent = t.pressure + ' PSI';
+      document.getElementById('t-conveyor').textContent = t.conveyor_running ? t.conveyor_speed + '%' : 'STOPPED';
+      document.getElementById('t-s1').textContent = t.sensor_1 ? 'PART' : 'clear';
+      document.getElementById('t-s2').textContent = t.sensor_2 ? 'PART' : 'clear';
+      if (t.fault_alarm) faultActive = true;
+      if (t.e_stop) estopActive = true;
+      document.getElementById('t-error').textContent = t.error_code ? t.error_message + ' (' + t.error_code + ')' : 'None';
+      document.getElementById('t-error').className = t.error_code ? 'fault-val' : 'tag-val';
+    }
   } catch(e) {}
+
+  if (!hasData) return;
+
+  // 3) Update e-stop and fault display (populated by either source)
+  const faultEl = document.getElementById('t-fault');
+  faultEl.textContent = faultActive ? 'ACTIVE' : 'None';
+  faultEl.className = faultActive ? 'fault-val' : 'tag-val';
+
+  const estopEl = document.getElementById('t-estop');
+  estopEl.textContent = estopActive ? 'ENGAGED' : 'Clear';
+  estopEl.className = estopActive ? 'fault-val' : 'tag-val';
+
+  const card = document.getElementById('live-tags-card');
+  card.className = (faultActive || estopActive) ? 'card fault' : 'card ok';
 }
 
 async function fetchIncidents() {
@@ -629,9 +711,78 @@ async function showInsight(incidentId) {
   } catch(e) {}
 }
 
+// Physical I/O label map
+const PIO_LABELS = {
+  'motor_running': 'Motor Running',
+  'motor_stopped': 'Motor Stopped',
+  'fault_alarm': 'Fault Alarm',
+  'conveyor_running': 'Conveyor Running',
+  'sensor_1_active': 'Sensor 1',
+  'sensor_2_active': 'Sensor 2',
+  'e_stop_active': 'E-Stop Active',
+  'DI_00': 'Switch Center',
+  'DI_01': 'E-Stop NO',
+  'DI_02': 'E-Stop NC',
+  'DI_03': 'Switch Right',
+  'DI_04': 'Green Button',
+  'DI_05': 'DI_05',
+  'DI_06': 'DI_06',
+  'DI_07': 'DI_07',
+  'DI_08': 'DO_00 — VFD Forward',
+  'DI_09': 'DO_01 — VFD Reverse',
+  'DI_10': 'DO_02',
+  'DI_11': 'DO_03 — Aux Output',
+};
+const PIO_COIL_ORDER = [
+  'motor_running','motor_stopped','fault_alarm','conveyor_running',
+  'sensor_1_active','sensor_2_active','e_stop_active',
+  'DI_00','DI_01','DI_02','DI_03','DI_04','DI_05','DI_06','DI_07',
+  'DI_08','DI_09','DI_10','DI_11'
+];
+const PIO_REG_NAMES = ['motor_speed','motor_current','temperature','pressure','conveyor_speed','error_code'];
+
+async function fetchLiveTags() {
+  try {
+    const res = await fetch(API + '/api/tags/live');
+    const data = await res.json();
+    if (!data.tags) return;
+    const t = data.tags;
+    // Coils table
+    let html = '<tr><th>Tag</th><th>Label</th><th>State</th></tr>';
+    for (const key of PIO_COIL_ORDER) {
+      if (!(key in t)) continue;
+      const val = t[key];
+      const label = PIO_LABELS[key] || key;
+      const dot = val ? '<span style="color:#76b900;">&#9679;</span>' : '<span style="color:#555;">&#9675;</span>';
+      const cls = (key === 'fault_alarm' || key === 'e_stop_active' || key === 'DI_01' || key === 'DI_02') && val ? 'fault-val' : 'tag-val';
+      html += '<tr><td style="font-family:monospace;font-size:0.8rem;">'+key+'</td><td>'+label+'</td><td class="'+cls+'">'+dot+' '+(val?'ON':'OFF')+'</td></tr>';
+    }
+    document.getElementById('pio-table').innerHTML = html;
+    const plcTime = t._timestamp || data.timestamp;
+    const age = plcTime ? Math.round((Date.now() - new Date(plcTime).getTime()) / 1000) : null;
+    const ageStr = age !== null ? (age < 5 ? 'just now' : age + 's ago') : '';
+    const stale = age !== null && age > 10;
+    document.getElementById('pio-status').textContent = 'Updated: ' + (stale ? ageStr + ' ⚠ STALE' : ageStr || data.timestamp);
+    document.getElementById('pio-status').style.color = stale ? '#ff4444' : '';
+    // Highlight card border red when e-stop is engaged
+    const pioCard = document.getElementById('pio-card');
+    const estopEngaged = t.e_stop_active || t.DI_01;
+    pioCard.style.borderColor = estopEngaged ? '#ff4444' : '';
+    pioCard.style.borderWidth = estopEngaged ? '2px' : '';
+    pioCard.style.boxShadow = estopEngaged ? '0 0 12px rgba(255,68,68,0.4)' : '';
+    // Registers table
+    let rhtml = '<tr><th>Register</th><th>Value</th></tr>';
+    for (const key of PIO_REG_NAMES) {
+      if (!(key in t)) continue;
+      rhtml += '<tr><td>'+key+'</td><td class="tag-val" style="font-family:monospace;">'+t[key]+'</td></tr>';
+    }
+    document.getElementById('pio-regs-table').innerHTML = rhtml;
+  } catch(e) {}
+}
+
 // Poll every 2 seconds
-setInterval(() => { fetchTags(); fetchIncidents(); }, 2000);
-fetchTags(); fetchIncidents();
+setInterval(() => { fetchTags(); fetchIncidents(); fetchLiveTags(); }, 2000);
+fetchTags(); fetchIncidents(); fetchLiveTags();
 document.getElementById('status').textContent = 'Connected to Matrix API at ' + window.location.origin;
 </script>
 </body>

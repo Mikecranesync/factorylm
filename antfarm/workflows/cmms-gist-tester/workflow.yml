@@ -1,0 +1,148 @@
+id: cmms-gist-tester
+name: "Feature 002 — CMMS Gist Work Order Comprehensive Tester"
+version: 1
+description: >
+  Antfarm tester workflow for Feature 002. Runs smoke checks, expanded unit
+  tests (17), E2E Gist CRUD lifecycle, monitor validation, and regression
+  checks against existing stories. Produces a consolidated pass/fail report.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: smoke-checker
+    name: Smoke Checker
+    role: analysis
+    description: Validates imports, template files, CSV column count, and gh CLI availability
+    workspace:
+      files:
+        AGENTS.md: agents/smoke-checker/AGENTS.md
+
+  - id: unit-runner
+    name: Unit Test Runner
+    role: coding
+    description: Runs expanded unit test suite (17 tests) via unittest
+    workspace:
+      files:
+        AGENTS.md: agents/unit-runner/AGENTS.md
+
+  - id: e2e-runner
+    name: E2E Gist CRUD Runner
+    role: coding
+    description: Creates, verifies, updates, and deletes a test work order Gist
+    workspace:
+      files:
+        AGENTS.md: agents/e2e-runner/AGENTS.md
+
+  - id: regression-checker
+    name: Regression Checker
+    role: coding
+    description: Runs live_bot_tester.py against all stories (SKIP if VPS offline)
+    workspace:
+      files:
+        AGENTS.md: agents/regression-checker/AGENTS.md
+
+  - id: reporter
+    name: Report Aggregator
+    role: analysis
+    description: Collects results from all steps and produces OVERALL pass/fail
+    workspace:
+      files:
+        AGENTS.md: agents/reporter/AGENTS.md
+
+steps:
+  - id: smoke_check
+    agent: smoke-checker
+    input: |
+      Run smoke checks for Feature 002:
+
+      1. Import cmms.gist_work_order — all 6 public names must resolve
+      2. Verify template files exist:
+         - cmms/gist-templates/work-order.md
+         - cmms/gist-templates/work-order.csv
+         - cmms/gist-templates/attachments.txt
+      3. render_work_order_csv({}) — header row must have 25 columns
+      4. gh --version — must be installed
+
+      Reply with:
+      IMPORTS: pass
+      TEMPLATES: 3/3
+      CSV_COLS: 25
+      GH_CLI: available
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: run_unit_tests
+    agent: unit-runner
+    input: |
+      Run the expanded unit test suite:
+
+        python3 -m unittest tests.test_gist_work_order -v
+
+      Expect 17/17 tests to pass. Report any failures with full traceback.
+
+      Reply with:
+      TESTS_RUN: 17
+      TESTS_PASSED: 17
+      TESTS_FAILED: 0
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: run_e2e_gist
+    agent: e2e-runner
+    input: |
+      Run the E2E Gist CRUD lifecycle test:
+
+        python3 tests/test_gist_work_order_e2e.py --ci
+
+      This creates a test Gist (WO-TEST-*), verifies 3 files + 25 CSV columns,
+      updates it, verifies the update, then deletes it.
+
+      Reply with:
+      CREATE: pass
+      VERIFY: pass
+      UPDATE: pass
+      DELETE: pass
+      LEAKED_GISTS: 0
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: check_regression
+    agent: regression-checker
+    input: |
+      Run regression tests against live VPS bot:
+
+        python3 tests/live_bot_tester.py --all --ci
+
+      If VPS is offline (connection refused), report SKIP — not a blocker.
+
+      Reply with:
+      VPS_STATUS: online | offline
+      STORIES_RUN: N (or 0 if offline)
+      STORIES_PASSED: N
+      STORIES_FAILED: N
+      RESULT: pass | skip
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: report_results
+    agent: reporter
+    input: |
+      Aggregate results from all prior steps:
+
+      - smoke_check: {{smoke_check.RESULT}}
+      - run_unit_tests: {{run_unit_tests.RESULT}}
+      - run_e2e_gist: {{run_e2e_gist.RESULT}}
+      - check_regression: {{check_regression.RESULT}}
+
+      Determine OVERALL: pass if all are pass/skip, fail if any are fail.
+
+      Reply with:
+      SMOKE: pass/fail
+      UNIT: pass/fail
+      E2E: pass/fail
+      REGRESSION: pass/fail/skip
+      OVERALL: pass/fail
+      STATUS: done
+    expects: "STATUS: done"

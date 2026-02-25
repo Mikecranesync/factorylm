@@ -18,10 +18,15 @@ LLM-controlled industrial automation using Allen-Bradley Micro 820 PLC with Fact
 
 ## Modbus Address Map (0-based for pymodbus)
 
-### Coils (Bool)
+### Coils (Bool) — "From A to B" Scene
 | Address | Variable | Description |
 |---------|----------|-------------|
-| 0-6 | Program vars | motor_running, motor_stopped, fault_alarm, conveyor_running, sensor_1_active, sensor_2_active, e_stop_active |
+| **0** | Conveyor | PLC → Factory I/O: belt motor |
+| **1** | Emitter | PLC → Factory I/O: item spawner |
+| **2** | SensorStart | Factory I/O → PLC: entry sensor |
+| **3** | SensorEnd | Factory I/O → PLC: exit sensor |
+| **4** | RunCommand | Remote trigger (Telegram/API) |
+| 5-6 | (unused) | Available program vars |
 | **7** | _IO_EM_DI_00 | 3-pos switch CENTER detect |
 | **8** | _IO_EM_DI_01 | E-stop NO contact |
 | **9** | _IO_EM_DI_02 | E-stop NC contact (ON when released) |
@@ -33,14 +38,10 @@ LLM-controlled industrial automation using Allen-Bradley Micro 820 PLC with Fact
 | **17** | _IO_EM_DO_03 | Auxiliary output |
 
 ### Holding Registers (Int)
-| Address | Variable |
-|---------|----------|
-| 100 | motor_speed |
-| 101 | motor_current |
-| 102 | temperature |
-| 103 | pressure |
-| 104 | conveyor_speed |
-| 105 | error_code |
+| Address | Variable | Description |
+|---------|----------|-------------|
+| **100** | ItemCount | Items that reached SensorEnd |
+| 101-105 | (unused) | Available registers |
 
 ## Physical Control State Tables
 
@@ -91,14 +92,18 @@ python tools/plc_monitor.py
 # Log state changes
 python tools/plc_logger.py --duration 60
 
-# Start API server
-uvicorn backend.main:app --reload
+# Start API server (port 8001)
+uvicorn backend.main:app --host 0.0.0.0 --port 8001 --reload
 
 # Network scan
-curl -X POST http://localhost:8000/api/setup/scan-network
+curl -X POST http://localhost:8001/api/setup/scan-network
+
+# Remote: start conveyor
+curl -X POST http://100.72.2.99:8001/api/plc/write-coil -H "Content-Type: application/json" -d '{"address": 4, "value": true}'
 ```
 
 ## Session History
 - **2026-01-24:** Initial integration complete. PLC recovered, Modbus working.
 - **2026-01-25:** FastAPI backend with network scanner. Systematic I/O mapping completed. Real-time monitor and logger tools created. White paper documented.
 - **2026-01-25 (PM):** Added ST case study (Appendix C) and Raspberry Pi edge device (Appendix D) to whitepaper. Created factorylm-edge directory with Modbus TCP server code for Pi.
+- **2026-02-18:** "From A to B" Factory I/O scene integration. Remapped coils 0-4 for scene (Conveyor, Emitter, SensorStart, SensorEnd, RunCommand). Register 100 = ItemCount. Backend port → 8001. ST program + CCW setup docs in `scenes/`.
