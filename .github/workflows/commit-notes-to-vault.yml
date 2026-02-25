@@ -22,59 +22,52 @@ jobs:
           path: vault
 
       - name: Generate commit note
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
         run: |
           DATE=$(date -u +%Y-%m-%d)
           TIME=$(date -u +%H:%M)
           FILE="vault/10_Commit_Notes/${DATE}.md"
+          SHORT_SHA=$(echo "$AFTER_SHA" | cut -c1-7)
 
-          # Collect commits from this push
-          COMMITS=$(git log ${{ github.event.before }}..${{ github.sha }} \
+          COMMITS=$(git log "${BEFORE_SHA}..${AFTER_SHA}" \
             --pretty=format:'| `%h` | %s | %an |' \
-            2>/dev/null)
+            2>/dev/null || true)
 
-          # Fallback for first push or force push
           if [ -z "$COMMITS" ]; then
             COMMITS=$(git log -1 --pretty=format:'| `%h` | %s | %an |')
           fi
 
           COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
 
-          # If file already exists for today, append to it
+          HEADER="## Push at ${TIME} UTC
+
+          **Trigger:** \`${SHORT_SHA}\` on \`main\`
+          **Commits:** ${COMMIT_COUNT}
+
+          | Hash | Message | Author |
+          |------|---------|--------|
+          ${COMMITS}"
+
+          # Strip leading whitespace from indented heredoc
+          HEADER=$(echo "$HEADER" | sed 's/^          //')
+
           if [ -f "$FILE" ]; then
-            cat >> "$FILE" << EOF
-
----
-
-## Push at ${TIME} UTC
-
-**Trigger:** \`${SHORT_SHA}\` on \`main\`
-**Commits:** ${COMMIT_COUNT}
-
-| Hash | Message | Author |
-|------|---------|--------|
-${COMMITS}
-EOF
+            printf '\n---\n\n%s\n' "$HEADER" >> "$FILE"
           else
-            cat > "$FILE" << EOF
----
-title: "Commit Notes — ${DATE}"
-date: ${DATE}
-tags: [type/commit-note, project/factorylm]
-status: active
----
-
-# Commit Notes — ${DATE}
-
-## Push at ${TIME} UTC
-
-**Trigger:** \`${SHORT_SHA}\` on \`main\`
-**Commits:** ${COMMIT_COUNT}
-
-| Hash | Message | Author |
-|------|---------|--------|
-${COMMITS}
-EOF
+            {
+              echo "---"
+              echo "title: \"Commit Notes - ${DATE}\""
+              echo "date: ${DATE}"
+              echo "tags: [type/commit-note, project/factorylm]"
+              echo "status: active"
+              echo "---"
+              echo ""
+              echo "# Commit Notes - ${DATE}"
+              echo ""
+              echo "$HEADER"
+            } > "$FILE"
           fi
 
       - name: Push to vault
