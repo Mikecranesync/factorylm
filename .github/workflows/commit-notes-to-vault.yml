@@ -1,0 +1,90 @@
+name: Commit Notes to Vault
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  commit-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout factorylm
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout vault
+        uses: actions/checkout@v4
+        with:
+          repository: Mikecranesync/FactoryLM_OS
+          token: ${{ secrets.VAULT_PAT }}
+          path: vault
+
+      - name: Generate commit note
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          TIME=$(date -u +%H:%M)
+          FILE="vault/10_Commit_Notes/${DATE}.md"
+
+          # Collect commits from this push
+          COMMITS=$(git log ${{ github.event.before }}..${{ github.sha }} \
+            --pretty=format:'| `%h` | %s | %an |' \
+            2>/dev/null)
+
+          # Fallback for first push or force push
+          if [ -z "$COMMITS" ]; then
+            COMMITS=$(git log -1 --pretty=format:'| `%h` | %s | %an |')
+          fi
+
+          COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+
+          # If file already exists for today, append to it
+          if [ -f "$FILE" ]; then
+            cat >> "$FILE" << EOF
+
+---
+
+## Push at ${TIME} UTC
+
+**Trigger:** \`${SHORT_SHA}\` on \`main\`
+**Commits:** ${COMMIT_COUNT}
+
+| Hash | Message | Author |
+|------|---------|--------|
+${COMMITS}
+EOF
+          else
+            cat > "$FILE" << EOF
+---
+title: "Commit Notes — ${DATE}"
+date: ${DATE}
+tags: [type/commit-note, project/factorylm]
+status: active
+---
+
+# Commit Notes — ${DATE}
+
+## Push at ${TIME} UTC
+
+**Trigger:** \`${SHORT_SHA}\` on \`main\`
+**Commits:** ${COMMIT_COUNT}
+
+| Hash | Message | Author |
+|------|---------|--------|
+${COMMITS}
+EOF
+          fi
+
+      - name: Push to vault
+        run: |
+          cd vault
+          git config user.name "factorylm-bot"
+          git config user.email "bot@factorylm.dev"
+          git add 10_Commit_Notes/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "auto: commit notes from factorylm $(date -u +%Y-%m-%d)"
+            git push
+          fi
