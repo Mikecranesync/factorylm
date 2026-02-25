@@ -7,11 +7,13 @@ local SQLite instead of remote Matrix API.
 from __future__ import annotations
 
 import asyncio
+import datetime
 import logging
 import uuid
 
 import discord
 from discord import app_commands
+from discord.ext import tasks
 
 from factorylm.cosmos.client import CosmosClient
 from factorylm.cosmos.models import CosmosInsight
@@ -19,6 +21,7 @@ from factorylm.db.store import TagStore
 from factorylm.discord.embeds import (
     build_about_embed,
     build_insight_embed,
+    build_live_embed,
     build_status_embed,
     build_tags_embed,
 )
@@ -49,12 +52,18 @@ class FactoryLMBot:
         store: TagStore,
         bot_name: str = "FactoryLM",
         mention_only: bool = True,
+        live_channel_id: int = 0,
+        live_interval: float = 5.0,
     ) -> None:
         self.token = token
         self.store = store
         self.bot_name = bot_name
         self.mention_only = mention_only
+        self.live_channel_id = live_channel_id
+        self.live_interval = live_interval
         self.cosmos = CosmosClient()
+
+        self._live_message: discord.Message | None = None
 
         intents = discord.Intents.default()
         intents.message_content = True
@@ -124,6 +133,10 @@ class FactoryLMBot:
             synced = await self.tree.sync()
             logger.info("%s online — synced %d commands", self.bot_name, len(synced))
 
+            # Start live feed if configured
+            if self.live_channel_id:
+                await self._init_live_feed()
+
         @self.client.event
         async def on_message(message: discord.Message):
             if message.author == self.client.user or message.author.bot:
@@ -132,6 +145,72 @@ class FactoryLMBot:
                 return
             # Acknowledge with a reaction
             await message.add_reaction("\U0001f44d")
+
+    # ── Live feed ────────────────────────────────────────────────────────
+
+    async def _init_live_feed(self) -> None:
+        """Find or create the live embed message and start the update loop."""
+        channel = self.client.get_channel(self.live_channel_id)
+        if channel is None:
+            logger.error("Live channel %d not found — live feed disabled", self.live_channel_id)
+            return
+
+        # Search last 10 messages for an existing bot embed to reuse
+        async for msg in channel.history(limit=10):
+            if msg.author == self.client.user and msg.embeds:
+                if msg.embeds[0].title and msg.embeds[0].title.startswith("FactoryLM Live"):
+                    self._live_message = msg
+                    logger.info("Reusing existing live embed (message %d)", msg.id)
+                    break
+
+        if self._live_message is None:
+            embed = build_live_embed(self.store.get_latest_tags())
+            self._live_message = await channel.send(embed=embed)
+            try:
+                await self._live_message.pin()
+            except discord.HTTPException:
+                pass  # pin limit reached or missing perms
+            logger.info("Created new live embed (message %d)", self._live_message.id)
+
+        # Start the loop — change interval dynamically
+        self._live_loop.change_interval(seconds=self.live_interval)
+        self._live_loop.start()
+
+    @tasks.loop(seconds=5.0)
+    async def _live_loop(self) -> None:
+        """Periodically edit the live embed with fresh tag data."""
+        if self._live_message is None:
+            return
+
+        rows = self.store.get_latest(1)
+        if rows:
+            tags = rows[0].get("tags")
+            ts_str = rows[0].get("timestamp", "")
+            node_id = rows[0].get("node_id", "local")
+            # Check staleness (>30s old)
+            stale = False
+            try:
+                snap_time = datetime.datetime.fromisoformat(ts_str)
+                age = (datetime.datetime.now(tz=datetime.timezone.utc) - snap_time).total_seconds()
+                stale = age > 30
+            except (ValueError, TypeError):
+                stale = True
+        else:
+            tags = None
+            node_id = "local"
+            stale = False
+
+        embed = build_live_embed(tags, stale=stale, node_id=node_id)
+        try:
+            await self._live_message.edit(embed=embed)
+        except discord.NotFound:
+            # Message was deleted — recreate it
+            logger.warning("Live message was deleted, recreating")
+            channel = self.client.get_channel(self.live_channel_id)
+            if channel:
+                self._live_message = await channel.send(embed=embed)
+        except discord.HTTPException as exc:
+            logger.warning("Failed to update live embed: %s", exc)
 
     def run(self) -> None:
         """Start the bot (blocking)."""

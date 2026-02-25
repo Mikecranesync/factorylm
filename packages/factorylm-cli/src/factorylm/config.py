@@ -50,6 +50,8 @@ class DiscordConfig:
     token: str = ""
     bot_name: str = "FactoryLM"
     mention_only: bool = True
+    live_channel_id: int = 0
+    live_interval: float = 5.0
 
 
 @dataclass
@@ -145,6 +147,8 @@ port = 8001
 token = ""                # or use DISCORD_BOT_TOKEN env var
 bot_name = "FactoryLM"
 mention_only = true
+live_channel_id = 0       # channel ID for live tag feed (0 = disabled)
+live_interval = 5.0       # seconds between live feed refreshes
 
 [monitor]
 enabled = true

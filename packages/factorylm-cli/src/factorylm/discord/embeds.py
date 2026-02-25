@@ -104,6 +104,110 @@ def build_tags_embed(tags: dict | None) -> discord.Embed:
     return embed
 
 
+def build_live_embed(
+    tags: dict | None,
+    *,
+    stale: bool = False,
+    node_id: str = "local",
+) -> discord.Embed:
+    """Build the live-updating dashboard embed for a dedicated channel.
+
+    Args:
+        tags: Latest tag dict from TagStore, or None if offline.
+        stale: True if the data is older than the staleness threshold.
+        node_id: Node identifier shown in the footer.
+    """
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+
+    if tags is None:
+        return discord.Embed(
+            title="FactoryLM Live — Offline",
+            description="No tag data available.",
+            color=discord.Color.dark_grey(),
+            timestamp=now,
+        ).set_footer(text=f"Node: {node_id}")
+
+    # Determine embed color based on safety state
+    fault = tags.get("fault_alarm", False)
+    e_stop = tags.get("e_stop", False)
+    if e_stop:
+        color = discord.Color.dark_red()
+    elif fault:
+        color = discord.Color.red()
+    elif stale:
+        color = discord.Color.light_grey()
+    else:
+        color = discord.Color.green()
+
+    title = "FactoryLM Live"
+    if stale:
+        title += " — STALE"
+
+    embed = discord.Embed(title=title, color=color, timestamp=now)
+
+    # Motor section
+    motor_running = tags.get("Run_Status") or tags.get("motor_running", False)
+    motor_speed = tags.get("Motor_Speed", tags.get("motor_speed", "—"))
+    motor_current = tags.get("Current", tags.get("motor_current", "—"))
+    motor_status = "RUNNING" if motor_running else "STOPPED"
+    embed.add_field(
+        name="Motor",
+        value=f"**{motor_status}** | Speed: `{motor_speed}%` | Current: `{motor_current} A`",
+        inline=False,
+    )
+
+    # Conveyor section
+    conveyor_running = tags.get("conveyor_running", tags.get("Conveyor_Run", None))
+    conveyor_speed = tags.get("conveyor_speed", tags.get("Conveyor_Speed", None))
+    if conveyor_running is not None or conveyor_speed is not None:
+        conv_status = "RUNNING" if conveyor_running else "STOPPED"
+        conv_spd = conveyor_speed if conveyor_speed is not None else "—"
+        embed.add_field(
+            name="Conveyor",
+            value=f"**{conv_status}** | Speed: `{conv_spd}%`",
+            inline=False,
+        )
+
+    # Environment section
+    temp = tags.get("Motor_Temp", tags.get("temperature", None))
+    pressure = tags.get("pressure", tags.get("Pressure", None))
+    vibration = tags.get("Vibration", tags.get("vibration", None))
+    env_parts = []
+    if temp is not None:
+        env_parts.append(f"Temp: `{temp}`")
+    if pressure is not None:
+        env_parts.append(f"Pressure: `{pressure}`")
+    if vibration is not None:
+        env_parts.append(f"Vibration: `{vibration}`")
+    if env_parts:
+        embed.add_field(name="Environment", value=" | ".join(env_parts), inline=False)
+
+    # Safety section
+    error_code = tags.get("error_code", 0)
+    safety_parts = []
+    if fault:
+        safety_parts.append("**FAULT ACTIVE**")
+    if e_stop:
+        safety_parts.append("**E-STOP ACTIVE**")
+    if error_code:
+        safety_parts.append(f"Error code: `{error_code}`")
+    if safety_parts:
+        embed.add_field(name="Safety", value=" | ".join(safety_parts), inline=False)
+    else:
+        embed.add_field(name="Safety", value="OK", inline=False)
+
+    # Stale warning
+    if stale:
+        embed.add_field(
+            name="Warning",
+            value="Tag data is stale — PLC may be offline",
+            inline=False,
+        )
+
+    embed.set_footer(text=f"Last updated: {now.strftime('%H:%M:%S')} UTC | Node: {node_id}")
+    return embed
+
+
 def build_about_embed() -> discord.Embed:
     embed = discord.Embed(
         title="FactoryLM",

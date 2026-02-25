@@ -28,7 +28,7 @@ def test_status_no_config(tmp_path):
 
 def test_init_creates_config(tmp_path):
     cfg = tmp_path / "test_config.toml"
-    result = runner.invoke(app, ["init", "--config", str(cfg)], input="modbus\n192.168.1.100\n502\n2.0\n8001\n\n")
+    result = runner.invoke(app, ["init", "--config", str(cfg)], input="modbus\n192.168.1.100\n502\n2.0\n8001\n\n0\n")
     assert result.exit_code == 0
     assert cfg.exists()
     content = cfg.read_text()

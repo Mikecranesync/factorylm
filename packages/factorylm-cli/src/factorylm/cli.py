@@ -66,6 +66,7 @@ def init(
     poll_interval = typer.prompt("Poll interval (seconds)", default=2.0, type=float)
     api_port = typer.prompt("Web dashboard port", default=8001, type=int)
     discord_token = typer.prompt("Discord bot token (or leave blank)", default="")
+    live_channel_id = typer.prompt("Discord live channel ID (0 to skip)", default=0, type=int)
 
     config_text = f"""\
 [plc]
@@ -86,6 +87,8 @@ port = {api_port}
 token = "{discord_token}"
 bot_name = "FactoryLM"
 mention_only = true
+live_channel_id = {live_channel_id}
+live_interval = 5.0
 
 [monitor]
 enabled = true
@@ -313,7 +316,11 @@ def discord_cmd(
         store=store,
         bot_name=cfg.discord.bot_name,
         mention_only=cfg.discord.mention_only,
+        live_channel_id=cfg.discord.live_channel_id,
+        live_interval=cfg.discord.live_interval,
     )
+    if cfg.discord.live_channel_id:
+        console.print(f"  Live feed: channel {cfg.discord.live_channel_id} (every {cfg.discord.live_interval}s)")
     console.print(f"Starting Discord bot as '{cfg.discord.bot_name}'...")
     bot.run()
 
