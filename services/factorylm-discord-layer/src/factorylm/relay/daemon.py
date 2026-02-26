@@ -17,6 +17,7 @@ import aiohttp
 from aiohttp import web
 
 from factorylm.models import FactoryLMConfig
+from factorylm.relay.rate_limiter import WebhookRateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ class AsyncRelayDaemon:
         self._queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=500)
         self._drain_task: asyncio.Task | None = None
         self._shutting_down = False
+        self.rate_limiter = WebhookRateLimiter(max_queue_size=500)
 
     @property
     def app(self) -> web.Application:
@@ -103,22 +105,20 @@ class AsyncRelayDaemon:
                 status=404,
             )
 
-        # Queue the message for delivery
-        item = {
-            "agent": agent,
-            "message": message,
-            "webhook_url": webhook_url,
-            "format": body.get("format", "text"),
-        }
+        # Route through rate limiter
+        payload = {"content": message, "username": agent.capitalize()}
+        queued = await self.rate_limiter.post_message(webhook_url, payload)
 
-        try:
-            self._queue.put_nowait(item)
-        except asyncio.QueueFull:
+        if not queued:
             return web.json_response({"error": "Queue full, try again later"}, status=503)
 
         self._message_count += 1
         return web.json_response(
-            {"status": "queued", "agent": agent, "queue_depth": self._queue.qsize()},
+            {
+                "status": "queued",
+                "agent": agent,
+                "queue_depth": self.rate_limiter.queue_depth(webhook_url),
+            },
             status=202,
         )
 
@@ -135,7 +135,7 @@ class AsyncRelayDaemon:
 
         return web.json_response({
             "agents": agents_info,
-            "queue_depth": self._queue.qsize(),
+            "queue_depth": self.rate_limiter.total_queue_depth(),
             "messages_relayed": self._message_count,
             "uptime_seconds": round(uptime, 1),
             "shutting_down": self._shutting_down,
@@ -218,6 +218,7 @@ class AsyncRelayDaemon:
             self._drain_task.cancel()
         if self._session and not self._session.closed:
             await self._session.close()
+        await self.rate_limiter.close()
 
 
 def cli_main() -> None:
