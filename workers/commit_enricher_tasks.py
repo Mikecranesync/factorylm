@@ -43,7 +43,7 @@ STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 GITHUB_OWNER = os.getenv('GITHUB_OWNER', 'Mikecranesync')
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
-GROQ_MODEL = os.getenv('GROQ_MODEL', 'moonshotai/kimi-k2')
+GROQ_MODEL = os.getenv('GROQ_MODEL', 'moonshotai/kimi-k2-instruct')
 GROQ_RPM_DELAY = 2.5  # seconds between LLM calls (stay under 30 RPM free tier)
 MAX_PATCH_CHARS = 4000  # truncate patch for LLM context
 
