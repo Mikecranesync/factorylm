@@ -66,6 +66,8 @@ app = Celery(
         'workers.demo_director_tasks',
         'workers.obs_controller_tasks',
         'workers.plc_sync_tasks',
+        # 📝 Commit Enricher - AI-powered commit note summaries
+        'workers.commit_enricher_tasks',
     ]
 )
 
@@ -206,6 +208,11 @@ app.conf.update(
             'task': 'foreman.start_shift',
             'schedule': 86400.0,  # 24 hours
             'args': ['morning'],
+        },
+        # 📝 Commit Enricher - enrich new commit notes every 12 hours
+        'commit-enricher-post-sync': {
+            'task': 'commit_enricher.enrich_latest',
+            'schedule': 43200.0,  # 12 hours
         },
     },
 )

@@ -8,6 +8,7 @@ Slash commands:
     /diagnose <fault>  — AI-powered fault diagnosis via Cosmos Reason 2
     /status            — Network health of all FactoryLM nodes
     /about             — What is FactoryLM?
+    /tags              — Live PLC tag values from Matrix API
     /conveyor <action> — Live conveyor control (forward/reverse/stop/speed/status)
 
 Usage:
@@ -36,6 +37,7 @@ from embeds import (
     build_conveyor_embed,
     build_insight_embed,
     build_status_embed,
+    build_tags_embed,
 )
 from tasks import DailyProgress
 
@@ -62,6 +64,9 @@ PROGRESS_CHANNEL_ID = int(os.getenv("DISCORD_PROGRESS_CHANNEL_ID", "0"))
 
 # Conveyor relay on VPS
 CONVEYOR_RELAY_URL = os.getenv("CONVEYOR_RELAY_URL", "http://100.68.120.99:8400")
+
+# Matrix API on PLC Laptop (live tag snapshots from Modbus bridge)
+MATRIX_API_URL = os.getenv("MATRIX_API_URL", "http://100.72.2.99:8001")
 
 # Node health endpoints
 HEALTH_NODES = {
@@ -102,6 +107,31 @@ _daily_progress: DailyProgress | None = None
 
 
 # ---------------------------------------------------------------------------
+# Matrix API helper
+# ---------------------------------------------------------------------------
+
+
+async def _fetch_matrix_tags() -> dict | None:
+    """Fetch the latest PLC tag snapshot from Matrix API.
+
+    Returns the most recent snapshot dict, or None on any failure.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as http:
+            resp = await http.get(f"{MATRIX_API_URL}/api/tags", params={"limit": 1})
+            if resp.status_code == 200:
+                data = resp.json()
+                if isinstance(data, list) and len(data) > 0:
+                    return data[0]
+                if isinstance(data, dict) and data:
+                    return data
+            return None
+    except Exception:
+        logger.debug("Matrix API unreachable at %s", MATRIX_API_URL)
+        return None
+
+
+# ---------------------------------------------------------------------------
 # Slash commands
 # ---------------------------------------------------------------------------
 
@@ -115,15 +145,23 @@ async def cmd_diagnose(interaction: discord.Interaction, fault: app_commands.Cho
     cosmos = CosmosClient()
     error_code = FAULT_TO_ERROR_CODE.get(fault.value, 0)
 
-    # Build tag dict mimicking PLC data for the chosen fault
-    tags = {"error_code": error_code}
-    if fault.value == "estop":
-        tags["e_stop"] = True
-    elif fault.value == "overload":
-        tags["motor_current"] = 12.4
-        tags["motor_speed"] = 85
-    elif fault.value == "overheat":
-        tags["temperature"] = 87.3
+    # Try real PLC tags first, fall back to synthetic
+    real_tags = await _fetch_matrix_tags()
+    if real_tags is not None:
+        tags = dict(real_tags)
+        tags["error_code"] = error_code  # Override to match selected fault
+        data_source = "live"
+    else:
+        # Synthetic fallback — mimics PLC data for the chosen fault
+        tags = {"error_code": error_code}
+        if fault.value == "estop":
+            tags["e_stop"] = True
+        elif fault.value == "overload":
+            tags["motor_current"] = 12.4
+            tags["motor_speed"] = 85
+        elif fault.value == "overheat":
+            tags["temperature"] = 87.3
+        data_source = "synthetic"
 
     insight = cosmos.analyze_incident(
         incident_id=f"discord-{uuid.uuid4().hex[:8]}",
@@ -131,7 +169,7 @@ async def cmd_diagnose(interaction: discord.Interaction, fault: app_commands.Cho
         tags=tags,
     )
 
-    embed = build_insight_embed(insight)
+    embed = build_insight_embed(insight, data_source=data_source)
     await interaction.followup.send(embed=embed)
 
 
@@ -165,6 +203,14 @@ async def cmd_status(interaction: discord.Interaction):
 async def cmd_about(interaction: discord.Interaction):
     embed = build_about_embed()
     await interaction.response.send_message(embed=embed)
+
+
+@tree.command(name="tags", description="Show live PLC tag values from the factory floor")
+async def cmd_tags(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+    tags = await _fetch_matrix_tags()
+    embed = build_tags_embed(tags, MATRIX_API_URL)
+    await interaction.followup.send(embed=embed)
 
 
 # ---------------------------------------------------------------------------
@@ -283,6 +329,7 @@ async def on_ready():
 
     logger.info("%s is online as %s", BOT_NAME, client.user)
     logger.info("   Gateway: %s", GATEWAY_URL)
+    logger.info("   Matrix API: %s", MATRIX_API_URL)
     logger.info("   Mention-only: %s", MENTION_ONLY)
     logger.info("   Guilds: %s", [g.name for g in client.guilds])
 

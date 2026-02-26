@@ -27,8 +27,11 @@ def _confidence_bar(confidence: float) -> str:
     return f"[{'=' * filled}{'-' * (10 - filled)}] {confidence:.0%}"
 
 
-def build_insight_embed(insight: CosmosInsight) -> discord.Embed:
-    """Format a CosmosInsight as a color-coded Discord embed."""
+def build_insight_embed(insight: CosmosInsight, data_source: str = "") -> discord.Embed:
+    """Format a CosmosInsight as a color-coded Discord embed.
+
+    data_source: "live", "synthetic", or "" (no badge).
+    """
     embed = discord.Embed(
         title=f"Diagnosis: {insight.summary[:80]}",
         color=_confidence_color(insight.confidence),
@@ -37,6 +40,11 @@ def build_insight_embed(insight: CosmosInsight) -> discord.Embed:
     embed.add_field(name="Root Cause", value=insight.root_cause[:1024], inline=False)
     embed.add_field(name="Confidence", value=_confidence_bar(insight.confidence), inline=True)
     embed.add_field(name="Model", value=f"`{insight.cosmos_model}`", inline=True)
+
+    if data_source == "live":
+        embed.add_field(name="Data Source", value="\U0001f7e2 Live PLC data", inline=True)
+    elif data_source == "synthetic":
+        embed.add_field(name="Data Source", value="\U0001f7e1 Synthetic data", inline=True)
 
     if insight.reasoning:
         # Truncate to embed field limit
@@ -75,6 +83,102 @@ def build_status_embed(nodes: dict[str, dict]) -> discord.Embed:
 
     up_count = sum(1 for n in nodes.values() if n["up"])
     embed.set_footer(text=f"{up_count}/{len(nodes)} nodes online")
+    return embed
+
+
+def build_tags_embed(tags: dict | None, matrix_url: str) -> discord.Embed:
+    """Format live PLC tag snapshot as a Discord embed.
+
+    tags: single tag snapshot dict from Matrix API, or None if unreachable.
+    matrix_url: base URL shown in footer for context.
+    """
+    if tags is None:
+        embed = discord.Embed(
+            title="PLC Tags — Offline",
+            description="Cannot reach Matrix API.",
+            color=discord.Color.dark_grey(),
+            timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+        )
+        embed.set_footer(text=f"Source: {matrix_url}")
+        return embed
+
+    # Determine color based on fault / e-stop state
+    e_stop = tags.get("e_stop", False)
+    fault = tags.get("fault", False)
+    error_code = tags.get("error_code", 0)
+
+    if e_stop:
+        color = discord.Color.dark_red()
+    elif fault or error_code not in (0, None):
+        color = discord.Color.red()
+    else:
+        color = discord.Color.green()
+
+    embed = discord.Embed(
+        title="PLC Tags — Live",
+        color=color,
+        timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+    )
+
+    # Motor field
+    motor_state = "RUNNING" if tags.get("motor_running", False) else "STOPPED"
+    motor_speed = tags.get("motor_speed", "-")
+    motor_current = tags.get("motor_current", "-")
+    motor_val = f"**{motor_state}**\nSpeed: {motor_speed}%\nCurrent: {motor_current} A"
+    embed.add_field(name="Motor", value=motor_val, inline=True)
+
+    # Conveyor field
+    conv_state = "RUNNING" if tags.get("conveyor_running", False) else "STOPPED"
+    conv_speed = tags.get("conveyor_speed", "-")
+    conv_val = f"**{conv_state}**\nSpeed: {conv_speed}%"
+    embed.add_field(name="Conveyor", value=conv_val, inline=True)
+
+    # Environment field
+    temp = tags.get("temperature", "-")
+    pressure = tags.get("pressure", "-")
+    env_val = f"Temp: {temp} \u00b0C\nPressure: {pressure} PSI"
+    embed.add_field(name="Environment", value=env_val, inline=True)
+
+    # Sensors field
+    s1 = "PART" if tags.get("sensor_1", False) else "Clear"
+    s2 = "PART" if tags.get("sensor_2", False) else "Clear"
+    sensor_val = f"Sensor 1: **{s1}**\nSensor 2: **{s2}**"
+    embed.add_field(name="Sensors", value=sensor_val, inline=True)
+
+    # Safety field
+    fault_str = "\U0001f534 FAULT" if fault else "\U0001f7e2 OK"
+    estop_str = "\U0001f6d1 E-STOP" if e_stop else "\U0001f7e2 Clear"
+    safety_val = f"Fault: {fault_str}\nE-Stop: {estop_str}"
+    if error_code and error_code != 0:
+        error_msg = tags.get("error_message", "")
+        safety_val += f"\nError: `{error_code}`"
+        if error_msg:
+            safety_val += f" — {error_msg}"
+    embed.add_field(name="Safety", value=safety_val, inline=True)
+
+    # Footer with snapshot ID, node, and stale detection
+    snapshot_id = tags.get("id", tags.get("snapshot_id", "?"))
+    node_id = tags.get("node_id", "unknown")
+    footer_text = f"Snapshot #{snapshot_id} | Node: {node_id}"
+
+    ts_raw = tags.get("timestamp")
+    if ts_raw:
+        try:
+            if isinstance(ts_raw, str):
+                # Handle ISO format with or without Z suffix
+                ts_raw = ts_raw.replace("Z", "+00:00")
+                snap_time = datetime.datetime.fromisoformat(ts_raw)
+            else:
+                snap_time = datetime.datetime.fromtimestamp(ts_raw, tz=datetime.timezone.utc)
+            if snap_time.tzinfo is None:
+                snap_time = snap_time.replace(tzinfo=datetime.timezone.utc)
+            age = (datetime.datetime.now(tz=datetime.timezone.utc) - snap_time).total_seconds()
+            if age > 30:
+                footer_text += f" | \u26a0\ufe0f STALE ({int(age)}s old)"
+        except (ValueError, TypeError, OSError):
+            pass
+
+    embed.set_footer(text=footer_text)
     return embed
 
 

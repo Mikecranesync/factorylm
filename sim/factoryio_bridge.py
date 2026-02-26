@@ -48,7 +48,7 @@ def load_config(config_path: str = "config/factoryio.yaml") -> dict:
     defaults = {
         "host": "127.0.0.1",
         "port": 502,
-        "matrix_url": "http://localhost:8000",
+        "matrix_url": "http://localhost:8001",
         "interval_ms": 500,
         "coils": {0: "motor_running", 1: "motor_stopped", 2: "fault_alarm",
                   3: "conveyor_running", 4: "sensor_1_active", 5: "sensor_2_active",
@@ -209,7 +209,7 @@ def post_to_matrix(matrix_url: str, tags: dict) -> bool:
 def run_bridge(
     plc_host: str = "127.0.0.1",
     plc_port: int = 502,
-    matrix_url: str = "http://localhost:8000",
+    matrix_url: str = "http://localhost:8001",
     interval_ms: int = 500,
     use_sim: bool = False,
     coil_map: dict | None = None,
