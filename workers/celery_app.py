@@ -68,6 +68,8 @@ app = Celery(
         'workers.plc_sync_tasks',
         # 📝 Commit Enricher - AI-powered commit note summaries
         'workers.commit_enricher_tasks',
+        # 🏭 PLC Simulator - Cosmos demo auto-cycling conveyor sim
+        'workers.plc_simulator_tasks',
     ]
 )
 
@@ -213,6 +215,11 @@ app.conf.update(
         'commit-enricher-post-sync': {
             'task': 'commit_enricher.enrich_latest',
             'schedule': 43200.0,  # 12 hours
+        },
+        # 🏭 PLC Simulator - tick every 2s for Cosmos demo
+        'plc-simulator-tick-every-2s': {
+            'task': 'simulator.tick',
+            'schedule': 2.0,
         },
     },
 )
