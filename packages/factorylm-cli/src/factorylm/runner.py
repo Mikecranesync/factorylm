@@ -53,7 +53,9 @@ async def run_api(cfg: FactoryLMConfig, store: TagStore) -> None:
         logger.warning("FastAPI not installed — skipping API server. pip install 'factorylm[api]'")
 
 
-async def run_discord_bot(cfg: FactoryLMConfig, store: TagStore) -> None:
+async def run_discord_bot(
+    cfg: FactoryLMConfig, store: TagStore, relay: Any = None,
+) -> None:
     """Start Discord bot."""
     if not cfg.discord.token:
         logger.info("No Discord token configured — skipping bot")
@@ -65,6 +67,9 @@ async def run_discord_bot(cfg: FactoryLMConfig, store: TagStore) -> None:
             store=store,
             bot_name=cfg.discord.bot_name,
             mention_only=cfg.discord.mention_only,
+            live_channel_id=cfg.discord.live_channel_id,
+            live_interval=cfg.discord.live_interval,
+            relay=relay,
         )
         logger.info("Discord bot starting as '%s'", cfg.discord.bot_name)
         await bot.start()
@@ -72,7 +77,9 @@ async def run_discord_bot(cfg: FactoryLMConfig, store: TagStore) -> None:
         logger.warning("discord.py not installed — skipping bot. pip install 'factorylm[discord]'")
 
 
-async def run_monitor(cfg: FactoryLMConfig, store: TagStore) -> None:
+async def run_monitor(
+    cfg: FactoryLMConfig, store: TagStore, relay: Any = None,
+) -> None:
     """Start fault watcher."""
     if not cfg.monitor.enabled:
         return
@@ -80,13 +87,41 @@ async def run_monitor(cfg: FactoryLMConfig, store: TagStore) -> None:
     from factorylm.cosmos.client import CosmosClient
 
     cosmos = CosmosClient(api_key=cfg.cosmos.api_key, model=cfg.cosmos.model)
-    watcher = FaultWatcher(store=store, cosmos=cosmos, poll_interval=cfg.monitor.poll_interval)
+    watcher = FaultWatcher(
+        store=store, cosmos=cosmos, poll_interval=cfg.monitor.poll_interval,
+        relay=relay,
+    )
     await watcher.run()
+
+
+def _create_relay(cfg: FactoryLMConfig) -> Any:
+    """Create AgentRelay from config, or return None if discord extras missing."""
+    try:
+        from factorylm.discord.relay import AgentRelay
+    except ImportError:
+        return None
+
+    webhooks = cfg.discord.agent_webhooks
+    if not webhooks and not cfg.discord.alerts_webhook and not cfg.discord.dispatch_webhook:
+        return None
+
+    relay = AgentRelay(
+        agent_webhooks=webhooks,
+        alerts_webhook=cfg.discord.alerts_webhook,
+        dispatch_webhook=cfg.discord.dispatch_webhook,
+    )
+    agents = relay.configured_agents
+    logger.info(
+        "Agent relay: %d agents, alerts=%s, dispatch=%s",
+        len(agents), relay.has_alerts, relay.has_dispatch,
+    )
+    return relay
 
 
 async def run_all(cfg: FactoryLMConfig) -> None:
     """Start all subsystems concurrently."""
     store = TagStore(db_path=cfg.db.path)
+    relay = _create_relay(cfg)
     logger.info("FactoryLM starting — all subsystems")
 
     # Graceful shutdown on SIGINT/SIGTERM
@@ -106,8 +141,8 @@ async def run_all(cfg: FactoryLMConfig) -> None:
     tasks = [
         asyncio.create_task(collect_loop(cfg, store), name="collector"),
         asyncio.create_task(run_api(cfg, store), name="api"),
-        asyncio.create_task(run_discord_bot(cfg, store), name="discord"),
-        asyncio.create_task(run_monitor(cfg, store), name="monitor"),
+        asyncio.create_task(run_discord_bot(cfg, store, relay=relay), name="discord"),
+        asyncio.create_task(run_monitor(cfg, store, relay=relay), name="monitor"),
     ]
 
     # Wait for stop signal or any task to fail
@@ -120,4 +155,6 @@ async def run_all(cfg: FactoryLMConfig) -> None:
     for t in pending:
         t.cancel()
     await asyncio.gather(*pending, return_exceptions=True)
+    if relay:
+        await relay.close()
     logger.info("FactoryLM stopped")

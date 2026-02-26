@@ -67,6 +67,7 @@ def init(
     api_port = typer.prompt("Web dashboard port", default=8001, type=int)
     discord_token = typer.prompt("Discord bot token (or leave blank)", default="")
     live_channel_id = typer.prompt("Discord live channel ID (0 to skip)", default=0, type=int)
+    alerts_webhook = typer.prompt("Discord alerts webhook URL (or leave blank)", default="")
 
     config_text = f"""\
 [plc]
@@ -89,6 +90,16 @@ bot_name = "FactoryLM"
 mention_only = true
 live_channel_id = {live_channel_id}
 live_interval = 5.0
+alerts_channel_id = 0
+dispatch_channel_id = 0
+alerts_webhook = "{alerts_webhook}"
+dispatch_webhook = ""
+
+[discord.agent_webhooks]
+tony = ""
+ultron = ""
+jarvis = ""
+hetzner = ""
 
 [monitor]
 enabled = true
@@ -261,6 +272,10 @@ def status(
     table.add_row("Open Incidents", str(len(incidents)))
     table.add_row("API", f"http://{cfg.api.host}:{cfg.api.port}")
     table.add_row("Discord", "configured" if cfg.discord.token else "[dim]not configured[/dim]")
+    agent_count = sum(1 for v in cfg.discord.agent_webhooks.values() if v)
+    relay_status = f"{agent_count} agents" if agent_count else "[dim]none[/dim]"
+    alerts_status = "[green]on[/green]" if cfg.discord.alerts_webhook else "[dim]off[/dim]"
+    table.add_row("Agent Relay", f"{relay_status} | alerts: {alerts_status}")
     table.add_row("Monitor", "enabled" if cfg.monitor.enabled else "[dim]disabled[/dim]")
     table.add_row("Cosmos", "key set" if cfg.cosmos.api_key else "[dim]no key[/dim]")
 
@@ -311,6 +326,23 @@ def discord_cmd(
     from factorylm.db.store import TagStore
 
     store = TagStore(db_path=cfg.db.path)
+
+    # Create relay if any webhooks are configured
+    relay = None
+    try:
+        from factorylm.discord.relay import AgentRelay
+        webhooks = cfg.discord.agent_webhooks
+        if webhooks or cfg.discord.alerts_webhook or cfg.discord.dispatch_webhook:
+            relay = AgentRelay(
+                agent_webhooks=webhooks,
+                alerts_webhook=cfg.discord.alerts_webhook,
+                dispatch_webhook=cfg.discord.dispatch_webhook,
+            )
+            agent_count = len(relay.configured_agents)
+            console.print(f"  Agent relay: {agent_count} agents configured")
+    except ImportError:
+        pass
+
     bot = FactoryLMBot(
         token=cfg.discord.token,
         store=store,
@@ -318,6 +350,7 @@ def discord_cmd(
         mention_only=cfg.discord.mention_only,
         live_channel_id=cfg.discord.live_channel_id,
         live_interval=cfg.discord.live_interval,
+        relay=relay,
     )
     if cfg.discord.live_channel_id:
         console.print(f"  Live feed: channel {cfg.discord.live_channel_id} (every {cfg.discord.live_interval}s)")
@@ -346,6 +379,51 @@ def collect(
         asyncio.run(collect_loop(cfg, store))
     except KeyboardInterrupt:
         console.print("\n[dim]Collector stopped.[/dim]")
+
+
+# ── relay ─────────────────────────────────────────────────────────────────
+
+@app.command()
+def relay(
+    agent: str = typer.Argument(..., help="Agent name (tony, ultron, jarvis, hetzner)"),
+    message: str = typer.Argument(..., help="Message to send"),
+    config_path: str = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Test relay — send a message to an agent's Discord channel via webhook."""
+    cfg = _load(config_path)
+
+    try:
+        from factorylm.discord.relay import AgentRelay, RelayMessage
+    except ImportError:
+        console.print("[red]discord.py not installed. Run: pip install 'factorylm[discord]'[/red]")
+        raise typer.Exit(1)
+
+    webhooks = cfg.discord.agent_webhooks
+    r = AgentRelay(
+        agent_webhooks=webhooks,
+        alerts_webhook=cfg.discord.alerts_webhook,
+        dispatch_webhook=cfg.discord.dispatch_webhook,
+    )
+
+    if agent not in webhooks or not webhooks[agent]:
+        console.print(f"[red]No webhook configured for agent '{agent}'.[/red]")
+        configured = [k for k, v in webhooks.items() if v]
+        if configured:
+            console.print(f"Configured agents: {', '.join(configured)}")
+        raise typer.Exit(1)
+
+    async def _send():
+        try:
+            msg = RelayMessage(agent=agent, content=message)
+            ok = await r.post(msg)
+            if ok:
+                console.print(f"[green]Message sent to #{agent}[/green]")
+            else:
+                console.print(f"[red]Failed to send message to #{agent}[/red]")
+        finally:
+            await r.close()
+
+    asyncio.run(_send())
 
 
 # ── version ───────────────────────────────────────────────────────────────

@@ -14,6 +14,13 @@ from typing import Any
 from factorylm.cosmos.client import CosmosClient
 from factorylm.db.store import TagStore
 
+try:
+    from factorylm.discord.relay import AgentRelay
+    from factorylm.discord.embeds import build_alert_embed
+except ImportError:
+    AgentRelay = None  # type: ignore[assignment,misc]
+    build_alert_embed = None  # type: ignore[assignment]
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,10 +32,12 @@ class FaultWatcher:
         store: TagStore,
         cosmos: CosmosClient | None = None,
         poll_interval: float = 5.0,
+        relay: AgentRelay | None = None,
     ) -> None:
         self.store = store
         self.cosmos = cosmos or CosmosClient()
         self.poll_interval = poll_interval
+        self.relay = relay
         self._seen_ids: set[int] = set()
         self._running = False
         self.incidents_processed = 0
@@ -87,3 +96,16 @@ class FaultWatcher:
                 cosmos_model=insight.cosmos_model,
             )
             logger.info("Insight stored for incident #%s", inc_id)
+
+            # Post to #alerts via Discord relay
+            if self.relay and build_alert_embed:
+                try:
+                    insight_dict = {
+                        "summary": insight.summary,
+                        "root_cause": insight.root_cause,
+                        "confidence": insight.confidence,
+                    }
+                    embed = build_alert_embed(inc, insight_dict)
+                    await self.relay.post_alert(embed)
+                except Exception:
+                    logger.exception("Failed to post alert for incident #%s", inc_id)

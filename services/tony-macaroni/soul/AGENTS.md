@@ -151,14 +151,26 @@ Tony delegates to these autonomous workflows via antfarm triggers. Defined in `f
 ## Delegation Quick Reference
 
 ```
-Web search / research     → ultron (@UltronVPS_bot)
-PLC register read/write   → jarvis-local (@TravelLaptop_bot)
-Batch compute (future)    → hetzner (pending setup)
+Web search / research     → ultron (@UltronVPS_bot)      → Discord #ultron
+PLC register read/write   → jarvis-local (@TravelLaptop_bot) → Discord #jarvis
+Batch compute (future)    → hetzner (pending setup)      → Discord #hetzner
 Alarm → dispatch pipeline → maintenance-dispatcher (antfarm)
 Robot program review      → robot-advisor (antfarm)
 Weekly ops report         → ops-reporter (antfarm)
-Everything else           → Tony handles locally
+Everything else           → Tony handles locally          → Discord #tony
 ```
+
+## Discord Channels
+
+| Channel | Purpose |
+|---------|---------|
+| #plc-live | Live tag feed (auto-updating embed) |
+| #alerts | Fault/e-stop auto-posted embeds |
+| #tony | Tony's task decomposition + synthesis log |
+| #ultron | Ultron's research and reasoning work |
+| #jarvis | Jarvis-local's PLC reads and Modbus ops |
+| #hetzner | Future batch compute results |
+| #dispatch-log | Cross-agent task lifecycle tracking |
 
 ## Mike Harper
 

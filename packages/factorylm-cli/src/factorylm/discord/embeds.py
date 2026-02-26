@@ -208,6 +208,85 @@ def build_live_embed(
     return embed
 
 
+DISPATCH_STATUS_COLORS = {
+    "pending": discord.Color.light_grey(),
+    "delegated": discord.Color.blue(),
+    "in_progress": discord.Color.yellow(),
+    "completed": discord.Color.green(),
+    "failed": discord.Color.red(),
+}
+
+
+def build_alert_embed(
+    incident: dict[str, Any],
+    insight: dict[str, Any] | None = None,
+) -> discord.Embed:
+    """Build an alert embed for the #alerts channel.
+
+    Args:
+        incident: Dict with keys like error_code, error_message, node_id, id.
+        insight: Optional AI diagnosis dict with summary, root_cause, confidence.
+    """
+    error_code = incident.get("error_code", 0)
+    e_stop = error_code == -1
+    color = discord.Color.dark_red() if e_stop else discord.Color.red()
+    title = "E-STOP ACTIVATED" if e_stop else f"FAULT — Error Code {error_code}"
+
+    embed = discord.Embed(
+        title=title,
+        color=color,
+        timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+    )
+
+    if incident.get("error_message"):
+        embed.add_field(name="Message", value=incident["error_message"], inline=False)
+
+    node_id = incident.get("node_id", "local")
+    embed.add_field(name="Node", value=f"`{node_id}`", inline=True)
+    embed.add_field(name="Incident", value=f"`#{incident.get('id', '?')}`", inline=True)
+
+    if insight:
+        embed.add_field(name="AI Diagnosis", value=insight.get("summary", "—")[:1024], inline=False)
+        if insight.get("root_cause"):
+            embed.add_field(name="Root Cause", value=insight["root_cause"][:1024], inline=False)
+        if insight.get("confidence") is not None:
+            embed.add_field(name="Confidence", value=_confidence_bar(insight["confidence"]), inline=True)
+
+    embed.set_footer(text=f"FactoryLM Alerts | Node: {node_id}")
+    return embed
+
+
+def build_dispatch_embed(
+    action: str,
+    summary: str,
+    from_agent: str,
+    to_agent: str,
+    status: str = "delegated",
+) -> discord.Embed:
+    """Build a dispatch lifecycle embed for the #dispatch-log channel.
+
+    Args:
+        action: Short action name (e.g. "web-search", "plc-read").
+        summary: Description of what's being done.
+        from_agent: Agent delegating the task (e.g. "tony").
+        to_agent: Agent receiving the task (e.g. "ultron").
+        status: One of pending, delegated, in_progress, completed, failed.
+    """
+    color = DISPATCH_STATUS_COLORS.get(status, discord.Color.light_grey())
+
+    embed = discord.Embed(
+        title=f"{action}",
+        description=summary[:2048],
+        color=color,
+        timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+    )
+    embed.add_field(name="From", value=f"`{from_agent}`", inline=True)
+    embed.add_field(name="To", value=f"`{to_agent}`", inline=True)
+    embed.add_field(name="Status", value=f"**{status.upper()}**", inline=True)
+    embed.set_footer(text="FactoryLM Dispatch")
+    return embed
+
+
 def build_about_embed() -> discord.Embed:
     embed = discord.Embed(
         title="FactoryLM",

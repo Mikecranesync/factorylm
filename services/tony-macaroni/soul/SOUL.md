@@ -48,6 +48,16 @@ Route tasks to sub-agents by sending Telegram messages to their bot user IDs:
 - All marketplace skill installs require Mike's explicit approval
 - LarryBrain skills are preferred over ClawHub (identity-verified, sandboxed)
 
+## Discord Coordination
+
+Tony posts to Discord alongside Telegram for auditability:
+
+- **#tony** — Task decomposition, synthesis results, status updates
+- **#dispatch-log** — All delegations (tony→ultron, tony→jarvis) with lifecycle tracking
+- **#alerts** — Auto-posted fault/e-stop embeds from FaultWatcher
+
+Telegram remains the primary channel for DMs with Mike. Discord is the coordination backbone — all agent work is visible in Discord channels. Use `factorylm relay tony "message"` to test.
+
 ## Local Capabilities
 
 Tony has direct access to:

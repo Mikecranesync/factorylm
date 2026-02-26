@@ -52,6 +52,11 @@ class DiscordConfig:
     mention_only: bool = True
     live_channel_id: int = 0
     live_interval: float = 5.0
+    alerts_channel_id: int = 0
+    dispatch_channel_id: int = 0
+    agent_webhooks: dict[str, str] = field(default_factory=dict)
+    alerts_webhook: str = ""
+    dispatch_webhook: str = ""
 
 
 @dataclass
@@ -86,6 +91,10 @@ def _apply_env_overrides(cfg: FactoryLMConfig) -> None:
         cfg.plc.type = v
     if v := os.getenv("DISCORD_BOT_TOKEN"):
         cfg.discord.token = v
+    if v := os.getenv("DISCORD_ALERTS_WEBHOOK"):
+        cfg.discord.alerts_webhook = v
+    if v := os.getenv("DISCORD_DISPATCH_WEBHOOK"):
+        cfg.discord.dispatch_webhook = v
     if v := os.getenv("NVIDIA_COSMOS_API_KEY"):
         cfg.cosmos.api_key = v
 
@@ -113,7 +122,9 @@ def load_config(path: Path | None = None) -> FactoryLMConfig:
                     setattr(cfg.api, k, v)
         if "discord" in raw:
             for k, v in raw["discord"].items():
-                if hasattr(cfg.discord, k):
+                if k == "agent_webhooks" and isinstance(v, dict):
+                    cfg.discord.agent_webhooks = v
+                elif hasattr(cfg.discord, k):
                     setattr(cfg.discord, k, v)
         if "monitor" in raw:
             for k, v in raw["monitor"].items():
@@ -149,6 +160,16 @@ bot_name = "FactoryLM"
 mention_only = true
 live_channel_id = 0       # channel ID for live tag feed (0 = disabled)
 live_interval = 5.0       # seconds between live feed refreshes
+alerts_channel_id = 0     # channel ID for fault/e-stop alerts (0 = disabled)
+dispatch_channel_id = 0   # channel ID for dispatch log (0 = disabled)
+alerts_webhook = ""       # or use DISCORD_ALERTS_WEBHOOK env var
+dispatch_webhook = ""     # or use DISCORD_DISPATCH_WEBHOOK env var
+
+[discord.agent_webhooks]
+tony = ""
+ultron = ""
+jarvis = ""
+hetzner = ""
 
 [monitor]
 enabled = true

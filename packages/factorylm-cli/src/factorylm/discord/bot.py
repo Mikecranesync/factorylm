@@ -25,6 +25,7 @@ from factorylm.discord.embeds import (
     build_status_embed,
     build_tags_embed,
 )
+from factorylm.discord.relay import AgentRelay
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,7 @@ class FactoryLMBot:
         mention_only: bool = True,
         live_channel_id: int = 0,
         live_interval: float = 5.0,
+        relay: AgentRelay | None = None,
     ) -> None:
         self.token = token
         self.store = store
@@ -61,6 +63,7 @@ class FactoryLMBot:
         self.mention_only = mention_only
         self.live_channel_id = live_channel_id
         self.live_interval = live_interval
+        self.relay = relay
         self.cosmos = CosmosClient()
 
         self._live_message: discord.Message | None = None
@@ -125,6 +128,38 @@ class FactoryLMBot:
                 description=desc,
                 color=discord.Color.green() if not incidents else discord.Color.red(),
             )
+            await interaction.response.send_message(embed=embed)
+
+        @tree.command(name="agents", description="Show agent relay status")
+        async def cmd_agents(interaction: discord.Interaction):
+            if not self.relay:
+                await interaction.response.send_message(
+                    embed=discord.Embed(
+                        title="Agent Relay",
+                        description="No relay configured.",
+                        color=discord.Color.light_grey(),
+                    )
+                )
+                return
+
+            agents = self.relay.configured_agents
+            lines = []
+            for name in agents:
+                lines.append(f"- **{name.capitalize()}** — webhook configured")
+            if not lines:
+                lines.append("No agent webhooks configured.")
+
+            desc = "\n".join(lines)
+            desc += f"\n\nAlerts: {'ON' if self.relay.has_alerts else 'OFF'}"
+            desc += f"\nDispatch log: {'ON' if self.relay.has_dispatch else 'OFF'}"
+
+            embed = discord.Embed(
+                title="Agent Relay Status",
+                description=desc,
+                color=discord.Color.blue() if agents else discord.Color.light_grey(),
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+            )
+            embed.set_footer(text=f"{len(agents)} agents connected")
             await interaction.response.send_message(embed=embed)
 
     def _register_events(self) -> None:
@@ -221,5 +256,7 @@ class FactoryLMBot:
         await self.client.start(self.token)
 
     async def close(self) -> None:
-        """Gracefully close the bot."""
+        """Gracefully close the bot and relay session."""
+        if self.relay:
+            await self.relay.close()
         await self.client.close()

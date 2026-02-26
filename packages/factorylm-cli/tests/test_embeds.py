@@ -1,8 +1,12 @@
-"""Tests for Discord embed builders — focused on the live dashboard embed."""
+"""Tests for Discord embed builders — live dashboard, alerts, dispatch."""
 
 import discord
 
-from factorylm.discord.embeds import build_live_embed
+from factorylm.discord.embeds import (
+    build_alert_embed,
+    build_dispatch_embed,
+    build_live_embed,
+)
 
 
 def test_live_embed_normal():
@@ -100,3 +104,87 @@ def test_live_embed_node_id_in_footer():
     """Footer shows the node ID."""
     embed = build_live_embed(None, node_id="plc-laptop")
     assert "plc-laptop" in embed.footer.text
+
+
+# ── Alert embeds ─────────────────────────────────────────────────────
+
+
+def test_alert_embed_fault():
+    """Fault incident: red embed with error code and message."""
+    incident = {"id": 42, "error_code": 3, "error_message": "Conveyor jam", "node_id": "plc-laptop"}
+    embed = build_alert_embed(incident)
+    assert embed.color == discord.Color.red()
+    assert "Error Code 3" in embed.title
+    msg_field = next(f for f in embed.fields if f.name == "Message")
+    assert msg_field.value == "Conveyor jam"
+    node_field = next(f for f in embed.fields if f.name == "Node")
+    assert "plc-laptop" in node_field.value
+
+
+def test_alert_embed_estop():
+    """E-stop incident: dark red embed."""
+    incident = {"id": 99, "error_code": -1, "node_id": "local"}
+    embed = build_alert_embed(incident)
+    assert embed.color == discord.Color.dark_red()
+    assert "E-STOP" in embed.title
+
+
+def test_alert_embed_with_insight():
+    """Alert with AI diagnosis shows summary and confidence."""
+    incident = {"id": 10, "error_code": 1, "node_id": "local"}
+    insight = {"summary": "Motor bearing failure", "root_cause": "Worn bearings", "confidence": 0.85}
+    embed = build_alert_embed(incident, insight=insight)
+    diag_field = next(f for f in embed.fields if f.name == "AI Diagnosis")
+    assert "Motor bearing failure" in diag_field.value
+    cause_field = next(f for f in embed.fields if f.name == "Root Cause")
+    assert "Worn bearings" in cause_field.value
+
+
+# ── Dispatch embeds ──────────────────────────────────────────────────
+
+
+def test_dispatch_embed_delegated():
+    """Delegated task: blue embed with from/to/status fields."""
+    embed = build_dispatch_embed(
+        action="web-search",
+        summary="Research Micro820 fault codes",
+        from_agent="tony",
+        to_agent="ultron",
+        status="delegated",
+    )
+    assert embed.color == discord.Color.blue()
+    assert embed.title == "web-search"
+    from_field = next(f for f in embed.fields if f.name == "From")
+    assert "tony" in from_field.value
+    to_field = next(f for f in embed.fields if f.name == "To")
+    assert "ultron" in to_field.value
+    status_field = next(f for f in embed.fields if f.name == "Status")
+    assert "DELEGATED" in status_field.value
+
+
+def test_dispatch_embed_completed():
+    """Completed task: green embed."""
+    embed = build_dispatch_embed(
+        action="plc-read",
+        summary="Read motor registers",
+        from_agent="tony",
+        to_agent="jarvis",
+        status="completed",
+    )
+    assert embed.color == discord.Color.green()
+    status_field = next(f for f in embed.fields if f.name == "Status")
+    assert "COMPLETED" in status_field.value
+
+
+def test_dispatch_embed_failed():
+    """Failed task: red embed."""
+    embed = build_dispatch_embed(
+        action="batch-job",
+        summary="Train model",
+        from_agent="tony",
+        to_agent="hetzner",
+        status="failed",
+    )
+    assert embed.color == discord.Color.red()
+    status_field = next(f for f in embed.fields if f.name == "Status")
+    assert "FAILED" in status_field.value
