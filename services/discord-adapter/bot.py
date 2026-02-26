@@ -7,6 +7,7 @@ in the NVIDIA Cosmos Cookoff Discord as Mike's presence.
 Slash commands:
     /diagnose <fault>  — AI-powered fault diagnosis via Cosmos Reason 2
     /status            — Network health of all FactoryLM nodes
+    /health-report     — Combined PLC + network + conveyor health report
     /about             — What is FactoryLM?
     /tags              — Live PLC tag values from Matrix API
     /conveyor <action> — Live conveyor control (forward/reverse/stop/speed/status)
@@ -32,14 +33,16 @@ from discord import app_commands
 import httpx
 
 from cosmos.client import CosmosClient
+from channels import DiscordChannels
 from embeds import (
     build_about_embed,
     build_conveyor_embed,
+    build_health_report_embed,
     build_insight_embed,
     build_status_embed,
     build_tags_embed,
 )
-from tasks import DailyProgress
+from tasks import DailyHealthReport, DailyProgress
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,16 +54,12 @@ DISCORD_TOKEN = os.getenv("DISCORD_BOT_TOKEN", "")
 GATEWAY_URL = os.getenv("OPENCLAW_GATEWAY_URL", "http://localhost:18800")
 BOT_NAME = os.getenv("DISCORD_BOT_NAME", "FactoryLM")
 
-# Channels the bot is allowed to respond in (empty = all)
-ALLOWED_CHANNEL_IDS = [
-    int(x) for x in os.getenv("DISCORD_ALLOWED_CHANNELS", "").split(",") if x.strip()
-]
+# Central channel configuration (reads all DISCORD_*_CHANNEL_ID env vars)
+channels = DiscordChannels.from_env()
+ALLOWED_CHANNEL_IDS = channels.allowed_channels or []
 
 # If True, only respond when mentioned. If False, respond to all messages.
 MENTION_ONLY = os.getenv("DISCORD_MENTION_ONLY", "true").lower() == "true"
-
-# Channel for daily progress auto-posts (0 = disabled)
-PROGRESS_CHANNEL_ID = int(os.getenv("DISCORD_PROGRESS_CHANNEL_ID", "0"))
 
 # Conveyor relay on VPS
 CONVEYOR_RELAY_URL = os.getenv("CONVEYOR_RELAY_URL", "http://100.68.120.99:8400")
@@ -102,8 +101,9 @@ intents.members = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-# Daily progress scheduler (initialized in on_ready if configured)
+# Schedulers (initialized in on_ready if configured)
 _daily_progress: DailyProgress | None = None
+_daily_health: DailyHealthReport | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -129,6 +129,61 @@ async def _fetch_matrix_tags() -> dict | None:
     except Exception:
         logger.debug("Matrix API unreachable at %s", MATRIX_API_URL)
         return None
+
+
+# ---------------------------------------------------------------------------
+# Shared async fetch helpers (used by /status, /health-report, and scheduler)
+# ---------------------------------------------------------------------------
+
+
+async def _fetch_node_health() -> dict[str, dict]:
+    """Probe all HEALTH_NODES and return {name: {url, up, latency_ms, error}}."""
+    nodes: dict[str, dict] = {}
+    async with httpx.AsyncClient(timeout=5.0) as http:
+        for name, url in HEALTH_NODES.items():
+            try:
+                resp = await http.get(url)
+                nodes[name] = {
+                    "url": url,
+                    "up": resp.status_code == 200,
+                    "latency_ms": int(resp.elapsed.total_seconds() * 1000),
+                    "error": None,
+                }
+            except httpx.ConnectError:
+                nodes[name] = {"url": url, "up": False, "latency_ms": None, "error": "Connection refused"}
+            except httpx.TimeoutException:
+                nodes[name] = {"url": url, "up": False, "latency_ms": None, "error": "Timeout"}
+            except Exception as e:
+                nodes[name] = {"url": url, "up": False, "latency_ms": None, "error": str(e)[:80]}
+    return nodes
+
+
+async def _fetch_conveyor_status() -> dict | None:
+    """Fetch VFD relay status, or None on failure."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as http:
+            resp = await http.get(f"{CONVEYOR_RELAY_URL}/api/status")
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception:
+        logger.debug("Conveyor relay unreachable at %s", CONVEYOR_RELAY_URL)
+    return None
+
+
+async def _fetch_open_incident_count() -> int:
+    """Return number of open incidents from Matrix API, 0 on failure."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as http:
+            resp = await http.get(f"{MATRIX_API_URL}/api/incidents", params={"status": "open"})
+            if resp.status_code == 200:
+                data = resp.json()
+                if isinstance(data, list):
+                    return len(data)
+                if isinstance(data, dict):
+                    return data.get("count", 0)
+    except Exception:
+        logger.debug("Cannot fetch incidents from %s", MATRIX_API_URL)
+    return 0
 
 
 # ---------------------------------------------------------------------------
@@ -176,26 +231,21 @@ async def cmd_diagnose(interaction: discord.Interaction, fault: app_commands.Cho
 @tree.command(name="status", description="Check FactoryLM network node health")
 async def cmd_status(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
-
-    nodes: dict[str, dict] = {}
-    async with httpx.AsyncClient(timeout=5.0) as http:
-        for name, url in HEALTH_NODES.items():
-            try:
-                resp = await http.get(url)
-                nodes[name] = {
-                    "url": url,
-                    "up": resp.status_code == 200,
-                    "latency_ms": int(resp.elapsed.total_seconds() * 1000),
-                    "error": None,
-                }
-            except httpx.ConnectError:
-                nodes[name] = {"url": url, "up": False, "latency_ms": None, "error": "Connection refused"}
-            except httpx.TimeoutException:
-                nodes[name] = {"url": url, "up": False, "latency_ms": None, "error": "Timeout"}
-            except Exception as e:
-                nodes[name] = {"url": url, "up": False, "latency_ms": None, "error": str(e)[:80]}
-
+    nodes = await _fetch_node_health()
     embed = build_status_embed(nodes)
+    await interaction.followup.send(embed=embed)
+
+
+@tree.command(name="health-report", description="Combined PLC + network health report")
+async def cmd_health_report(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+    nodes, tags, conveyor, incidents = await asyncio.gather(
+        _fetch_node_health(),
+        _fetch_matrix_tags(),
+        _fetch_conveyor_status(),
+        _fetch_open_incident_count(),
+    )
+    embed = build_health_report_embed(nodes, tags, conveyor, incidents)
     await interaction.followup.send(embed=embed)
 
 
@@ -321,7 +371,7 @@ async def forward_to_gateway(user_id: str, username: str, text: str, channel_id:
 
 @client.event
 async def on_ready():
-    global _daily_progress
+    global _daily_progress, _daily_health
 
     # Sync slash commands to all guilds
     synced = await tree.sync()
@@ -334,10 +384,25 @@ async def on_ready():
     logger.info("   Guilds: %s", [g.name for g in client.guilds])
 
     # Start daily progress scheduler if configured
-    if PROGRESS_CHANNEL_ID and _daily_progress is None:
-        _daily_progress = DailyProgress(client, PROGRESS_CHANNEL_ID)
+    progress_channel = channels.get_target("progress")
+    if progress_channel and _daily_progress is None:
+        _daily_progress = DailyProgress(client, progress_channel)
         _daily_progress.start()
-        logger.info("   Daily progress posting to channel %s", PROGRESS_CHANNEL_ID)
+        logger.info("   Daily progress posting to channel %s", progress_channel)
+
+    # Start daily health report scheduler if configured
+    if channels.ops_hub and _daily_health is None:
+        _daily_health = DailyHealthReport(
+            client,
+            channels,
+            fetch_nodes=_fetch_node_health,
+            fetch_tags=_fetch_matrix_tags,
+            fetch_conveyor=_fetch_conveyor_status,
+            fetch_incidents=_fetch_open_incident_count,
+        )
+        _daily_health.start()
+        logger.info("   Daily health report posting to ops_hub=%s line_1_health=%s",
+                     channels.ops_hub, channels.line_1_health or "(none)")
 
 
 @client.event
