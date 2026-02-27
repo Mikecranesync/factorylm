@@ -22,8 +22,24 @@ class ProviderConfig:
 
 PROVIDERS: dict[str, ProviderConfig] = {
     # --- primary providers (round-robin hits these first) ---
-    "groq": ProviderConfig(
-        name="groq",
+    "groq-kimi": ProviderConfig(
+        name="groq-kimi",
+        base_url="https://api.groq.com/openai/v1",
+        model="moonshotai/kimi-k2-instruct",
+        api_key_env="GROQ_API_KEY",
+        daily_budget=14_400,
+        budget_type="requests",
+    ),
+    "groq-qwen3": ProviderConfig(
+        name="groq-qwen3",
+        base_url="https://api.groq.com/openai/v1",
+        model="qwen/qwen3-32b",
+        api_key_env="GROQ_API_KEY",
+        daily_budget=14_400,
+        budget_type="requests",
+    ),
+    "groq-llama70b": ProviderConfig(
+        name="groq-llama70b",
         base_url="https://api.groq.com/openai/v1",
         model="llama-3.3-70b-versatile",
         api_key_env="GROQ_API_KEY",
@@ -32,24 +48,24 @@ PROVIDERS: dict[str, ProviderConfig] = {
     ),
     "deepseek": ProviderConfig(
         name="deepseek",
-        base_url="https://api.deepseek.com",
+        base_url="https://api.deepseek.com/v1",
         model="deepseek-chat",
         api_key_env="DEEPSEEK_API_KEY",
         daily_budget=400_000,
+        budget_type="tokens",
+    ),
+    "deepseek-reasoner": ProviderConfig(
+        name="deepseek-reasoner",
+        base_url="https://api.deepseek.com/v1",
+        model="deepseek-reasoner",
+        api_key_env="DEEPSEEK_API_KEY",
+        daily_budget=200_000,
         budget_type="tokens",
     ),
     "openrouter-hermes": ProviderConfig(
         name="openrouter-hermes",
         base_url="https://openrouter.ai/api/v1",
         model="nousresearch/hermes-3-llama-3.1-405b:free",
-        api_key_env="OPENROUTER_API_KEY",
-        daily_budget=200,
-        budget_type="requests",
-    ),
-    "openrouter-qwen3": ProviderConfig(
-        name="openrouter-qwen3",
-        base_url="https://openrouter.ai/api/v1",
-        model="qwen/qwen3-coder:free",
         api_key_env="OPENROUTER_API_KEY",
         daily_budget=200,
         budget_type="requests",
@@ -80,8 +96,8 @@ MODEL_TO_PROVIDER: dict[str, str] = {
 
 # Task-type → ordered list of preferred providers
 TASK_TYPE_ROUTES: dict[str, list[str]] = {
-    "fast": ["groq", "deepseek"],
-    "reasoning": ["openrouter-hermes", "deepseek", "openrouter-qwen3"],
-    "structured": ["groq", "deepseek"],
-    "coding": ["deepseek", "groq"],
+    "fast": ["groq-kimi", "groq-llama70b", "deepseek"],
+    "reasoning": ["deepseek-reasoner", "groq-qwen3", "openrouter-hermes"],
+    "structured": ["groq-kimi", "deepseek", "groq-llama70b"],
+    "coding": ["groq-kimi", "deepseek", "groq-qwen3"],
 }
