@@ -80,7 +80,7 @@ def list_work_order_gists() -> list[dict[str, str]]:
     """
     result = subprocess.run(
         [_gh_exe(), "gist", "list", "--limit", "50"],
-        capture_output=True, text=True, timeout=10,
+        capture_output=True, text=True, encoding="utf-8", timeout=10,
     )
     if result.returncode != 0:
         logger.error("gh gist list failed: %s", result.stderr)
@@ -113,7 +113,7 @@ def list_watched_gists() -> list[dict[str, str]]:
     for gist_id in ids:
         result = subprocess.run(
             [_gh_exe(), "api", f"/gists/{gist_id}"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True, text=True, encoding="utf-8", timeout=10,
         )
         if result.returncode != 0:
             logger.warning("Failed to fetch watched gist %s: %s", gist_id, result.stderr)
@@ -139,7 +139,7 @@ def fetch_gist_comments(gist_id: str) -> list[dict[str, Any]]:
     """
     result = subprocess.run(
         [_gh_exe(), "api", f"/gists/{gist_id}/comments"],
-        capture_output=True, text=True, timeout=10,
+        capture_output=True, text=True, encoding="utf-8", timeout=10,
     )
     if result.returncode != 0:
         logger.error("gh api gist comments failed for %s: %s", gist_id, result.stderr)
