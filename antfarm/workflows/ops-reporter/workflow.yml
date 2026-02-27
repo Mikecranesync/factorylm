@@ -1,0 +1,284 @@
+id: ops-reporter
+name: Weekly Operations Intelligence Report
+version: 1
+description: >
+  Automated weekly intelligence report pipeline. Collects OEE, scrap,
+  and downtime data, identifies anomalies and trends, generates a
+  formatted report, and distributes via Telegram and email.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: data_collector
+    name: Data Collector
+    role: scanning
+    description: Queries OEE, scrap, downtime, and maintenance metrics
+    timeoutSeconds: 60
+    workspace:
+      baseDir: agents/data-collector
+      files:
+        AGENTS.md: agents/data-collector/AGENTS.md
+        matrix_api: services/matrix/app.py
+
+  - id: analyzer
+    name: Trend Analyzer
+    role: analysis
+    description: Identifies anomalies, trends, and actionable patterns
+    timeoutSeconds: 45
+    workspace:
+      baseDir: agents/analyzer
+      files:
+        AGENTS.md: agents/analyzer/AGENTS.md
+
+  - id: report_writer
+    name: Report Writer
+    role: coding
+    description: Generates the formatted weekly intelligence report
+    timeoutSeconds: 45
+    workspace:
+      baseDir: agents/report-writer
+      files:
+        AGENTS.md: agents/report-writer/AGENTS.md
+
+  - id: distributor
+    name: Report Distributor
+    role: coding
+    description: Delivers report via Telegram and email
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/distributor
+      files:
+        AGENTS.md: agents/distributor/AGENTS.md
+        gus_bot: services/telegram/factorylm_bot.py
+
+steps:
+  - id: collect_data
+    agent: data_collector
+    input: |
+      Collect operations data for the past 7 days.
+
+      Data sources:
+      1. Matrix API (http://100.72.2.99:8000):
+         - GET /api/tags — Current PLC tag values
+         - GET /api/incidents — All incidents in date range
+         - GET /api/insights — AI analysis results
+      2. CMMS Gist work orders:
+         - gh gist list --limit 50 → filter [Jarvis Work Order]
+         - Parse resolution times and actions
+      3. PLC tag history (via jarvis-local):
+         - Motor run hours
+         - Cycle counts
+         - Fault counters
+
+      Metrics to collect:
+      - OEE (Availability x Performance x Quality)
+      - Total downtime minutes (planned vs unplanned)
+      - Scrap count and scrap rate
+      - Mean Time Between Failures (MTBF)
+      - Mean Time To Repair (MTTR)
+      - Work orders: opened, closed, overdue
+      - Top 5 fault codes by frequency
+
+      Output format:
+      STATUS: done
+      PERIOD: <start_date> to <end_date>
+      OEE: <percentage>
+      AVAILABILITY: <percentage>
+      PERFORMANCE: <percentage>
+      QUALITY: <percentage>
+      DOWNTIME_PLANNED_MIN: <number>
+      DOWNTIME_UNPLANNED_MIN: <number>
+      SCRAP_COUNT: <number>
+      SCRAP_RATE: <percentage>
+      MTBF_HOURS: <number>
+      MTTR_MIN: <number>
+      WO_OPENED: <number>
+      WO_CLOSED: <number>
+      WO_OVERDUE: <number>
+      TOP_FAULTS: {<fault_code: count JSON>}
+    expects: "OEE"
+    max_retries: 2
+    on_fail:
+      escalate_to: human
+
+  - id: analyze_trends
+    agent: analyzer
+    input: |
+      Analyze operations data for anomalies and trends.
+
+      Current week metrics:
+      - OEE: {{OEE}}
+      - Availability: {{AVAILABILITY}}
+      - Performance: {{PERFORMANCE}}
+      - Quality: {{QUALITY}}
+      - Unplanned downtime: {{DOWNTIME_UNPLANNED_MIN}} min
+      - MTBF: {{MTBF_HOURS}} hours
+      - MTTR: {{MTTR_MIN}} min
+      - Top faults: {{TOP_FAULTS}}
+
+      Analysis steps:
+      1. Compare against previous week (query pgvector for last report)
+      2. Identify anomalies:
+         - OEE change > 5% (up or down)
+         - New fault codes not seen before
+         - MTTR increase > 20%
+         - Scrap rate spike
+      3. Spot trends (3+ week patterns):
+         - Degrading equipment (increasing fault frequency)
+         - Improving areas (rising OEE)
+         - Seasonal patterns
+      4. Generate recommendations:
+         - PM scheduling suggestions
+         - Training needs (recurring human errors)
+         - Parts to pre-order (predicted failures)
+
+      Output format:
+      STATUS: done
+      ANOMALY_COUNT: <number>
+      ANOMALIES: [<list of anomaly descriptions>]
+      TREND_COUNT: <number>
+      TRENDS: [<list of trend descriptions>]
+      OEE_DELTA: <percentage change from last week>
+      RISK_ITEMS: [<equipment at risk>]
+      RECOMMENDATIONS: [<actionable items>]
+      CONFIDENCE: <0.0-1.0>
+    expects: "ANOMALY_COUNT"
+    max_retries: 1
+
+  - id: write_report
+    agent: report_writer
+    input: |
+      Generate the weekly operations intelligence report.
+
+      Report data:
+      - Period: {{PERIOD}}
+      - OEE: {{OEE}} (delta: {{OEE_DELTA}})
+      - Availability: {{AVAILABILITY}}
+      - Performance: {{PERFORMANCE}}
+      - Quality: {{QUALITY}}
+      - Downtime (unplanned): {{DOWNTIME_UNPLANNED_MIN}} min
+      - MTBF: {{MTBF_HOURS}} hours
+      - MTTR: {{MTTR_MIN}} min
+      - Work orders: {{WO_OPENED}} opened / {{WO_CLOSED}} closed / {{WO_OVERDUE}} overdue
+      - Anomalies: {{ANOMALIES}}
+      - Trends: {{TRENDS}}
+      - Risk items: {{RISK_ITEMS}}
+      - Recommendations: {{RECOMMENDATIONS}}
+
+      Report format (markdown):
+      ```
+      # Weekly Ops Intelligence — {{PERIOD}}
+
+      ## KPI Dashboard
+      | Metric | This Week | Last Week | Delta |
+      |--------|-----------|-----------|-------|
+      | OEE | ... | ... | ... |
+      | Availability | ... | ... | ... |
+      | Performance | ... | ... | ... |
+      | Quality | ... | ... | ... |
+
+      ## Anomalies ({{ANOMALY_COUNT}})
+      <bulleted list>
+
+      ## Trends
+      <bulleted list with direction arrows>
+
+      ## Work Order Summary
+      - Opened: {{WO_OPENED}}
+      - Closed: {{WO_CLOSED}}
+      - Overdue: {{WO_OVERDUE}}
+
+      ## Top 5 Faults
+      <ranked table>
+
+      ## Risk Items
+      <equipment requiring attention>
+
+      ## Recommendations
+      <prioritized action items>
+
+      ---
+      Generated by FactoryLM Ops Reporter | {{timestamp}}
+      ```
+
+      Output format:
+      STATUS: done
+      REPORT_MD: <full markdown report>
+      REPORT_SUMMARY: <3-sentence executive summary>
+      WORD_COUNT: <number>
+    expects: "REPORT_MD"
+    max_retries: 1
+
+  - id: distribute_report
+    agent: distributor
+    input: |
+      Distribute the weekly report via Telegram and email.
+
+      Report content:
+      - Summary: {{REPORT_SUMMARY}}
+      - Full report: {{REPORT_MD}}
+      - Period: {{PERIOD}}
+      - OEE: {{OEE}}
+      - Anomaly count: {{ANOMALY_COUNT}}
+
+      Distribution channels:
+      1. Telegram (via Gus bot @FactoryLM_bot):
+         - Send executive summary to Mike (8445149012)
+         - If anomalies > 0, flag with priority indicator
+         - Attach full report as file if > 500 chars
+      2. GitHub Gist (archive):
+         - Create Gist: gh gist create -d "[Ops Report] {{PERIOD}}"
+         - Include full markdown report
+      3. Email (future — log placeholder for now)
+
+      Telegram message template:
+      ```
+      Ops Intel — {{PERIOD}}
+
+      OEE: {{OEE}} ({{OEE_DELTA}})
+      Anomalies: {{ANOMALY_COUNT}}
+      WO Overdue: {{WO_OVERDUE}}
+
+      {{REPORT_SUMMARY}}
+
+      Full report: <gist_url>
+      ```
+
+      Output format:
+      STATUS: done
+      TELEGRAM_SENT: true
+      GIST_URL: <url>
+      RECIPIENTS: [<list>]
+    expects: "TELEGRAM_SENT: true"
+    max_retries: 2
+
+triggers:
+  - type: cron
+    schedule: "0 6 * * 1"
+    description: Every Monday at 6:00 AM ET
+  - type: command
+    pattern: "/ops report"
+
+integration:
+  services:
+    matrix_api:
+      url: "http://100.72.2.99:8000"
+      endpoints:
+        - /api/tags
+        - /api/incidents
+        - /api/insights
+    jarvis_node:
+      url: "http://100.72.2.99:8765"
+      description: PLC tag history via Modbus TCP
+    telegram:
+      bot: "@FactoryLM_bot"
+      description: Gus bot for report delivery
+    cmms_gist:
+      description: GitHub Gist work order archive
+      tool: gh gist list
+  capabilities:
+    module: services.capabilities
+    client: CapabilityClient
+    used:
+      - factory
+      - telemetry
+      - cmms

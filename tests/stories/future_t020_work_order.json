@@ -1,0 +1,14 @@
+{
+  "id": "T-020",
+  "name": "Work Order via Telegram — create Gist from chat",
+  "type": "chat",
+  "steps": [
+    {
+      "user": "create a work order for conveyor motor M3 bearing failure, high priority",
+      "expect_contains": ["work order", "WO-"],
+      "expect_not_contains": ["error", "exception"],
+      "max_length": 2000
+    }
+  ],
+  "_comment": "Placeholder for Feature 002 Telegram integration. Prefixed 'future_' so live_bot_tester won't auto-run it. Rename to t020_work_order.json when VPS routes work order requests through cmms.gist_work_order."
+}

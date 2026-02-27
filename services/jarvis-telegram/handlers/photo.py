@@ -67,7 +67,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         ]
 
         await status_msg.edit_text(
-            diagnosis,
+            f"{diagnosis}\n\n— via groq",
             reply_markup=InlineKeyboardMarkup(keyboard),
         )
         logger.info(f"Photo analyzed for user {user_id}")
@@ -130,7 +130,7 @@ async def handle_photo_callback(update: Update, context: ContextTypes.DEFAULT_TY
             await query.edit_message_text("Re-analyzing...")
             diagnosis = await groq.analyze_image(session.last_photo)
             session.add_diagnosis(diagnosis)
-            await query.edit_message_text(diagnosis)
+            await query.edit_message_text(f"{diagnosis}\n\n— via groq")
         else:
             await query.edit_message_text("No photo to re-analyze. Send a new photo.")
 
@@ -139,7 +139,7 @@ async def handle_photo_callback(update: Update, context: ContextTypes.DEFAULT_TY
             await query.edit_message_text("Focusing on nameplate...")
             result = await groq.analyze_image(session.last_photo, NAMEPLATE_PROMPT)
             await query.edit_message_text(
-                f"*NAMEPLATE DATA*\n\n{result}",
+                f"*NAMEPLATE DATA*\n\n{result}\n\n— via groq",
                 parse_mode="Markdown",
             )
         else:

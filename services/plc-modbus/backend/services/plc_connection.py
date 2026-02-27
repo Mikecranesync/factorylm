@@ -17,15 +17,15 @@ class PLCConnectionService:
 
     _instance: Optional["PLCConnectionService"] = None
 
-    # Coil name mappings based on CLAUDE.md
+    # Coil name mappings — "From A to B" Factory I/O scene
     COIL_NAMES = {
-        0: "motor_running",
-        1: "motor_stopped",
-        2: "fault_alarm",
-        3: "conveyor_running",
-        4: "sensor_1_active",
-        5: "sensor_2_active",
-        6: "e_stop_active",
+        0: "Conveyor",      # PLC → Factory I/O: belt motor
+        1: "Emitter",       # PLC → Factory I/O: item spawner
+        2: "SensorStart",   # Factory I/O → PLC: entry sensor
+        3: "SensorEnd",     # Factory I/O → PLC: exit sensor
+        4: "RunCommand",    # Remote trigger (Telegram/API)
+        5: "program_var_5",
+        6: "program_var_6",
         7: "DI_00",  # 3-pos switch CENTER
         8: "DI_01",  # E-stop NO contact
         9: "DI_02",  # E-stop NC contact
@@ -40,16 +40,17 @@ class PLCConnectionService:
     }
 
     REGISTER_NAMES = {
-        100: "motor_speed",
-        101: "motor_current",
-        102: "temperature",
-        103: "pressure",
-        104: "conveyor_speed",
-        105: "error_code",
+        100: "ItemCount",
+        101: "register_101",
+        102: "register_102",
+        103: "register_103",
+        104: "register_104",
+        105: "register_105",
     }
 
-    # Writable coil ranges (program vars 0-6 and outputs 15-17)
-    WRITABLE_COILS = list(range(0, 7)) + [15, 16, 17]
+    # Writable coils: outputs (0,1), RunCommand (4), unused (5,6), physical outputs (15-17)
+    # Coils 2,3 (SensorStart, SensorEnd) are Factory I/O inputs — read-only
+    WRITABLE_COILS = [0, 1, 4, 5, 6, 15, 16, 17]
 
     def __new__(cls) -> "PLCConnectionService":
         if cls._instance is None:
