@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "factorylm-gist": {
+      "command": "python",
+      "args": ["-m", "services.mcp.gist_server"],
+      "cwd": "C:\\Users\\hharp\\Desktop\\factorylm-monorepo"
+    }
+  }
+}
