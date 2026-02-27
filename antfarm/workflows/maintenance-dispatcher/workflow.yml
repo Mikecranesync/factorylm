@@ -8,7 +8,7 @@ description: >
   Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
 
 agents:
-  - id: alarm_monitor
+  - id: alarm-monitor
     name: Alarm Monitor
     role: scanning
     description: Watches PLC faults via jarvis-local Modbus TCP and Matrix API
@@ -29,7 +29,7 @@ agents:
       files:
         AGENTS.md: agents/triager/AGENTS.md
 
-  - id: wo_creator
+  - id: wo-creator
     name: Work Order Creator
     role: coding
     description: Creates CMMS Gist work orders using Feature 002 templates
@@ -63,7 +63,7 @@ agents:
 
 steps:
   - id: detect_alarm
-    agent: alarm_monitor
+    agent: alarm-monitor
     input: |
       Poll jarvis-local and Matrix API for active PLC alarms.
 
@@ -134,7 +134,7 @@ steps:
     max_retries: 1
 
   - id: create_work_order
-    agent: wo_creator
+    agent: wo-creator
     input: |
       Create CMMS Gist work order using Feature 002 infrastructure.
 
