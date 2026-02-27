@@ -8,7 +8,7 @@ description: >
   Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
 
 agents:
-  - id: change_analyzer
+  - id: change-analyzer
     name: Change Analyzer
     role: analysis
     description: Analyzes change request context and version diffs
@@ -18,7 +18,7 @@ agents:
       files:
         AGENTS.md: agents/change-analyzer/AGENTS.md
 
-  - id: safety_checker
+  - id: safety-checker
     name: Safety Checker
     role: verification
     description: Flags risky changes to speed, envelope, payload, or safety zones
@@ -28,7 +28,7 @@ agents:
       files:
         AGENTS.md: agents/safety-checker/AGENTS.md
 
-  - id: diff_generator
+  - id: diff-generator
     name: Diff Generator
     role: coding
     description: Generates human-readable diffs with annotations
@@ -50,7 +50,7 @@ agents:
 
 steps:
   - id: analyze_change
-    agent: change_analyzer
+    agent: change-analyzer
     input: |
       Analyze the incoming robot program change request.
 
@@ -93,7 +93,7 @@ steps:
     max_retries: 1
 
   - id: check_safety
-    agent: safety_checker
+    agent: safety-checker
     input: |
       Check safety implications of the proposed changes.
 
@@ -143,7 +143,7 @@ steps:
     max_retries: 1
 
   - id: generate_diff
-    agent: diff_generator
+    agent: diff-generator
     input: |
       Generate a human-readable annotated diff.
 

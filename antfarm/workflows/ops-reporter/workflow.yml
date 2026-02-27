@@ -8,7 +8,7 @@ description: >
   Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
 
 agents:
-  - id: data_collector
+  - id: data-collector
     name: Data Collector
     role: scanning
     description: Queries OEE, scrap, downtime, and maintenance metrics
@@ -29,7 +29,7 @@ agents:
       files:
         AGENTS.md: agents/analyzer/AGENTS.md
 
-  - id: report_writer
+  - id: report-writer
     name: Report Writer
     role: coding
     description: Generates the formatted weekly intelligence report
@@ -52,7 +52,7 @@ agents:
 
 steps:
   - id: collect_data
-    agent: data_collector
+    agent: data-collector
     input: |
       Collect operations data for the past 7 days.
 
@@ -145,7 +145,7 @@ steps:
     max_retries: 1
 
   - id: write_report
-    agent: report_writer
+    agent: report-writer
     input: |
       Generate the weekly operations intelligence report.
 
