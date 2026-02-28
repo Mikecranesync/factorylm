@@ -12,7 +12,7 @@ import os
 import subprocess
 import yaml
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 import httpx
 from fastapi import FastAPI
@@ -48,15 +48,76 @@ MATRIX_API = os.getenv("MATRIX_API", "http://100.72.2.99:8000")
 OPENCLAW_URL = os.getenv("OPENCLAW_URL", "http://localhost:8340")
 ANTFARM_DIR = os.getenv("ANTFARM_DIR", str(Path(__file__).parent.parent.parent / "antfarm" / "workflows"))
 
+# Health monitor singleton
+class HealthMonitor:
+    _instance = None
+    startup_time = datetime.now(timezone.utc)
+    last_heartbeat = datetime.now(timezone.utc)
+    guilds_count = 0
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(HealthMonitor, cls).__new__(cls)
+        return cls._instance
+    
+    def update_heartbeat(self):
+        self.last_heartbeat = datetime.now(timezone.utc)
+    
+    def update_guilds_count(self, count):
+        self.guilds_count = count
+    
+    def get_uptime_seconds(self):
+        return (datetime.now(timezone.utc) - self.startup_time).total_seconds()
+    
+    def get_uptime_human(self):
+        seconds = self.get_uptime_seconds()
+        days = int(seconds // 86400)
+        hours = int((seconds % 86400) // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        
+        parts = []
+        if days > 0:
+            parts.append(f"{days} day{'s' if days != 1 else ''}")
+        if hours > 0:
+            parts.append(f"{hours} hour{'s' if hours != 1 else ''}")
+        if minutes > 0:
+            parts.append(f"{minutes} minute{'s' if minutes != 1 else ''}")
+        if secs > 0 or not parts:
+            parts.append(f"{secs} second{'s' if secs != 1 else ''}")
+        
+        return ", ".join(parts)
 
-# ---------------------------------------------------------------------------
-# API Endpoints (all GET, all read-only)
-# ---------------------------------------------------------------------------
+health_monitor = HealthMonitor()
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "mission-control", "timestamp": datetime.now().isoformat()}
+    """Enhanced health endpoint with uptime, guild count, and heartbeat tracking."""
+    # Update heartbeat on each health check
+    health_monitor.update_heartbeat()
+    
+    return {
+        "status": "ok",
+        "service": "mission-control-dashboard",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "uptime_seconds": health_monitor.get_uptime_seconds(),
+        "uptime_human": health_monitor.get_uptime_human(),
+        "guilds_count": health_monitor.guilds_count,
+        "last_heartbeat": health_monitor.last_heartbeat.isoformat(),
+        "version": "1.0.0"
+    }
 
+@app.post("/health/heartbeat")
+async def update_heartbeat():
+    """Update the heartbeat timestamp."""
+    health_monitor.update_heartbeat()
+    return {"status": "ok", "message": "Heartbeat updated", "timestamp": health_monitor.last_heartbeat.isoformat()}
+
+@app.post("/health/guilds")
+async def update_guilds_count(count: int):
+    """Update the Discord guilds count."""
+    health_monitor.update_guilds_count(count)
+    return {"status": "ok", "message": f"Guilds count updated to {count}", "guilds_count": health_monitor.guilds_count}
 
 @app.get("/api/nodes")
 async def get_nodes():

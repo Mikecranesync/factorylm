@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import time
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -57,6 +59,14 @@ class TestHealth:
         assert resp.status == 200
         data = await resp.json()
         assert data["ok"] is True
+        assert data["status"] == "healthy"
+        assert data["service"] == "factorylm-discord-relay"
+        assert "timestamp" in data
+        assert "uptime_seconds" in data
+        assert data["guilds_count"] == 1
+        assert data["guild_id"] == 999  # From config fixture
+        assert "last_heartbeat" in data  # Can be None initially
+        assert data["version"] == "1.0.0"
 
 
 class TestStatus:
@@ -120,6 +130,26 @@ class TestRelay:
             await client.post("/relay", json={"agent": "tony", "message": "msg1"})
             await client.post("/relay", json={"agent": "ultron", "message": "msg2"})
         assert daemon._message_count == 2
+
+    @pytest.mark.asyncio
+    async def test_heartbeat_field_exists(self, client):
+        """Test that the heartbeat field exists in health response (can be None initially)."""
+        health_resp = await client.get("/health")
+        health_data = await health_resp.json()
+        assert "last_heartbeat" in health_data
+        # Initially it can be None (no messages sent yet)
+        
+    @pytest.mark.asyncio
+    async def test_heartbeat_initial_state(self, daemon):
+        """Test that heartbeat is initialized as None and can be updated."""
+        # Initially heartbeat should be None
+        assert daemon._last_heartbeat is None
+        
+        # We can set it manually to simulate a successful send
+        import time
+        test_time = time.time()
+        daemon._last_heartbeat = test_time
+        assert daemon._last_heartbeat == test_time
 
 
 class TestGracefulShutdown:

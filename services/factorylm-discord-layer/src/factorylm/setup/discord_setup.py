@@ -174,9 +174,25 @@ def _webhook_url(webhook_data: dict) -> str:
 
 
 def cli_main() -> None:
-    """Entry point for factorylm-setup command."""
+    """Entry point for factorylm-setup command.
+
+    Flags:
+        --instance <name>  Instance key (e.g. "ultron"). Enables merge mode.
+        --merge            Merge into existing config instead of overwriting.
+        --bot-token-env <var>  Env var name for this instance's bot token.
+    """
+    import argparse
     import os
     import sys
+
+    parser = argparse.ArgumentParser(description="Set up Discord server for FactoryLM")
+    parser.add_argument("--instance", type=str, default="", help="Instance name (enables merge)")
+    parser.add_argument("--merge", action="store_true", help="Merge into existing config.toml")
+    parser.add_argument(
+        "--bot-token-env", type=str, default="DISCORD_BOT_TOKEN",
+        help="Env var name for bot token (default: DISCORD_BOT_TOKEN)",
+    )
+    args = parser.parse_args()
 
     token = os.environ.get("DISCORD_BOT_TOKEN", "")
     guild_id_str = os.environ.get("DISCORD_GUILD_ID", "")
@@ -188,14 +204,24 @@ def cli_main() -> None:
         print("Error: DISCORD_GUILD_ID not set")
         sys.exit(1)
 
-    from factorylm.setup.config_writer import write_config
+    from factorylm.setup.config_writer import write_config, write_instance_config
+
+    use_merge = args.merge or bool(args.instance)
 
     async def _run() -> None:
         setup = DiscordSetup(token, int(guild_id_str))
         try:
             result = await setup.run_setup()
-            output_path = write_config(result)
-            print(f"Setup complete. Config written to {output_path}")
+            if use_merge and args.instance:
+                output_path = write_instance_config(
+                    result,
+                    instance_name=args.instance,
+                    bot_token_env_var=args.bot_token_env,
+                )
+                print(f"Setup complete. Instance '{args.instance}' merged into {output_path}")
+            else:
+                output_path = write_config(result)
+                print(f"Setup complete. Config written to {output_path}")
         finally:
             await setup.close()
 

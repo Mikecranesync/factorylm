@@ -160,7 +160,7 @@ def main() -> None:
     providers = []
     if config.groq_api_key:
         providers.append({"name": "groq", "base_url": "https://api.groq.com/openai/v1",
-                          "api_key": config.groq_api_key, "model": "llama-3.3-70b-versatile"})
+                          "api_key": config.groq_api_key, "model": "moonshotai/kimi-k2-instruct"})
     if os.getenv("CEREBRAS_API_KEY"):
         providers.append({"name": "cerebras", "base_url": "https://api.cerebras.ai/v1",
                           "api_key": os.getenv("CEREBRAS_API_KEY"), "model": "llama3.1-70b"})

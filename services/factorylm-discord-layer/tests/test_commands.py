@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from factorylm.bot.commands import FLEET_TABLE, create_commands
+from factorylm.bot.commands import _build_fleet_table, create_commands
 from factorylm.bot.events import setup_events
 from factorylm.models import AgentConfig, DiscordConfig, FactoryLMConfig, RelayConfig
 
@@ -47,16 +47,22 @@ class TestCreateCommands:
 
 
 class TestFleetTable:
-    def test_fleet_table_content(self):
-        assert "Tony" in FLEET_TABLE
-        assert "Ultron" in FLEET_TABLE
-        assert "Jarvis" in FLEET_TABLE
-        assert "Hetzner" in FLEET_TABLE
-        assert "100.108.19.94" in FLEET_TABLE
+    def test_fleet_table_content(self, config):
+        table = _build_fleet_table(config)
+        assert "Tony" in table
+        assert "Mac Mini" in table
+        assert "Boss agent" in table
 
-    def test_fleet_table_is_code_block(self):
-        assert FLEET_TABLE.strip().startswith("```")
-        assert FLEET_TABLE.strip().endswith("```")
+    def test_fleet_table_is_code_block(self, config):
+        table = _build_fleet_table(config)
+        assert table.strip().startswith("```")
+        assert table.strip().endswith("```")
+
+    def test_fleet_table_no_instances(self):
+        from factorylm.models import DiscordConfig
+        empty_config = FactoryLMConfig(discord=DiscordConfig())
+        table = _build_fleet_table(empty_config)
+        assert "No" in table
 
 
 class TestConfigShowHidesSecrets:

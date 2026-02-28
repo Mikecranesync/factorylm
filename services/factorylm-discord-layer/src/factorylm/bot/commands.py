@@ -15,20 +15,32 @@ import aiohttp
 import discord
 from discord import app_commands
 
+from factorylm.config import get_all_guild_ids, get_all_instances
 from factorylm.models import FactoryLMConfig
 
 logger = logging.getLogger(__name__)
 
-# Fleet roster for /fleet command
-FLEET_TABLE = """\
-```
-Agent    | Machine                    | Role
----------|----------------------------|-----------------------
-Tony     | Mac Mini (100.108.19.94)   | Boss agent, coordinator
-Ultron   | DO VPS (100.68.120.99)     | Cloud reasoning, research
-Jarvis   | Travel Laptop (100.83.251.23) | PLC/Modbus edge
-Hetzner  | Hetzner (100.67.25.53)     | Batch compute (pending)
-```"""
+def _build_fleet_table(config: FactoryLMConfig) -> str:
+    """Build fleet table dynamically from config instances."""
+    instances = get_all_instances(config)
+    if not instances:
+        return "```\nNo instances configured.\n```"
+
+    rows: list[str] = []
+    for inst_name, inst_cfg in sorted(instances.items()):
+        for agent_name, agent_cfg in sorted(inst_cfg.agents.items()):
+            name = agent_cfg.name or agent_name.capitalize()
+            machine = agent_cfg.machine or inst_cfg.machine or ""
+            role = agent_cfg.role or inst_cfg.role or ""
+            server = inst_name
+            rows.append(f"{name:<10}| {machine:<28}| {role:<24}| {server}")
+
+    if not rows:
+        return "```\nNo agents configured.\n```"
+
+    header = f"{'Agent':<10}| {'Machine':<28}| {'Role':<24}| Server"
+    sep = f"{'-'*10}|{'-'*29}|{'-'*25}|{'-'*15}"
+    return "```\n" + header + "\n" + sep + "\n" + "\n".join(rows) + "\n```"
 
 
 def create_commands(
@@ -37,13 +49,19 @@ def create_commands(
 ) -> None:
     """Register all slash commands on the command tree.
 
-    All commands are guild-only, scoped to config.discord.guild_id.
+    Commands are registered to all guild IDs from instances config.
+    Falls back to legacy single guild_id if no instances defined.
     """
-    guild = discord.Object(id=config.discord.guild_id)
+    guild_ids = get_all_guild_ids(config)
+    guilds = [discord.Object(id=gid) for gid in guild_ids]
+    # Use first guild as primary for group commands
+    primary_guild = guilds[0] if guilds else discord.Object(id=config.discord.guild_id)
     relay_url = f"http://{config.relay.host}:{config.relay.port}"
 
     @tree.command(
-        name="relay", description="Post a message to an agent's Discord channel", guild=guild
+        name="relay",
+        description="Post a message to an agent's Discord channel",
+        guild=primary_guild,
     )
     @app_commands.describe(agent="Agent name (e.g. tony, ultron)", message="Message to send")
     async def cmd_relay(interaction: discord.Interaction, agent: str, message: str):
@@ -88,7 +106,7 @@ def create_commands(
 
         await interaction.followup.send(embed=embed)
 
-    @tree.command(name="status", description="Check relay daemon status", guild=guild)
+    @tree.command(name="status", description="Check relay daemon status", guild=primary_guild)
     async def cmd_status(interaction: discord.Interaction):
         await interaction.response.defer(thinking=True)
 
@@ -132,7 +150,7 @@ def create_commands(
     config_group = app_commands.Group(
         name="config",
         description="Configuration commands",
-        guild_ids=[config.discord.guild_id],
+        guild_ids=guild_ids or [config.discord.guild_id],
     )
 
     @config_group.command(name="show", description="Show current configuration (ephemeral)")
@@ -165,14 +183,20 @@ def create_commands(
 
     tree.add_command(config_group)
 
-    @tree.command(name="fleet", description="Show the FactoryLM agent fleet", guild=guild)
+    @tree.command(name="fleet", description="Show the FactoryLM agent fleet", guild=primary_guild)
     async def cmd_fleet(interaction: discord.Interaction):
+        fleet_table = _build_fleet_table(config)
         embed = discord.Embed(
             title="FactoryLM Fleet",
-            description=FLEET_TABLE,
+            description=fleet_table,
             color=discord.Color.blue(),
         )
         await interaction.response.send_message(embed=embed)
+
+    # Copy commands to additional guilds (discord.py registers to primary,
+    # we sync to all guilds in events.py on_ready)
+    # Store guild list on tree for events.py to access
+    tree.__factorylm_guilds__ = guilds  # type: ignore[attr-defined]
 
 
 def cli_main() -> None:

@@ -8,6 +8,7 @@ webhook URL from config, and queues the message for delivery.
 from __future__ import annotations
 
 import asyncio
+import datetime
 import logging
 import signal
 import time
@@ -16,6 +17,7 @@ from typing import Any
 import aiohttp
 from aiohttp import web
 
+from factorylm.config import get_all_instances
 from factorylm.models import FactoryLMConfig
 from factorylm.relay.rate_limiter import WebhookRateLimiter
 
@@ -40,6 +42,7 @@ class AsyncRelayDaemon:
         self._queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=500)
         self._drain_task: asyncio.Task | None = None
         self._shutting_down = False
+        self._last_heartbeat: float | None = None  # Timestamp of last successful message relay
         self.rate_limiter = WebhookRateLimiter(max_queue_size=500)
 
     @property
@@ -47,6 +50,12 @@ class AsyncRelayDaemon:
         return self._app
 
     def _get_webhook_url(self, agent: str) -> str | None:
+        # Search across all instances first
+        for instance in get_all_instances(self.config).values():
+            agent_config = instance.agents.get(agent)
+            if agent_config:
+                return agent_config.webhook_url
+        # Fallback to legacy top-level agents
         agent_config = self.config.discord.agents.get(agent)
         if agent_config:
             return agent_config.webhook_url
@@ -54,7 +63,10 @@ class AsyncRelayDaemon:
 
     @property
     def _agent_names(self) -> list[str]:
-        return list(self.config.discord.agents.keys())
+        names: set[str] = set(self.config.discord.agents.keys())
+        for instance in get_all_instances(self.config).values():
+            names.update(instance.agents.keys())
+        return sorted(names)
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
@@ -76,6 +88,8 @@ class AsyncRelayDaemon:
                 payload["content"] = content
             async with session.post(url, json=payload) as resp:
                 if resp.status in (200, 204):
+                    # Update heartbeat on successful message relay
+                    self._last_heartbeat = time.time()
                     return True
                 logger.warning("Webhook returned %s: %s", resp.status, await resp.text())
                 return False
@@ -123,9 +137,11 @@ class AsyncRelayDaemon:
         )
 
     async def _handle_status(self, request: web.Request) -> web.Response:
-        """GET /status — agent list, queue depth, uptime."""
+        """GET /status — agent list, queue depth, uptime, per-instance info."""
         uptime = time.monotonic() - self._start_time
         agents_info = {}
+
+        # Legacy top-level agents
         for name, agent_cfg in self.config.discord.agents.items():
             agents_info[name] = {
                 "channel_id": agent_cfg.channel_id,
@@ -133,17 +149,61 @@ class AsyncRelayDaemon:
                 "role": agent_cfg.role,
             }
 
-        return web.json_response({
+        # Per-instance info
+        instances_info = {}
+        for inst_name, inst_cfg in get_all_instances(self.config).items():
+            inst_agents = {}
+            for name, agent_cfg in inst_cfg.agents.items():
+                inst_agents[name] = {
+                    "channel_id": agent_cfg.channel_id,
+                    "machine": agent_cfg.machine,
+                    "role": agent_cfg.role,
+                }
+                # Also add to flat agents list
+                if name not in agents_info:
+                    agents_info[name] = inst_agents[name]
+            instances_info[inst_name] = {
+                "guild_id": inst_cfg.guild_id,
+                "machine": inst_cfg.machine,
+                "role": inst_cfg.role,
+                "agents": inst_agents,
+            }
+
+        response: dict[str, Any] = {
             "agents": agents_info,
             "queue_depth": self.rate_limiter.total_queue_depth(),
             "messages_relayed": self._message_count,
             "uptime_seconds": round(uptime, 1),
             "shutting_down": self._shutting_down,
-        })
+        }
+        if instances_info:
+            response["instances"] = instances_info
+
+        return web.json_response(response)
 
     async def _handle_health(self, request: web.Request) -> web.Response:
-        """GET /health — {ok: true}."""
-        return web.json_response({"ok": True})
+        """GET /health — enhanced health endpoint with uptime, guild count, and heartbeat."""
+        uptime = time.monotonic() - self._start_time
+        current_time = datetime.datetime.now(datetime.timezone.utc)
+
+        # Format last_heartbeat as ISO string if it exists
+        last_heartbeat_iso = None
+        if self._last_heartbeat is not None:
+            last_heartbeat_iso = datetime.datetime.fromtimestamp(
+                self._last_heartbeat, datetime.timezone.utc
+            ).isoformat()
+
+        return web.json_response({
+            "ok": True,
+            "status": "healthy",
+            "service": "factorylm-discord-relay",
+            "timestamp": current_time.isoformat(),
+            "uptime_seconds": round(uptime, 1),
+            "guilds_count": max(1, len(get_all_instances(self.config))),
+            "guild_id": self.config.discord.guild_id or None,
+            "last_heartbeat": last_heartbeat_iso,
+            "version": "1.0.0"
+        })
 
     async def _drain_worker(self) -> None:
         """Background task: pull from queue and post to webhooks."""

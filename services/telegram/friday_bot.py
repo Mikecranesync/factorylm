@@ -654,7 +654,7 @@ Don't use markdown formatting - plain text only.
             resp = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 json={
-                    "model": "llama-3.1-8b-instant",
+                    "model": "moonshotai/kimi-k2-instruct",
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": message}
@@ -790,7 +790,7 @@ async def analyze_image(image_bytes: bytes, prompt: str = "What's in this image?
         key = OPENAI_API_KEY or GROQ_API_KEY
 
         payload = {
-            "model": "gpt-4o" if OPENAI_API_KEY else "llama-3.2-90b-vision-preview",
+            "model": "llama-3.2-90b-vision-preview" if GROQ_API_KEY else "gpt-4o",
             "messages": [
                 {
                     "role": "user",

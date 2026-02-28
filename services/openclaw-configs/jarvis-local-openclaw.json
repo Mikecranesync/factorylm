@@ -1,0 +1,239 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.1.24-3",
+    "lastTouchedAt": "2026-02-26T23:00:00.000Z",
+    "note": "Jarvis-Local config - Travel Laptop (100.83.251.23). Windows paths. Deploy to ~/.clawdbot/clawdbot.json"
+  },
+  "env": {
+    "GROQ_API_KEY": "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"
+  },
+  "models": {
+    "providers": {
+      "groq": {
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "apiKey": "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",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "moonshotai/kimi-k2-instruct",
+            "name": "Kimi K2 (Groq)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 16384
+          },
+          {
+            "id": "meta-llama/llama-4-maverick-17b-128e-instruct",
+            "name": "Llama 4 Maverick (Groq)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 32768
+          },
+          {
+            "id": "qwen/qwen3-32b",
+            "name": "Qwen3 32B (Groq)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 32768
+          },
+          {
+            "id": "llama-3.3-70b-versatile",
+            "name": "Llama 3.3 70B (Groq)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 32768
+          },
+          {
+            "id": "llama-3.1-8b-instant",
+            "name": "Llama 3.1 8B Instant (Groq)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "cerebras": {
+        "baseUrl": "https://api.cerebras.ai/v1",
+        "apiKey": "csk-2dfv34kpm68fnx6r4twhdk8n8jye5wjhmtjtd2v9nncwd3mh",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "gpt-oss-120b",
+            "name": "GPT-OSS 120B (Cerebras)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          },
+          {
+            "id": "llama3.1-8b",
+            "name": "Llama 3.1 8B (Cerebras)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "deepseek": {
+        "baseUrl": "https://api.deepseek.com/v1",
+        "apiKey": "sk-4a1441bac66940a3adc83e31e33987c0",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "deepseek-reasoner",
+            "name": "DeepSeek R1 Reasoner (671B)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "id": "deepseek-chat",
+            "name": "DeepSeek V3 Chat",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 65536,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "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",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "nousresearch/hermes-3-llama-3.1-405b:free",
+            "name": "Hermes 3 405B (OpenRouter Free)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 16384
+          },
+          {
+            "id": "meta-llama/llama-3.3-70b-instruct:free",
+            "name": "Llama 3.3 70B (OpenRouter Free)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 32768
+          },
+          {
+            "id": "openai/gpt-oss-120b:free",
+            "name": "GPT-OSS 120B (OpenRouter Free)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 16384
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "groq/moonshotai/kimi-k2-instruct",
+        "fallbacks": [
+          "groq/llama-3.3-70b-versatile",
+          "deepseek/deepseek-chat",
+          "cerebras/gpt-oss-120b",
+          "openrouter/nousresearch/hermes-3-llama-3.1-405b:free",
+          "groq/meta-llama/llama-4-maverick-17b-128e-instruct",
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+          "openrouter/openai/gpt-oss-120b:free"
+        ]
+      },
+      "workspace": "C:\\Users\\mike\\openclaw-workspace",
+      "memorySearch": { "enabled": true, "provider": "local" },
+      "contextPruning": { "mode": "cache-ttl", "ttl": "5m" },
+      "compaction": { "mode": "safeguard", "reserveTokensFloor": 4000 },
+      "maxConcurrent": 2,
+      "subagents": {
+        "maxConcurrent": 2,
+        "model": {
+          "primary": "groq/moonshotai/kimi-k2-instruct",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "deepseek/deepseek-chat",
+            "cerebras/gpt-oss-120b",
+            "openrouter/nousresearch/hermes-3-llama-3.1-405b:free",
+            "openrouter/meta-llama/llama-3.3-70b-instruct:free"
+          ]
+        }
+      }
+    },
+    "list": [
+      {
+        "id": "jarvis-local",
+        "default": true,
+        "agentDir": "C:\\Users\\mike\\clawd\\jarvis",
+        "tools": {
+          "allow": [
+            "group:runtime",
+            "group:fs",
+            "group:sessions",
+            "group:messaging",
+            "group:web",
+            "group:memory"
+          ]
+        }
+      }
+    ]
+  },
+  "tools": {
+    "agentToAgent": { "enabled": true, "allow": ["*"] }
+  },
+  "messages": {
+    "ackReaction": "👀",
+    "ackReactionScope": "all",
+    "removeAckAfterReply": false
+  },
+  "commands": { "native": "auto", "nativeSkills": "auto" },
+  "session": {
+    "dmScope": "main",
+    "identityLinks": {
+      "mike": ["telegram:8445149012"]
+    },
+    "reset": { "mode": "daily", "atHour": 9 }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "allowlist",
+      "botToken": "PLACEHOLDER_NEED_JARVIS_BOT_TOKEN",
+      "allowFrom": ["8445149012"],
+      "groupPolicy": "disabled",
+      "streamMode": "partial"
+    },
+    "discord": { "enabled": false }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "auth": { "mode": "token", "token": "jarvis-local-gateway-token-2026" }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": { "enabled": true },
+      "memory-core": { "enabled": true }
+    }
+  }
+}

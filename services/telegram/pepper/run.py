@@ -182,42 +182,85 @@ class PepperPotts:
         }) as span:
             start = time.time()
 
-            try:
-                response = self.groq.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=messages,
-                    max_tokens=1024,
-                    temperature=0.7,
-                )
+            # Fallback chain: Groq Kimi K2 → Groq Llama 3.3 → Cerebras → OpenRouter
+            fallback_models = [
+                ("groq", "moonshotai/kimi-k2-instruct"),
+                ("groq", "llama-3.3-70b-versatile"),
+                ("cerebras", "llama3.1-8b"),
+                ("openrouter", "meta-llama/llama-3.3-70b-instruct:free"),
+            ]
 
-                assistant_message = response.choices[0].message.content
-                latency = (time.time() - start) * 1000
+            last_error = None
+            for provider, model_id in fallback_models:
+                try:
+                    if provider == "groq":
+                        response = self.groq.chat.completions.create(
+                            model=model_id,
+                            messages=messages,
+                            max_tokens=1024,
+                            temperature=0.7,
+                        )
+                        assistant_message = response.choices[0].message.content
+                        usage_total = response.usage.total_tokens
+                        usage_in = response.usage.prompt_tokens
+                        usage_out = response.usage.completion_tokens
+                    else:
+                        import httpx as _httpx
+                        base_url = {
+                            "cerebras": "https://api.cerebras.ai/v1",
+                            "openrouter": "https://openrouter.ai/api/v1",
+                        }[provider]
+                        api_key = {
+                            "cerebras": os.environ.get("CEREBRAS_API_KEY", ""),
+                            "openrouter": os.environ.get("OPENROUTER_API_KEY", ""),
+                        }[provider]
+                        if not api_key:
+                            logger.warning(f"No API key for {provider}, skipping")
+                            continue
+                        async with _httpx.AsyncClient(timeout=30.0) as hclient:
+                            resp = await hclient.post(
+                                f"{base_url}/chat/completions",
+                                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                                json={"model": model_id, "messages": messages, "max_tokens": 1024, "temperature": 0.7},
+                            )
+                        if resp.status_code != 200:
+                            logger.warning(f"{provider}/{model_id} returned {resp.status_code}")
+                            continue
+                        data = resp.json()
+                        assistant_message = data["choices"][0]["message"]["content"]
+                        usage_total = data.get("usage", {}).get("total_tokens", 0)
+                        usage_in = data.get("usage", {}).get("prompt_tokens", 0)
+                        usage_out = data.get("usage", {}).get("completion_tokens", 0)
 
-                # Record telemetry
-                span.set_attribute("llm.model", "llama-3.3-70b-versatile")
-                span.set_attribute("llm.latency_ms", latency)
-                span.set_attribute("llm.tokens_input", response.usage.prompt_tokens)
-                span.set_attribute("llm.tokens_output", response.usage.completion_tokens)
-                span.set_attribute("response.length", len(assistant_message))
-                span.set_attribute("action.type", self._detect_action_type(message))
+                    latency = (time.time() - start) * 1000
 
-                # Add to history
-                history.append({"role": "assistant", "content": assistant_message})
+                    span.set_attribute("llm.model", f"{provider}/{model_id}")
+                    span.set_attribute("llm.latency_ms", latency)
+                    span.set_attribute("llm.tokens_input", usage_in)
+                    span.set_attribute("llm.tokens_output", usage_out)
+                    span.set_attribute("response.length", len(assistant_message))
+                    span.set_attribute("action.type", self._detect_action_type(message))
 
-                telemetry = {
-                    "trace_id": span.trace_id,
-                    "latency_ms": latency,
-                    "tokens": response.usage.total_tokens,
-                    "model": "llama-3.3-70b-versatile",
-                    "mode": mode
-                }
+                    history.append({"role": "assistant", "content": assistant_message})
 
-                return assistant_message, telemetry
+                    telemetry = {
+                        "trace_id": span.trace_id,
+                        "latency_ms": latency,
+                        "tokens": usage_total,
+                        "model": f"{provider}/{model_id}",
+                        "mode": mode
+                    }
 
-            except Exception as e:
-                span.set_status("ERROR", str(e))
-                logger.error(f"Groq error: {e}")
-                return f"🔥 Brain hiccup: {str(e)[:100]}", {"error": str(e)}
+                    return assistant_message, telemetry
+
+                except Exception as e:
+                    last_error = e
+                    logger.warning(f"{provider}/{model_id} failed: {e}, trying next fallback")
+                    continue
+
+            span.set_status("ERROR", str(last_error))
+            logger.error(f"All LLM fallbacks failed, last error: {last_error}")
+            return f"🔥 Brain hiccup: {str(last_error)[:100]}", {"error": str(last_error)}
 
     def _detect_action_type(self, message: str) -> str:
         """Detect the type of action from the message."""

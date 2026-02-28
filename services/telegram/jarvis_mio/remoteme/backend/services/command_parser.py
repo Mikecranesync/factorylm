@@ -1,11 +1,12 @@
 """
 Command Parser Service
 ======================
-Parse natural language commands using Groq (primary) with Anthropic fallback.
+Parse natural language commands using Groq (primary) with Cerebras/OpenRouter free fallbacks.
 """
 
 import json
 import logging
+import os
 from typing import Dict, Any, Optional
 import httpx
 
@@ -102,35 +103,95 @@ async def _call_groq(text: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-async def _call_anthropic(text: str) -> Optional[Dict[str, Any]]:
-    """Call Anthropic API for command parsing (fallback)."""
-    if not settings.ANTHROPIC_API_KEY:
+async def _call_cerebras(text: str) -> Optional[Dict[str, Any]]:
+    """Call Cerebras API for command parsing (fallback 1, free)."""
+    api_key = getattr(settings, 'CEREBRAS_API_KEY', None) or os.environ.get('CEREBRAS_API_KEY')
+    if not api_key:
         return None
-    
+
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-        
-        response = client.messages.create(
-            model="claude-3-haiku-20240307",
-            max_tokens=500,
-            system=COMMAND_PARSER_PROMPT,
-            messages=[{"role": "user", "content": text}]
-        )
-        
-        result_text = response.content[0].text.strip()
-        
-        if "```" in result_text:
-            result_text = result_text.split("```")[1]
-            if result_text.startswith("json"):
-                result_text = result_text[4:]
-        
-        result = json.loads(result_text)
-        logger.info(f"Anthropic parsed '{text}' → {result}")
-        return result
-        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.cerebras.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "llama3.1-8b",
+                    "messages": [
+                        {"role": "system", "content": COMMAND_PARSER_PROMPT},
+                        {"role": "user", "content": text}
+                    ],
+                    "max_tokens": 500,
+                    "temperature": 0.1
+                }
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                result_text = data["choices"][0]["message"]["content"].strip()
+
+                if "```" in result_text:
+                    result_text = result_text.split("```")[1]
+                    if result_text.startswith("json"):
+                        result_text = result_text[4:]
+
+                result = json.loads(result_text)
+                logger.info(f"Cerebras parsed '{text}' → {result}")
+                return result
+            else:
+                logger.warning(f"Cerebras API error: {response.status_code}")
+                return None
+
     except Exception as e:
-        logger.error(f"Anthropic parsing error: {e}")
+        logger.error(f"Cerebras parsing error: {e}")
+        return None
+
+
+async def _call_openrouter(text: str) -> Optional[Dict[str, Any]]:
+    """Call OpenRouter API for command parsing (fallback 2, free)."""
+    api_key = getattr(settings, 'OPENROUTER_API_KEY', None) or os.environ.get('OPENROUTER_API_KEY')
+    if not api_key:
+        return None
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "meta-llama/llama-3.3-70b-instruct:free",
+                    "messages": [
+                        {"role": "system", "content": COMMAND_PARSER_PROMPT},
+                        {"role": "user", "content": text}
+                    ],
+                    "max_tokens": 500,
+                    "temperature": 0.1
+                }
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                result_text = data["choices"][0]["message"]["content"].strip()
+
+                if "```" in result_text:
+                    result_text = result_text.split("```")[1]
+                    if result_text.startswith("json"):
+                        result_text = result_text[4:]
+
+                result = json.loads(result_text)
+                logger.info(f"OpenRouter parsed '{text}' → {result}")
+                return result
+            else:
+                logger.warning(f"OpenRouter API error: {response.status_code}")
+                return None
+
+    except Exception as e:
+        logger.error(f"OpenRouter parsing error: {e}")
         return None
 
 
@@ -176,16 +237,21 @@ async def parse_command(text: str) -> Dict[str, Any]:
             "confidence": 0.95
         }
     
-    # Try Groq first (fast & free-tier friendly)
+    # Try Groq first (fast & free)
     result = await _call_groq(text)
     if result:
         return result
-    
-    # Fallback to Anthropic
-    result = await _call_anthropic(text)
+
+    # Fallback to Cerebras (free)
+    result = await _call_cerebras(text)
     if result:
         return result
-    
+
+    # Fallback to OpenRouter (free)
+    result = await _call_openrouter(text)
+    if result:
+        return result
+
     # Last resort: fallback to interpret intent
     logger.warning("All AI parsers failed, using fallback")
     return {
