@@ -10,6 +10,7 @@ import logging
 import discord
 from discord import app_commands
 
+from factorylm.config import get_all_guild_ids
 from factorylm.models import FactoryLMConfig
 
 logger = logging.getLogger(__name__)
@@ -21,16 +22,29 @@ def setup_events(
     config: FactoryLMConfig,
 ) -> None:
     """Register event handlers on the Discord client."""
-    guild = discord.Object(id=config.discord.guild_id)
+    guild_ids = get_all_guild_ids(config)
+    # Fallback to legacy single guild
+    if not guild_ids and config.discord.guild_id:
+        guild_ids = [config.discord.guild_id]
 
     @client.event
     async def on_ready():
-        # Sync commands to the configured guild only
-        synced = await tree.sync(guild=guild)
-        logger.info("Synced %d slash commands to guild %s", len(synced), config.discord.guild_id)
+        # Sync commands to ALL configured guilds
+        total_synced = 0
+        for gid in guild_ids:
+            guild_obj = discord.Object(id=gid)
+            try:
+                # Copy the primary guild's commands to this guild
+                tree.copy_global_to(guild=guild_obj)
+                synced = await tree.sync(guild=guild_obj)
+                total_synced += len(synced)
+                logger.info("Synced %d commands to guild %s", len(synced), gid)
+            except discord.HTTPException as exc:
+                logger.warning("Failed to sync commands to guild %s: %s", gid, exc)
+
         logger.info("Bot is online as %s", client.user)
-        logger.info("  Guild ID: %s", config.discord.guild_id)
-        logger.info("  Agents: %s", list(config.discord.agents.keys()))
+        logger.info("  Guilds: %s", guild_ids)
+        logger.info("  Total commands synced: %d across %d guilds", total_synced, len(guild_ids))
         logger.info(
             "  Relay: %s:%s", config.relay.host, config.relay.port
         )

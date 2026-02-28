@@ -51,18 +51,19 @@
 
 ---
 
-### hetzner — Batch Compute (Future)
+### hetzner — Batch Compute & Large Inference
 
 | Field | Value |
 |-------|-------|
 | **Instance ID** | `hetzner` |
-| **Bot Handle** | _(pending — needs bot creation)_ |
+| **Bot Handle** | @UltronVPS_bot |
 | **Host** | Hetzner dedicated server |
 | **Tailscale IP** | 100.67.25.53 |
 | **Public IP** | 46.225.103.156 |
-| **Status** | Fresh — needs full clawdbot install |
+| **Config** | clawdbot 2026.1.24-3, Node v22 |
+| **Status** | Active |
 
-**Planned Capabilities:**
+**Capabilities:**
 - Batch compute and large model inference
 - Training runs
 - Heavy data processing
@@ -88,7 +89,6 @@ These are standalone Python/Node bots, not part of the clawdbot swarm. Tony shou
 
 | Bot | Handle | Purpose |
 |-----|--------|---------|
-| Gus | @FactoryLM_bot | Factory floor Python bot |
 | FRIDAY | @FRIDAY_MCU_bot | Dev companion |
 | RemoteMe | @JarvisMIO_bot | PLC Copilot / VPS heartbeat |
 | Pepper | @Spicyclawd_bot | God-mode pepper service (Doppler-managed) |

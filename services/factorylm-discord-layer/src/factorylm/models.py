@@ -15,12 +15,24 @@ class AgentConfig(BaseModel):
     role: str = ""
 
 
+class InstanceConfig(BaseModel):
+    """Configuration for a single OpenClaw instance's Discord server."""
+
+    name: str
+    guild_id: int
+    bot_token_env_var: str = "DISCORD_BOT_TOKEN"
+    machine: str = ""
+    role: str = ""
+    agents: dict[str, AgentConfig] = Field(default_factory=dict)
+
+
 class DiscordConfig(BaseModel):
     """Discord server configuration."""
 
-    guild_id: int
+    guild_id: int = 0
     bot_token_env_var: str = "DISCORD_BOT_TOKEN"
     agents: dict[str, AgentConfig] = Field(default_factory=dict)
+    instances: dict[str, InstanceConfig] = Field(default_factory=dict)
 
 
 class TelegramConfig(BaseModel):

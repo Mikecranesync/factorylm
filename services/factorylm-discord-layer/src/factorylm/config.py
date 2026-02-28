@@ -13,7 +13,7 @@ else:
 
 from pydantic import ValidationError
 
-from factorylm.models import FactoryLMConfig
+from factorylm.models import FactoryLMConfig, InstanceConfig
 
 DEFAULT_CONFIG_PATH = Path("~/.factorylm/config.toml").expanduser()
 
@@ -60,6 +60,35 @@ def load_config(path: str | Path | None = None) -> FactoryLMConfig:
         ) from exc
 
     return config
+
+
+def get_all_instances(config: FactoryLMConfig) -> dict[str, InstanceConfig]:
+    """Return instances dict, falling back to legacy single-guild config.
+
+    If config has instances defined, returns those directly.
+    Otherwise, synthesizes a single instance from the legacy guild_id + agents.
+    """
+    if config.discord.instances:
+        return config.discord.instances
+
+    # Fallback: wrap legacy single-guild config as a "default" instance
+    if config.discord.guild_id:
+        return {
+            "default": InstanceConfig(
+                name="default",
+                guild_id=config.discord.guild_id,
+                bot_token_env_var=config.discord.bot_token_env_var,
+                agents=config.discord.agents,
+            )
+        }
+
+    return {}
+
+
+def get_all_guild_ids(config: FactoryLMConfig) -> list[int]:
+    """Return all guild IDs from instances (or legacy single guild)."""
+    instances = get_all_instances(config)
+    return [inst.guild_id for inst in instances.values() if inst.guild_id]
 
 
 def get_bot_token(config: FactoryLMConfig) -> str:
