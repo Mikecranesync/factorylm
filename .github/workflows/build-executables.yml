@@ -1,0 +1,79 @@
+name: Build PLC Reader Executables
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/plc-reader/**'
+      - 'packages/factorylm-cli/src/factorylm/plc/**'
+      - '_BUILDS/plc-reader/**'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller
+          pip install -r _BUILDS/plc-reader/requirements.txt
+
+      - name: Build Windows .exe
+        working-directory: _BUILDS/plc-reader
+        run: |
+          python -m PyInstaller --name "PLC-Reader" --onefile --windowed --collect-all nicegui --exclude-module matplotlib --exclude-module scipy --exclude-module pandas --add-data "../../apps/plc-reader;plc_reader" --add-data "../../packages/factorylm-cli/src;plc_lib" main.py
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PLC-Reader-Windows
+          path: _BUILDS/plc-reader/dist/PLC-Reader.exe
+          retention-days: 30
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller
+          pip install -r _BUILDS/plc-reader/requirements.txt
+
+      - name: Build macOS .app
+        working-directory: _BUILDS/plc-reader
+        run: |
+          python -m PyInstaller --name "PLC-Reader" --onefile --windowed --collect-all nicegui --exclude-module matplotlib --exclude-module scipy --exclude-module pandas --add-data "../../apps/plc-reader:plc_reader" --add-data "../../packages/factorylm-cli/src:plc_lib" main.py
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PLC-Reader-macOS
+          path: _BUILDS/plc-reader/dist/PLC-Reader
+          retention-days: 30
+
+  summary:
+    needs: [build-windows, build-mac]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Post build summary
+        run: |
+          echo "## PLC Reader Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows (.exe) | ${{ needs.build-windows.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| macOS (.app) | ${{ needs.build-mac.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download artifacts from the **Actions** tab above." >> $GITHUB_STEP_SUMMARY
