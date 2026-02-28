@@ -1,16 +1,23 @@
 """
-Daily progress scheduler for FactoryLM Discord bot.
+Scheduled tasks for FactoryLM Discord bot.
 
-Posts an auto-generated progress embed to a configured channel once per day,
-showing recent git commits and a countdown to the Cosmos Cookoff deadline.
+DailyProgress — posts git commits + countdown to Cosmos Cookoff deadline.
+DailyHealthReport — posts combined PLC / node / conveyor health embed at 7 AM ET.
 """
 
+import asyncio
 import datetime
 import logging
 import subprocess
+from collections.abc import Callable, Coroutine
+from typing import Any
+from zoneinfo import ZoneInfo
 
 import discord
 from discord.ext import tasks
+
+from channels import DiscordChannels
+from embeds import build_health_report_embed, build_ops_hub_summary
 
 logger = logging.getLogger("discord-adapter.tasks")
 
@@ -83,6 +90,104 @@ class DailyProgress:
             embed = build_progress_embed()
             await channel.send(embed=embed)
             logger.info("Posted daily progress to #%s", channel.name)
+
+        @_post.before_loop
+        async def _wait_ready():
+            await self.client.wait_until_ready()
+
+        return _post
+
+    def start(self) -> None:
+        self._task.start()
+
+    def stop(self) -> None:
+        self._task.cancel()
+
+
+# Type alias for the async fetch callables passed in from bot.py
+FetchCallable = Callable[[], Coroutine[Any, Any, Any]]
+
+# 7 AM Eastern (DST-aware)
+_HEALTH_TIME = datetime.time(hour=7, tzinfo=ZoneInfo("America/New_York"))
+
+
+class DailyHealthReport:
+    """Posts a combined PLC / node / conveyor health report daily at 7 AM ET.
+
+    Multi-channel routing:
+    - If line_1_health is configured: full report there, compact summary to ops_hub
+    - If only ops_hub is configured: full report goes directly to ops_hub
+    - If neither is configured: logs warning and skips
+    """
+
+    def __init__(
+        self,
+        client: discord.Client,
+        channels: DiscordChannels,
+        fetch_nodes: FetchCallable,
+        fetch_tags: FetchCallable,
+        fetch_conveyor: FetchCallable,
+        fetch_incidents: FetchCallable,
+    ) -> None:
+        self.client = client
+        self.channels = channels
+        self._fetch_nodes = fetch_nodes
+        self._fetch_tags = fetch_tags
+        self._fetch_conveyor = fetch_conveyor
+        self._fetch_incidents = fetch_incidents
+        self._task = self._create_loop()
+
+    def _create_loop(self):
+        @tasks.loop(time=_HEALTH_TIME)
+        async def _post():
+            nodes, tags, conveyor, incidents = await asyncio.gather(
+                self._fetch_nodes(),
+                self._fetch_tags(),
+                self._fetch_conveyor(),
+                self._fetch_incidents(),
+            )
+
+            ops_hub_id = self.channels.ops_hub
+            detail_id = self.channels.line_1_health
+
+            if detail_id:
+                # Post full report to line-1-health
+                detail_ch = self.client.get_channel(detail_id)
+                if detail_ch is not None:
+                    full_embed = build_health_report_embed(
+                        nodes, tags, conveyor, incidents,
+                        footer_extra="Posted from #factory-ops-hub",
+                    )
+                    await detail_ch.send(embed=full_embed)
+                    logger.info("Full health report posted to #%s", detail_ch.name)
+                else:
+                    logger.warning("line_1_health channel %s not found", detail_id)
+
+                # Post compact summary to ops_hub with pointer
+                if ops_hub_id:
+                    hub_ch = self.client.get_channel(ops_hub_id)
+                    if hub_ch is not None:
+                        summary = build_ops_hub_summary(
+                            nodes, tags, conveyor, incidents,
+                            detail_channel_id=detail_id,
+                        )
+                        await hub_ch.send(embed=summary)
+                        logger.info("Health summary posted to #%s", hub_ch.name)
+                    else:
+                        logger.warning("ops_hub channel %s not found", ops_hub_id)
+
+            elif ops_hub_id:
+                # Only ops_hub configured — full report goes there
+                hub_ch = self.client.get_channel(ops_hub_id)
+                if hub_ch is not None:
+                    full_embed = build_health_report_embed(nodes, tags, conveyor, incidents)
+                    await hub_ch.send(embed=full_embed)
+                    logger.info("Full health report posted to #%s", hub_ch.name)
+                else:
+                    logger.warning("ops_hub channel %s not found", ops_hub_id)
+
+            else:
+                logger.warning("No health report channels configured — skipping")
 
         @_post.before_loop
         async def _wait_ready():

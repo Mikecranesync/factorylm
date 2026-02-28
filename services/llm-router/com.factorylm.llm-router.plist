@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.factorylm.llm-router</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>doppler run --project openclaw --config prd -- /opt/homebrew/bin/uvicorn main:app --app-dir services/llm-router --host 0.0.0.0 --port 7100</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/factorylm/factorylm</string>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>ThrottleInterval</key>
+    <integer>5</integer>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/llm-router/stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/llm-router/stderr.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Users/factorylm/.local/bin</string>
+    </dict>
+</dict>
+</plist>

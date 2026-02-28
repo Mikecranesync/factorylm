@@ -191,7 +191,10 @@ Paste the following (edit the `ANTHROPIC_API_KEY` placeholder with the real key 
     "lastTouchedAt": "2026-02-23T00:00:00.000Z"
   },
   "env": {
-    "GROQ_API_KEY": "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"
+    "GROQ_API_KEY": "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",
+    "DEEPSEEK_API_KEY": "sk-4a1441bac66940a3adc83e31e33987c0",
+    "CEREBRAS_API_KEY": "csk-2dfv34kpm68fnx6r4twhdk8n8jye5wjhmtjtd2v9nncwd3mh",
+    "OPENROUTER_API_KEY": "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"
   },
   "models": {
     "providers": {
@@ -201,20 +204,106 @@ Paste the following (edit the `ANTHROPIC_API_KEY` placeholder with the real key 
         "api": "openai-completions",
         "models": [
           {
-            "id": "llama-3.3-70b-versatile",
-            "name": "Llama 3.3 70B (Groq)",
+            "id": "moonshotai/kimi-k2-instruct",
+            "name": "Kimi K2 (Groq)",
             "reasoning": false,
             "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 16384
+          },
+          {
+            "id": "meta-llama/llama-4-maverick-17b-128e-instruct",
+            "name": "Llama 4 Maverick (Groq)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 131072,
             "maxTokens": 32768
           },
           {
-            "id": "llama-3.1-8b-instant",
-            "name": "Llama 3.1 8B Instant (Groq)",
+            "id": "qwen/qwen3-32b",
+            "name": "Qwen3 32B (Groq)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 32768
+          },
+          {
+            "id": "llama-3.3-70b-versatile",
+            "name": "Llama 3.3 70B (Groq)",
             "reasoning": false,
             "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 32768
+          }
+        ]
+      },
+      "deepseek": {
+        "baseUrl": "https://api.deepseek.com/v1",
+        "apiKey": "sk-4a1441bac66940a3adc83e31e33987c0",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "deepseek-reasoner",
+            "name": "DeepSeek R1 Reasoner (671B)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 65536,
+            "maxTokens": 8192
+          },
+          {
+            "id": "deepseek-chat",
+            "name": "DeepSeek V3 Chat",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 65536,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "cerebras": {
+        "baseUrl": "https://api.cerebras.ai/v1",
+        "apiKey": "csk-2dfv34kpm68fnx6r4twhdk8n8jye5wjhmtjtd2v9nncwd3mh",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "gpt-oss-120b",
+            "name": "GPT-OSS 120B (Cerebras)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 131072,
             "maxTokens": 8192
+          }
+        ]
+      },
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "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",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "nousresearch/hermes-3-llama-3.1-405b:free",
+            "name": "Hermes 3 405B (OpenRouter Free)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 16384
+          },
+          {
+            "id": "meta-llama/llama-3.3-70b-instruct:free",
+            "name": "Llama 3.3 70B (OpenRouter Free)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 32768
           }
         ]
       }
@@ -225,9 +314,11 @@ Paste the following (edit the `ANTHROPIC_API_KEY` placeholder with the real key 
       "model": {
         "primary": "anthropic/claude-sonnet-4-20250514",
         "fallbacks": [
-          "groq/llama-3.1-8b-instant",
+          "groq/moonshotai/kimi-k2-instruct",
+          "groq/qwen/qwen3-32b",
+          "deepseek/deepseek-chat",
           "groq/llama-3.3-70b-versatile",
-          "google/gemini-2.5-flash"
+          "openrouter/nousresearch/hermes-3-llama-3.1-405b:free"
         ]
       },
       "imageModel": {
@@ -248,12 +339,13 @@ Paste the following (edit the `ANTHROPIC_API_KEY` placeholder with the real key 
       },
       "maxConcurrent": 4,
       "subagents": {
-        "maxConcurrent": 8,
+        "maxConcurrent": 3,
         "model": {
-          "primary": "anthropic/claude-sonnet-4-20250514",
+          "primary": "groq/moonshotai/kimi-k2-instruct",
           "fallbacks": [
-            "google/gemini-2.5-flash",
-            "groq/llama-3.1-8b-instant"
+            "deepseek/deepseek-chat",
+            "groq/llama-3.3-70b-versatile",
+            "openrouter/meta-llama/llama-3.3-70b-instruct:free"
           ]
         }
       }

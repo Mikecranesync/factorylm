@@ -1,0 +1,283 @@
+id: maintenance-dispatcher
+name: Maintenance Dispatch Pipeline
+version: 1
+description: >
+  Detects PLC alarms via jarvis-local, triages faults against KB,
+  creates CMMS Gist work orders, dispatches technicians via Telegram,
+  and tracks resolution. Reuses Feature 002 CMMS Gist infrastructure.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: alarm-monitor
+    name: Alarm Monitor
+    role: scanning
+    description: Watches PLC faults via jarvis-local Modbus TCP and Matrix API
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/alarm-monitor
+      files:
+        AGENTS.md: agents/alarm-monitor/AGENTS.md
+        matrix_api: services/matrix/app.py
+
+  - id: triager
+    name: Fault Triager
+    role: analysis
+    description: Assigns priority and matches technician skills from KB
+    timeoutSeconds: 45
+    workspace:
+      baseDir: agents/triager
+      files:
+        AGENTS.md: agents/triager/AGENTS.md
+
+  - id: wo-creator
+    name: Work Order Creator
+    role: coding
+    description: Creates CMMS Gist work orders using Feature 002 templates
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/wo-creator
+      files:
+        AGENTS.md: agents/wo-creator/AGENTS.md
+        gist_work_order: cmms/gist_work_order.py
+
+  - id: dispatcher
+    name: Tech Dispatcher
+    role: verification
+    description: Sends work order notification to assigned technician via Telegram
+    timeoutSeconds: 15
+    workspace:
+      baseDir: agents/dispatcher
+      files:
+        AGENTS.md: agents/dispatcher/AGENTS.md
+        gus_bot: services/telegram/factorylm_bot.py
+
+  - id: followup
+    name: Resolution Tracker
+    role: analysis
+    description: Polls work order status, escalates overdue items
+    timeoutSeconds: 60
+    workspace:
+      baseDir: agents/followup
+      files:
+        AGENTS.md: agents/followup/AGENTS.md
+
+steps:
+  - id: detect_alarm
+    agent: alarm-monitor
+    input: |
+      Poll jarvis-local and Matrix API for active PLC alarms.
+
+      Sources:
+      1. Jarvis Node: http://100.72.2.99:8765 (Modbus TCP bridge)
+      2. Matrix API: {{MATRIX_API_URL}}/api/incidents?status=open
+
+      For each new alarm:
+      1. Extract fault details:
+         - fault_id (unique identifier)
+         - node_id (e.g., "plc-laptop")
+         - error_code (PLC fault code)
+         - error_message (human-readable description)
+         - timestamp
+      2. Fetch current tag snapshot from /api/tags
+      3. Read relevant Modbus registers for context:
+         - Holding registers: motor current, temperature, pressure
+         - Coil status: run/stop, fault, alarm
+
+      Output format:
+      STATUS: done
+      FAULT_ID: <uuid>
+      NODE_ID: <node identifier>
+      ERROR_CODE: <PLC fault code>
+      ERROR_MESSAGE: <description>
+      TAGS: {<current tag values as JSON>}
+      SEVERITY_HINT: critical|high|medium|low
+    expects: "FAULT_ID"
+    max_retries: 1
+
+  - id: triage_fault
+    agent: triager
+    input: |
+      Triage fault and assign priority + technician.
+
+      Fault context:
+      - Fault ID: {{FAULT_ID}}
+      - Node: {{NODE_ID}}
+      - Error: {{ERROR_CODE}} - {{ERROR_MESSAGE}}
+      - Tags: {{TAGS}}
+      - Severity hint: {{SEVERITY_HINT}}
+
+      Triage steps:
+      1. Search pgvector KB for similar past incidents
+         - Query: error_code + tag pattern signature
+         - Return top 3 matches with resolution times
+      2. Determine priority:
+         - P1 (critical): Safety hazard or line-down
+         - P2 (high): Production degraded, <4hr SLA
+         - P3 (medium): Intermittent issue, <24hr SLA
+         - P4 (low): Observation only, next PM window
+      3. Match technician by:
+         - Skill tags (electrical, mechanical, controls)
+         - Availability (shift schedule)
+         - Historical time-to-resolve for similar faults
+
+      Output format:
+      STATUS: done
+      PRIORITY: P1|P2|P3|P4
+      SLA_HOURS: <number>
+      ASSIGNED_TECH: <technician name>
+      TECH_SKILLS: <comma-separated skills>
+      SIMILAR_INCIDENTS: <count>
+      AVG_RESOLUTION_MIN: <minutes>
+      ROOT_CAUSE_GUESS: <best guess from KB>
+      CONFIDENCE: <0.0-1.0>
+    expects: "PRIORITY"
+    max_retries: 1
+
+  - id: create_work_order
+    agent: wo-creator
+    input: |
+      Create CMMS Gist work order using Feature 002 infrastructure.
+
+      Work order data:
+      - Fault ID: {{FAULT_ID}}
+      - Node: {{NODE_ID}}
+      - Error: {{ERROR_CODE}} - {{ERROR_MESSAGE}}
+      - Priority: {{PRIORITY}}
+      - SLA: {{SLA_HOURS}} hours
+      - Assigned tech: {{ASSIGNED_TECH}}
+      - Root cause guess: {{ROOT_CAUSE_GUESS}}
+      - Tags snapshot: {{TAGS}}
+
+      Use the existing CMMS Gist template (cmms/gist_work_order.py):
+      1. Generate work-order.md with sections: Summary, Details, Attachments
+      2. Generate work-order.csv with 25-column schema
+      3. Generate attachments.txt (type,description,url)
+      4. Create Gist via: gh gist create --public -d "[Jarvis Work Order] {{FAULT_ID}}"
+
+      WO ID format: WO-YYYY-MMDD-NNN
+
+      Output format:
+      STATUS: done
+      WO_ID: <work order ID>
+      GIST_ID: <GitHub Gist ID>
+      GIST_URL: <URL>
+    expects: "WO_ID"
+    max_retries: 2
+    on_fail:
+      escalate_to: human
+
+  - id: dispatch_tech
+    agent: dispatcher
+    input: |
+      Notify assigned technician via Telegram (Gus bot).
+
+      Dispatch data:
+      - Work Order: {{WO_ID}}
+      - Gist: {{GIST_URL}}
+      - Tech: {{ASSIGNED_TECH}}
+      - Priority: {{PRIORITY}}
+      - SLA: {{SLA_HOURS}} hours
+      - Node: {{NODE_ID}}
+      - Error: {{ERROR_CODE}} - {{ERROR_MESSAGE}}
+      - Root cause guess: {{ROOT_CAUSE_GUESS}}
+
+      Message template:
+      ```
+      DISPATCH from Gus: {{PRIORITY}} Work Order
+
+      WO: {{WO_ID}}
+      Equipment: {{NODE_ID}}
+      Error: {{ERROR_CODE}} - {{ERROR_MESSAGE}}
+
+      Likely cause: {{ROOT_CAUSE_GUESS}}
+      SLA: {{SLA_HOURS}} hours
+
+      Details: {{GIST_URL}}
+
+      Reply ACCEPT to confirm or REASSIGN for different tech.
+      ```
+
+      Send to assigned tech's Telegram user ID.
+      Use Gus bot (@FactoryLM_bot) via python-telegram-bot.
+
+      Output format:
+      STATUS: done
+      MESSAGE_SENT: true
+      RECIPIENT: <telegram user ID>
+      MESSAGE_ID: <telegram message ID>
+      DISPATCH_TIME: <ISO timestamp>
+    expects: "MESSAGE_SENT: true"
+    max_retries: 2
+
+  - id: track_resolution
+    agent: followup
+    input: |
+      Track work order resolution status.
+
+      Work order context:
+      - WO ID: {{WO_ID}}
+      - Gist ID: {{GIST_ID}}
+      - Priority: {{PRIORITY}}
+      - SLA: {{SLA_HOURS}} hours
+      - Dispatch time: {{DISPATCH_TIME}}
+      - Assigned tech: {{ASSIGNED_TECH}}
+
+      Monitoring loop:
+      1. Poll Gist for status updates (tech adds comments)
+      2. Check for ACCEPT/COMPLETE/BLOCKED replies via Telegram
+      3. Calculate time elapsed vs SLA
+
+      Escalation rules:
+      - 50% SLA elapsed + no ACCEPT → remind tech
+      - 75% SLA elapsed + no progress → notify supervisor
+      - 100% SLA elapsed → escalate to Mike (8445149012)
+      - BLOCKED status → immediately notify Mike
+
+      On resolution:
+      1. Record resolution time and actions taken
+      2. Update Gist with resolution notes
+      3. Store episode in pgvector for future KB matching
+
+      Output format:
+      STATUS: done
+      RESOLUTION: resolved|escalated|timeout
+      RESOLUTION_TIME_MIN: <minutes>
+      ACTIONS_TAKEN: <summary>
+      ESCALATED: true|false
+      EPISODE_STORED: true|false
+    expects: "RESOLUTION"
+    max_retries: 1
+
+triggers:
+  - type: poll
+    endpoint: "{{MATRIX_API_URL}}/api/incidents?status=open"
+    interval_seconds: 10
+  - type: webhook
+    path: /api/alarms
+    method: POST
+  - type: command
+    pattern: "/dispatch"
+
+integration:
+  services:
+    matrix_api:
+      url: "http://100.72.2.99:8000"
+      endpoints:
+        - /api/tags
+        - /api/incidents
+    jarvis_node:
+      url: "http://100.72.2.99:8765"
+      description: Modbus TCP bridge to Micro820 PLC (192.168.1.100:502)
+    cmms_gist:
+      description: GitHub Gist-based work order system (Feature 002)
+      tool: gh gist create
+    telegram:
+      bot: "@FactoryLM_bot"
+      description: Gus bot for tech notifications
+  capabilities:
+    module: services.capabilities
+    client: CapabilityClient
+    used:
+      - factory
+      - telemetry
+      - cmms

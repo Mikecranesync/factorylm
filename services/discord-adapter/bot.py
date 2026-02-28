@@ -7,7 +7,9 @@ in the NVIDIA Cosmos Cookoff Discord as Mike's presence.
 Slash commands:
     /diagnose <fault>  — AI-powered fault diagnosis via Cosmos Reason 2
     /status            — Network health of all FactoryLM nodes
+    /health-report     — Combined PLC + network + conveyor health report
     /about             — What is FactoryLM?
+    /tags              — Live PLC tag values from Matrix API
     /conveyor <action> — Live conveyor control (forward/reverse/stop/speed/status)
 
 Usage:
@@ -31,13 +33,16 @@ from discord import app_commands
 import httpx
 
 from cosmos.client import CosmosClient
+from channels import DiscordChannels
 from embeds import (
     build_about_embed,
     build_conveyor_embed,
+    build_health_report_embed,
     build_insight_embed,
     build_status_embed,
+    build_tags_embed,
 )
-from tasks import DailyProgress
+from tasks import DailyHealthReport, DailyProgress
 
 logging.basicConfig(
     level=logging.INFO,
@@ -49,19 +54,18 @@ DISCORD_TOKEN = os.getenv("DISCORD_BOT_TOKEN", "")
 GATEWAY_URL = os.getenv("OPENCLAW_GATEWAY_URL", "http://localhost:18800")
 BOT_NAME = os.getenv("DISCORD_BOT_NAME", "FactoryLM")
 
-# Channels the bot is allowed to respond in (empty = all)
-ALLOWED_CHANNEL_IDS = [
-    int(x) for x in os.getenv("DISCORD_ALLOWED_CHANNELS", "").split(",") if x.strip()
-]
+# Central channel configuration (reads all DISCORD_*_CHANNEL_ID env vars)
+channels = DiscordChannels.from_env()
+ALLOWED_CHANNEL_IDS = channels.allowed_channels or []
 
 # If True, only respond when mentioned. If False, respond to all messages.
 MENTION_ONLY = os.getenv("DISCORD_MENTION_ONLY", "true").lower() == "true"
 
-# Channel for daily progress auto-posts (0 = disabled)
-PROGRESS_CHANNEL_ID = int(os.getenv("DISCORD_PROGRESS_CHANNEL_ID", "0"))
-
 # Conveyor relay on VPS
 CONVEYOR_RELAY_URL = os.getenv("CONVEYOR_RELAY_URL", "http://100.68.120.99:8400")
+
+# Matrix API on PLC Laptop (live tag snapshots from Modbus bridge)
+MATRIX_API_URL = os.getenv("MATRIX_API_URL", "http://100.72.2.99:8001")
 
 # Node health endpoints
 HEALTH_NODES = {
@@ -97,48 +101,43 @@ intents.members = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-# Daily progress scheduler (initialized in on_ready if configured)
+# Schedulers (initialized in on_ready if configured)
 _daily_progress: DailyProgress | None = None
+_daily_health: DailyHealthReport | None = None
 
 
 # ---------------------------------------------------------------------------
-# Slash commands
+# Matrix API helper
 # ---------------------------------------------------------------------------
 
 
-@tree.command(name="diagnose", description="AI-powered fault diagnosis via Cosmos Reason 2")
-@app_commands.describe(fault="Type of fault to diagnose")
-@app_commands.choices(fault=FAULT_CHOICES)
-async def cmd_diagnose(interaction: discord.Interaction, fault: app_commands.Choice[str]):
-    await interaction.response.defer(thinking=True)
+async def _fetch_matrix_tags() -> dict | None:
+    """Fetch the latest PLC tag snapshot from Matrix API.
 
-    cosmos = CosmosClient()
-    error_code = FAULT_TO_ERROR_CODE.get(fault.value, 0)
-
-    # Build tag dict mimicking PLC data for the chosen fault
-    tags = {"error_code": error_code}
-    if fault.value == "estop":
-        tags["e_stop"] = True
-    elif fault.value == "overload":
-        tags["motor_current"] = 12.4
-        tags["motor_speed"] = 85
-    elif fault.value == "overheat":
-        tags["temperature"] = 87.3
-
-    insight = cosmos.analyze_incident(
-        incident_id=f"discord-{uuid.uuid4().hex[:8]}",
-        node_id="factory-io-line-1",
-        tags=tags,
-    )
-
-    embed = build_insight_embed(insight)
-    await interaction.followup.send(embed=embed)
+    Returns the most recent snapshot dict, or None on any failure.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as http:
+            resp = await http.get(f"{MATRIX_API_URL}/api/tags", params={"limit": 1})
+            if resp.status_code == 200:
+                data = resp.json()
+                if isinstance(data, list) and len(data) > 0:
+                    return data[0]
+                if isinstance(data, dict) and data:
+                    return data
+            return None
+    except Exception:
+        logger.debug("Matrix API unreachable at %s", MATRIX_API_URL)
+        return None
 
 
-@tree.command(name="status", description="Check FactoryLM network node health")
-async def cmd_status(interaction: discord.Interaction):
-    await interaction.response.defer(thinking=True)
+# ---------------------------------------------------------------------------
+# Shared async fetch helpers (used by /status, /health-report, and scheduler)
+# ---------------------------------------------------------------------------
 
+
+async def _fetch_node_health() -> dict[str, dict]:
+    """Probe all HEALTH_NODES and return {name: {url, up, latency_ms, error}}."""
     nodes: dict[str, dict] = {}
     async with httpx.AsyncClient(timeout=5.0) as http:
         for name, url in HEALTH_NODES.items():
@@ -156,8 +155,97 @@ async def cmd_status(interaction: discord.Interaction):
                 nodes[name] = {"url": url, "up": False, "latency_ms": None, "error": "Timeout"}
             except Exception as e:
                 nodes[name] = {"url": url, "up": False, "latency_ms": None, "error": str(e)[:80]}
+    return nodes
 
+
+async def _fetch_conveyor_status() -> dict | None:
+    """Fetch VFD relay status, or None on failure."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as http:
+            resp = await http.get(f"{CONVEYOR_RELAY_URL}/api/status")
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception:
+        logger.debug("Conveyor relay unreachable at %s", CONVEYOR_RELAY_URL)
+    return None
+
+
+async def _fetch_open_incident_count() -> int:
+    """Return number of open incidents from Matrix API, 0 on failure."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as http:
+            resp = await http.get(f"{MATRIX_API_URL}/api/incidents", params={"status": "open"})
+            if resp.status_code == 200:
+                data = resp.json()
+                if isinstance(data, list):
+                    return len(data)
+                if isinstance(data, dict):
+                    return data.get("count", 0)
+    except Exception:
+        logger.debug("Cannot fetch incidents from %s", MATRIX_API_URL)
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# Slash commands
+# ---------------------------------------------------------------------------
+
+
+@tree.command(name="diagnose", description="AI-powered fault diagnosis via Cosmos Reason 2")
+@app_commands.describe(fault="Type of fault to diagnose")
+@app_commands.choices(fault=FAULT_CHOICES)
+async def cmd_diagnose(interaction: discord.Interaction, fault: app_commands.Choice[str]):
+    await interaction.response.defer(thinking=True)
+
+    cosmos = CosmosClient()
+    error_code = FAULT_TO_ERROR_CODE.get(fault.value, 0)
+
+    # Try real PLC tags first, fall back to synthetic
+    real_tags = await _fetch_matrix_tags()
+    if real_tags is not None:
+        tags = dict(real_tags)
+        tags["error_code"] = error_code  # Override to match selected fault
+        data_source = "live"
+    else:
+        # Synthetic fallback — mimics PLC data for the chosen fault
+        tags = {"error_code": error_code}
+        if fault.value == "estop":
+            tags["e_stop"] = True
+        elif fault.value == "overload":
+            tags["motor_current"] = 12.4
+            tags["motor_speed"] = 85
+        elif fault.value == "overheat":
+            tags["temperature"] = 87.3
+        data_source = "synthetic"
+
+    insight = cosmos.analyze_incident(
+        incident_id=f"discord-{uuid.uuid4().hex[:8]}",
+        node_id="factory-io-line-1",
+        tags=tags,
+    )
+
+    embed = build_insight_embed(insight, data_source=data_source)
+    await interaction.followup.send(embed=embed)
+
+
+@tree.command(name="status", description="Check FactoryLM network node health")
+async def cmd_status(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+    nodes = await _fetch_node_health()
     embed = build_status_embed(nodes)
+    await interaction.followup.send(embed=embed)
+
+
+@tree.command(name="health-report", description="Combined PLC + network health report")
+async def cmd_health_report(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+    nodes, tags, conveyor, incidents = await asyncio.gather(
+        _fetch_node_health(),
+        _fetch_matrix_tags(),
+        _fetch_conveyor_status(),
+        _fetch_open_incident_count(),
+    )
+    embed = build_health_report_embed(nodes, tags, conveyor, incidents)
     await interaction.followup.send(embed=embed)
 
 
@@ -165,6 +253,14 @@ async def cmd_status(interaction: discord.Interaction):
 async def cmd_about(interaction: discord.Interaction):
     embed = build_about_embed()
     await interaction.response.send_message(embed=embed)
+
+
+@tree.command(name="tags", description="Show live PLC tag values from the factory floor")
+async def cmd_tags(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+    tags = await _fetch_matrix_tags()
+    embed = build_tags_embed(tags, MATRIX_API_URL)
+    await interaction.followup.send(embed=embed)
 
 
 # ---------------------------------------------------------------------------
@@ -275,7 +371,7 @@ async def forward_to_gateway(user_id: str, username: str, text: str, channel_id:
 
 @client.event
 async def on_ready():
-    global _daily_progress
+    global _daily_progress, _daily_health
 
     # Sync slash commands to all guilds
     synced = await tree.sync()
@@ -283,14 +379,30 @@ async def on_ready():
 
     logger.info("%s is online as %s", BOT_NAME, client.user)
     logger.info("   Gateway: %s", GATEWAY_URL)
+    logger.info("   Matrix API: %s", MATRIX_API_URL)
     logger.info("   Mention-only: %s", MENTION_ONLY)
     logger.info("   Guilds: %s", [g.name for g in client.guilds])
 
     # Start daily progress scheduler if configured
-    if PROGRESS_CHANNEL_ID and _daily_progress is None:
-        _daily_progress = DailyProgress(client, PROGRESS_CHANNEL_ID)
+    progress_channel = channels.get_target("progress")
+    if progress_channel and _daily_progress is None:
+        _daily_progress = DailyProgress(client, progress_channel)
         _daily_progress.start()
-        logger.info("   Daily progress posting to channel %s", PROGRESS_CHANNEL_ID)
+        logger.info("   Daily progress posting to channel %s", progress_channel)
+
+    # Start daily health report scheduler if configured
+    if channels.ops_hub and _daily_health is None:
+        _daily_health = DailyHealthReport(
+            client,
+            channels,
+            fetch_nodes=_fetch_node_health,
+            fetch_tags=_fetch_matrix_tags,
+            fetch_conveyor=_fetch_conveyor_status,
+            fetch_incidents=_fetch_open_incident_count,
+        )
+        _daily_health.start()
+        logger.info("   Daily health report posting to ops_hub=%s line_1_health=%s",
+                     channels.ops_hub, channels.line_1_health or "(none)")
 
 
 @client.event

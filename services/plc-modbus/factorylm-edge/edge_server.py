@@ -17,10 +17,10 @@ import signal
 from pymodbus.server import StartAsyncTcpServer
 from pymodbus.datastore import (
     ModbusSequentialDataBlock,
-    ModbusSlaveContext,
+    ModbusDeviceContext,
     ModbusServerContext,
 )
-from pymodbus.device import ModbusDeviceIdentification
+from pymodbus import ModbusDeviceIdentification
 
 try:
     import RPi.GPIO as GPIO
@@ -178,13 +178,13 @@ async def run_server(host: str = "0.0.0.0", port: int = 502, config_file: str = 
 
     # Create Modbus data store with 100 coils and 100 holding registers
     coils = EdgeDataBlock(gpio, 0, [False] * 100)
-    store = ModbusSlaveContext(
+    store = ModbusDeviceContext(
         di=ModbusSequentialDataBlock(0, [False] * 100),  # Discrete Inputs
         co=coils,                                         # Coils (with GPIO sync)
         hr=ModbusSequentialDataBlock(0, [0] * 100),      # Holding Registers
         ir=ModbusSequentialDataBlock(0, [0] * 100),      # Input Registers
     )
-    context = ModbusServerContext(slaves=store, single=True)
+    context = ModbusServerContext(devices=store, single=True)
 
     # Device identification
     identity = ModbusDeviceIdentification()

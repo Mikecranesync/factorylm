@@ -1,0 +1,165 @@
+id: cmms-gist-dispatch
+name: "Feature 003 — Gist Comment Dispatch"
+version: 1
+description: >
+  Antfarm Feature 003. Routes note-type gist comments through the dispatch
+  pipeline (intent classify -> skill -> response) instead of sending dumb
+  notification strings. When Mike comments "draw me a wiring diagram" on a
+  work order gist, the comment is treated as a Telegram message with WO
+  context, dispatched through the skill system, and the response sent back
+  via Telegram.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: designer
+    name: Integration Contract Designer
+    role: analysis
+    description: Audits dispatch pipeline, InboundMessage model, and gist_poller to produce the integration spec
+    workspace:
+      files:
+        AGENTS.md: agents/designer/AGENTS.md
+
+  - id: dev
+    name: Dispatch Integration Developer
+    role: coding
+    description: Modifies monitor.py, app.py, and gist_poller.py to route note-type comments through dispatch
+    workspace:
+      files:
+        AGENTS.md: agents/dev/AGENTS.md
+
+  - id: tester
+    name: Dispatch Test Runner
+    role: coding
+    description: Creates and runs tests/test_gist_dispatch.py with 6 unit tests
+    workspace:
+      files:
+        AGENTS.md: agents/tester/AGENTS.md
+
+  - id: dev-ops
+    name: VPS Deployer
+    role: coding
+    description: Deploys modified files to VPS, bumps version, restarts openclaw (HIL-gated)
+    workspace:
+      files:
+        AGENTS.md: agents/dev-ops/AGENTS.md
+
+steps:
+  - id: spec_contract
+    agent: designer
+    input: |
+      Audit the dispatch pipeline integration points on the VPS.
+
+      Review these files (on VPS at /opt/openclaw/):
+        1. InboundMessage model — fields: id, channel, user_id, user_name, text, metadata
+        2. dispatch() signature — async callable that accepts InboundMessage, returns response with .text
+        3. Channel enum — e.g. Channel.TELEGRAM
+        4. Intent enum — WIRING_RECONSTRUCT, KB_ENRICH_COMPONENT, DIAGNOSE, STATUS, IO, GENERAL
+        5. poll_all_gists() return shape — list of notification dicts with type "command"|"note"
+        6. CapabilityMonitor.__init__ current params — notify callback, poll interval
+
+      Produce the integration contract:
+        - InboundMessage construction pattern for gist comments
+        - dispatch() call pattern (async)
+        - notify() call pattern for sending response back
+        - Fallback when dispatch is None
+
+      Reply with:
+      INBOUND_MSG_FIELDS: id, channel, user_id, user_name, text, metadata
+      DISPATCH_SIGNATURE: async (InboundMessage) -> Response
+      CHANNEL: Channel.TELEGRAM
+      FALLBACK: notify with formatted string
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: implement_dispatch
+    agent: dev
+    input: |
+      Modify 3 VPS files to route note-type gist comments through dispatch.
+
+      Files to modify (on VPS at /opt/openclaw/):
+
+      1. openclaw/monitor.py:
+         - CapabilityMonitor.__init__ gains dispatch (async callable | None) and owner_id (str) params
+         - In gist poll block, note-type comments build InboundMessage and call dispatch
+         - Command-type comments unchanged (direct gist metadata update + notification)
+         - If dispatch is None, note-type falls back to formatted notification
+
+      2. openclaw/app.py:
+         - In startup(), pass dispatch=dispatch and owner_id=str(config.telegram_allowed_users[0]) to CapabilityMonitor
+
+      3. openclaw/gist_poller.py:
+         - Expand note-type body cap from 200 chars to 500 chars (dispatch needs fuller text)
+
+      Reply with:
+      FILES_MODIFIED: 3
+      MONITOR_CHANGES: dispatch param, owner_id param, InboundMessage construction, dispatch call
+      APP_CHANGES: pass dispatch + owner_id to CapabilityMonitor
+      POLLER_CHANGES: body cap 200 -> 500
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: write_tests
+    agent: dev
+    input: |
+      Create tests/test_gist_dispatch.py with 6 unit tests.
+
+      Tests:
+        1. test_command_comment_notifies_only — command-type bypasses dispatch, uses notify
+        2. test_note_comment_dispatches — note-type builds InboundMessage, calls dispatch
+        3. test_dispatch_response_sent_via_notify — dispatch response.text forwarded through notify
+        4. test_dispatch_failure_logs_warning — if dispatch raises, warning logged, no crash
+        5. test_no_dispatch_falls_back — dispatch=None -> note-type sends formatted notification
+        6. test_inbound_message_has_wo_context — text starts with [WO WO-YYYY-MMDD-NNN]
+
+      Use unittest + unittest.mock. Mock poll_all_gists, dispatch, and notify.
+      Inline the CapabilityMonitor gist-poll logic (same pattern as test_state_machine.py).
+
+      Reply with:
+      TEST_FILE: tests/test_gist_dispatch.py
+      TEST_COUNT: 6
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: run_tests
+    agent: tester
+    input: |
+      Run the dispatch integration tests:
+
+        python3 -m pytest tests/test_gist_dispatch.py -v
+
+      All 6 tests must pass. Report any failures with full traceback.
+
+      Reply with:
+      TESTS_RUN: 6
+      TESTS_PASSED: 6
+      TESTS_FAILED: 0
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: deploy_vps
+    agent: dev-ops
+    input: |
+      Deploy modified files to VPS. **HIL-gated — requires Mike approval.**
+
+      Steps:
+        1. Bump __version__ in /opt/openclaw/openclaw/__init__.py to "1.5.0-rc3"
+        2. Write modified files: monitor.py, app.py, gist_poller.py
+        3. Git commit + tag v1.5-rc3 on VPS
+        4. systemctl restart openclaw
+        5. Verify: curl http://localhost:8340/ shows healthy
+        6. Verify: journalctl -u openclaw -n 15 shows clean startup
+        7. Write ops trace to docs/ops/traces/feature-003-gist-dispatch.md in monorepo
+
+      Reply with:
+      VERSION: 1.5.0-rc3
+      TAG: v1.5-rc3
+      RESTART: success
+      HEALTH: ok
+      OPS_TRACE: docs/ops/traces/feature-003-gist-dispatch.md
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"

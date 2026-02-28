@@ -15,6 +15,9 @@ import logging
 import os
 import sqlite3
 from pathlib import Path
+from typing import Callable
+
+import httpx
 
 from cosmos.client import CosmosClient
 from cosmos.models import CosmosInsight
@@ -76,20 +79,100 @@ class CosmosAgent:
         )
 
     async def fetch_tag_history(self, node_id: str, seconds: int = 60) -> dict:
-        """Return recent tag values for *node_id*.
-
-        Returns an empty dict until the Matrix Postgres API integration is
-        wired up.
-        """
-        # TODO: Fetch from Matrix Postgres API
-        return {}
+        """Return recent tag values for *node_id* from Matrix API."""
+        matrix_url = os.getenv("MATRIX_URL", "http://100.72.2.99:8000")
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(
+                    f"{matrix_url}/api/tags",
+                    params={"node_id": node_id, "limit": seconds},
+                )
+                resp.raise_for_status()
+                return resp.json()
+        except Exception as e:
+            logger.warning("Failed to fetch tag history for %s: %s", node_id, e)
+            return {}
 
     def is_enabled(self) -> bool:
         """Return True when Cosmos integration is both configured and keyed."""
         return self.enabled and bool(self.api_key)
 
     # ------------------------------------------------------------------
-    # Incident watching
+    # Matrix API incident watching (async)
+    # ------------------------------------------------------------------
+
+    async def watch_matrix_incidents(
+        self,
+        matrix_url: str | None = None,
+        poll_interval: float = 5.0,
+        on_insight_callback: Callable[[CosmosInsight], None] | None = None,
+    ) -> None:
+        """Poll Matrix API for open incidents and analyse via Cosmos.
+
+        Async counterpart to ``watch_for_incidents()`` (which polls SQLite).
+        Calls *on_insight_callback* with each ``CosmosInsight`` if provided.
+        """
+        url = matrix_url or os.getenv("MATRIX_URL", "http://100.72.2.99:8000")
+        seen: set[int] = set()
+        logger.info("Watching Matrix API incidents at %s (every %.1fs)", url, poll_interval)
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            while True:
+                try:
+                    resp = await client.get(f"{url}/api/incidents", params={"status": "open"})
+                    resp.raise_for_status()
+                    incidents = resp.json()
+                    if not isinstance(incidents, list):
+                        incidents = incidents.get("incidents", [])
+
+                    for inc in incidents:
+                        inc_id = inc.get("id")
+                        if inc_id is None or inc_id in seen:
+                            continue
+                        seen.add(inc_id)
+
+                        insight = await self.on_incident(
+                            incident_id=str(inc_id),
+                            node_id=inc.get("node_id", "unknown"),
+                            tags=inc.get("tags", {}),
+                        )
+
+                        # Post insight back to Matrix API
+                        try:
+                            await client.post(
+                                f"{url}/api/insights",
+                                json={
+                                    "incident_id": insight.incident_id,
+                                    "node_id": insight.node_id,
+                                    "summary": insight.summary,
+                                    "root_cause": insight.root_cause,
+                                    "confidence": insight.confidence,
+                                    "reasoning": insight.reasoning,
+                                    "suggested_checks": insight.suggested_checks,
+                                    "cosmos_model": insight.cosmos_model,
+                                },
+                            )
+                        except Exception as e:
+                            logger.warning("Failed to post insight to Matrix API: %s", e)
+
+                        if on_insight_callback:
+                            on_insight_callback(insight)
+
+                        logger.info(
+                            "Matrix incident #%s analysed: confidence=%.2f summary=%s",
+                            inc_id, insight.confidence, insight.summary,
+                        )
+
+                except asyncio.CancelledError:
+                    logger.info("Matrix incident watcher cancelled")
+                    return
+                except Exception:
+                    logger.exception("Matrix incident watcher error")
+
+                await asyncio.sleep(poll_interval)
+
+    # ------------------------------------------------------------------
+    # SQLite incident watching (legacy)
     # ------------------------------------------------------------------
 
     async def watch_for_incidents(
