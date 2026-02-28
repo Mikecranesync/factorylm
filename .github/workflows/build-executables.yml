@@ -1,0 +1,137 @@
+name: Build Executables
+
+on:
+  push:
+    paths:
+      - 'apps/plc-reader/**'
+      - '_BUILDS/plc-reader/**'
+      - 'packages/factorylm-cli/src/**'
+      - 'apps/github-scraper/**'
+      - '_BUILDS/github-scraper/**'
+  workflow_dispatch:
+
+jobs:
+  # ================================================================
+  #  PLC Reader — Windows
+  # ================================================================
+  build-windows-plc:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r _BUILDS/plc-reader/requirements.txt
+          pip install pyinstaller
+
+      - name: Build PLC Reader
+        run: _BUILDS\plc-reader\build_windows.bat
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PLC-Reader-Windows
+          path: dist/PLC-Reader.exe
+
+  # ================================================================
+  #  PLC Reader — macOS
+  # ================================================================
+  build-mac-plc:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r _BUILDS/plc-reader/requirements.txt
+          pip install pyinstaller
+
+      - name: Build PLC Reader
+        run: |
+          chmod +x _BUILDS/plc-reader/build_mac.sh
+          _BUILDS/plc-reader/build_mac.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PLC-Reader-macOS
+          path: |
+            dist/PLC-Reader
+            dist/PLC-Reader.app
+
+  # ================================================================
+  #  GitHub Scraper — Windows
+  # ================================================================
+  build-windows-scraper:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r _BUILDS/github-scraper/requirements.txt
+          pip install pyinstaller
+
+      - name: Build GitHub Scraper
+        run: _BUILDS\github-scraper\build_windows.bat
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GitHub-Scraper-Windows
+          path: dist/GitHub-Scraper.exe
+
+  # ================================================================
+  #  GitHub Scraper — macOS
+  # ================================================================
+  build-mac-scraper:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r _BUILDS/github-scraper/requirements.txt
+          pip install pyinstaller
+
+      - name: Build GitHub Scraper
+        run: |
+          chmod +x _BUILDS/github-scraper/build_mac.sh
+          _BUILDS/github-scraper/build_mac.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GitHub-Scraper-macOS
+          path: |
+            dist/GitHub-Scraper
+            dist/GitHub-Scraper.app
+
+  # ================================================================
+  #  Summary
+  # ================================================================
+  summary:
+    needs: [build-windows-plc, build-mac-plc, build-windows-scraper, build-mac-scraper]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Executable | Windows | macOS |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| PLC Reader | ${{ needs.build-windows-plc.result }} | ${{ needs.build-mac-plc.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| GitHub Scraper | ${{ needs.build-windows-scraper.result }} | ${{ needs.build-mac-scraper.result }} |" >> $GITHUB_STEP_SUMMARY
