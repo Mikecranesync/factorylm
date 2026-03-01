@@ -208,6 +208,50 @@
     text-align: right;
   }
 
+  /* Status Row — gauge + status panel side by side */
+  .status-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: stretch;
+  }
+
+  .gauge-container {
+    width: 170px;
+    flex-shrink: 0;
+    background: #0e0e14;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 10px 8px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .gauge-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #666;
+    margin-bottom: 4px;
+  }
+
+  .gauge-value {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .gauge-value.green { color: #4c4; text-shadow: 0 0 8px rgba(76, 204, 76, 0.4); }
+  .gauge-value.yellow { color: #da5; text-shadow: 0 0 8px rgba(221, 170, 85, 0.4); }
+  .gauge-value.red { color: #e44; text-shadow: 0 0 8px rgba(238, 68, 68, 0.4); }
+
+  @media (max-width: 700px) {
+    .status-row { flex-direction: column; }
+    .gauge-container { width: 100%; }
+  }
+
   .status-panel {
     background: #111118;
     border: 1px solid #222;
@@ -488,8 +532,15 @@
             onclick="sendCommand('set_speed', document.getElementById('speed-slider').value)">Set</button>
   </div>
 
-  <div class="status-panel" id="status-panel">
-    <span class="indicator offline"></span> Connecting...
+  <div class="status-row">
+    <div class="gauge-container">
+      <div class="gauge-label">MOTOR CURRENT</div>
+      <svg id="current-gauge" width="150" height="95" viewBox="0 0 160 100"></svg>
+      <div class="gauge-value green" id="gauge-value">0.00 A</div>
+    </div>
+    <div class="status-panel" id="status-panel" style="flex:1; margin-bottom:0;">
+      <span class="indicator offline"></span> Connecting...
+    </div>
   </div>
 
   <div class="event-log-panel">
@@ -564,6 +615,74 @@ function clearEventLog() {
 }
 
 logEvent('HMI initialized', 'info');
+
+// --- Current Gauge (SVG Arc) ---
+const GAUGE = { cx: 80, cy: 90, r: 60, min: 0, max: 10, startAngle: -180, endAngle: 0 };
+
+function polarToCartesian(cx, cy, r, angleDeg) {
+  const rad = angleDeg * Math.PI / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function describeArc(cx, cy, r, startAngle, endAngle) {
+  const s = polarToCartesian(cx, cy, r, endAngle);
+  const e = polarToCartesian(cx, cy, r, startAngle);
+  const large = (endAngle - startAngle) > 180 ? '1' : '0';
+  return 'M ' + s.x + ' ' + s.y + ' A ' + r + ' ' + r + ' 0 ' + large + ' 0 ' + e.x + ' ' + e.y;
+}
+
+function buildGaugeSVG() {
+  const svg = document.getElementById('current-gauge');
+  const { cx, cy, r } = GAUGE;
+  const sw = 10; // stroke width
+
+  // Background arc
+  svg.innerHTML =
+    '<path d="' + describeArc(cx, cy, r, -180, 0) + '" fill="none" stroke="#222" stroke-width="' + sw + '" stroke-linecap="round"/>' +
+    // Green zone: 0-3A (0-30%)
+    '<path d="' + describeArc(cx, cy, r, -180, -180 + 54) + '" fill="none" stroke="rgba(76,204,76,0.25)" stroke-width="' + sw + '" stroke-linecap="round"/>' +
+    // Yellow zone: 3-6A (30-60%)
+    '<path d="' + describeArc(cx, cy, r, -180 + 54, -180 + 108) + '" fill="none" stroke="rgba(221,170,85,0.25)" stroke-width="' + sw + '"/>' +
+    // Red zone: 6-10A (60-100%)
+    '<path d="' + describeArc(cx, cy, r, -180 + 108, 0) + '" fill="none" stroke="rgba(238,68,68,0.25)" stroke-width="' + sw + '" stroke-linecap="round"/>' +
+    // Tick marks + labels
+    buildGaugeTicks(cx, cy, r) +
+    // Needle
+    '<line id="gauge-needle" x1="' + cx + '" y1="' + cy + '" x2="' + (cx - r + 8) + '" y2="' + cy + '" stroke="#fff" stroke-width="2" stroke-linecap="round" style="transition: transform 0.3s ease-out; transform-origin: ' + cx + 'px ' + cy + 'px;"/>' +
+    // Center pivot
+    '<circle cx="' + cx + '" cy="' + cy + '" r="5" fill="#333" stroke="#555" stroke-width="1.5"/>';
+}
+
+function buildGaugeTicks(cx, cy, r) {
+  let html = '';
+  for (let i = 0; i <= 10; i++) {
+    const angle = -180 + (i / 10) * 180;
+    const outer = polarToCartesian(cx, cy, r + 8, angle);
+    const inner = polarToCartesian(cx, cy, r - 8, angle);
+    const labelPos = polarToCartesian(cx, cy, r + 20, angle);
+    html += '<line x1="' + inner.x + '" y1="' + inner.y + '" x2="' + outer.x + '" y2="' + outer.y + '" stroke="#555" stroke-width="' + (i % 5 === 0 ? 2 : 1) + '"/>';
+    if (i % 2 === 0) {
+      html += '<text x="' + labelPos.x + '" y="' + labelPos.y + '" text-anchor="middle" dominant-baseline="middle" fill="#666" font-size="9" font-family="Consolas, monospace">' + i + '</text>';
+    }
+  }
+  return html;
+}
+
+function updateGauge(amps) {
+  const clamped = Math.max(GAUGE.min, Math.min(GAUGE.max, amps));
+  const pct = clamped / GAUGE.max;
+  const angle = -180 + pct * 180;
+  const needle = document.getElementById('gauge-needle');
+  if (needle) needle.style.transform = 'rotate(' + (angle + 180) + 'deg)';
+
+  const el = document.getElementById('gauge-value');
+  el.textContent = amps.toFixed(2) + ' A';
+  if (amps >= 6) { el.className = 'gauge-value red'; }
+  else if (amps >= 3) { el.className = 'gauge-value yellow'; }
+  else { el.className = 'gauge-value green'; }
+}
+
+buildGaugeSVG();
 
 const btnFwd  = document.getElementById('btn-fwd');
 const btnStop = document.getElementById('btn-stop');
@@ -667,6 +786,7 @@ function updateStatusPanel(s) {
   const cmdHz = s.commandHz != null ? s.commandHz : '-';
   const actualHz = s.actualHz != null ? Number(s.actualHz).toFixed(1) : '-';
   const current = s.motorCurrent != null ? Number(s.motorCurrent).toFixed(2) : '-';
+  if (s.motorCurrent != null) updateGauge(Number(s.motorCurrent));
   const cmds = s.commandCount != null ? s.commandCount : '-';
 
   // Highlight active direction button
