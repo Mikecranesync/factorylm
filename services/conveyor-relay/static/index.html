@@ -247,6 +247,62 @@
   .gauge-value.yellow { color: #da5; text-shadow: 0 0 8px rgba(221, 170, 85, 0.4); }
   .gauge-value.red { color: #e44; text-shadow: 0 0 8px rgba(238, 68, 68, 0.4); }
 
+  /* Demo Row */
+  .demo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+
+  .demo-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 2px solid #76b900;
+    border-radius: 8px;
+    background: transparent;
+    color: #76b900;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .demo-btn:hover:not(:disabled) { background: rgba(118,185,0,0.1); }
+  .demo-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .demo-btn.running { border-color: #da5; color: #da5; }
+
+  .demo-progress {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .demo-progress.visible { display: flex; }
+
+  .demo-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #222;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .demo-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #76b900;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .demo-stage {
+    font-size: 11px;
+    color: #777;
+  }
+
   @media (max-width: 700px) {
     .status-row { flex-direction: column; }
     .gauge-container { width: 100%; }
@@ -706,6 +762,14 @@
             onclick="sendCommand('set_speed', document.getElementById('speed-slider').value)">Set</button>
   </div>
 
+  <div class="demo-row">
+    <button class="demo-btn" id="demo-btn" onclick="runDemoScenario()">Run Demo Scenario</button>
+    <div class="demo-progress" id="demo-progress">
+      <div class="demo-progress-bar"><div class="demo-progress-fill" id="demo-progress-fill"></div></div>
+      <div class="demo-stage" id="demo-stage"></div>
+    </div>
+  </div>
+
   <div class="status-row">
     <div class="gauge-container">
       <div class="gauge-label">MOTOR CURRENT</div>
@@ -953,12 +1017,199 @@ function sendChatMessage() {
 
 addChatMessage('FactoryLM AI online. Monitoring conveyor systems.', 'ai');
 
+// --- DEMO_MODE ---
+let DEMO_MODE = false;
+let demoRunning = false;
+let demoTickInterval = null;
+let demoState = {
+  runState: 'stopped',
+  direction: '-',
+  commandHz: 0,
+  actualHz: 0,
+  motorCurrent: 0,
+  commandCount: 0,
+  faultText: '',
+};
+let forcedCurrent = null; // For overcurrent override
+
+function demoTick() {
+  const accel = 0.2;  // Hz per tick (100ms) = 2 Hz/s
+  const decel = 0.3;  // Hz per tick = 3 Hz/s
+
+  if (demoState.runState === 'running') {
+    if (demoState.actualHz < demoState.commandHz) {
+      demoState.actualHz = Math.min(demoState.actualHz + accel, demoState.commandHz);
+    } else if (demoState.actualHz > demoState.commandHz) {
+      demoState.actualHz = Math.max(demoState.actualHz - decel, demoState.commandHz);
+    }
+  } else {
+    demoState.actualHz = Math.max(0, demoState.actualHz - decel);
+  }
+
+  // Current from Hz: 0.5A base + 0.15A/Hz + noise
+  if (forcedCurrent !== null) {
+    demoState.motorCurrent = forcedCurrent + (Math.random() - 0.5) * 0.2;
+  } else if (demoState.actualHz > 0) {
+    demoState.motorCurrent = 0.5 + demoState.actualHz * 0.15 + (Math.random() - 0.5) * 0.3;
+  } else {
+    demoState.motorCurrent = Math.max(0, demoState.motorCurrent - 0.1);
+  }
+  demoState.motorCurrent = Math.max(0, demoState.motorCurrent);
+}
+
+function startDemoMode() {
+  DEMO_MODE = true;
+  demoState = { runState: 'stopped', direction: '-', commandHz: 0, actualHz: 0, motorCurrent: 0, commandCount: 0, faultText: '' };
+  forcedCurrent = null;
+  if (demoTickInterval) clearInterval(demoTickInterval);
+  demoTickInterval = setInterval(demoTick, 100);
+  logEvent('DEMO_MODE activated — PLC simulated', 'info');
+}
+
+function stopDemoMode() {
+  DEMO_MODE = false;
+  forcedCurrent = null;
+  if (demoTickInterval) { clearInterval(demoTickInterval); demoTickInterval = null; }
+}
+
+// --- Demo Scenario (90 seconds) ---
+function runDemoScenario() {
+  if (demoRunning) return;
+  demoRunning = true;
+
+  const btn = document.getElementById('demo-btn');
+  btn.disabled = true;
+  btn.classList.add('running');
+  btn.textContent = 'Demo Running...';
+
+  const progress = document.getElementById('demo-progress');
+  const fill = document.getElementById('demo-progress-fill');
+  const stage = document.getElementById('demo-stage');
+  progress.classList.add('visible');
+
+  startDemoMode();
+
+  // Open chat
+  if (!chatOpen) toggleChat();
+
+  const TOTAL = 90;
+  let elapsed = 0;
+  const progressTimer = setInterval(function() {
+    elapsed++;
+    fill.style.width = Math.min(100, (elapsed / TOTAL) * 100) + '%';
+    if (elapsed >= TOTAL) clearInterval(progressTimer);
+  }, 1000);
+
+  function setStage(text) { stage.textContent = text; }
+
+  // ---- Stage 1: Start at 50% (0-15s) ----
+  setStage('Stage 1/5 — Starting conveyor');
+  demoState.runState = 'running';
+  demoState.direction = 'forward';
+  demoState.commandHz = 30;
+  demoState.commandCount++;
+  logEvent('CMD: forward', 'command');
+  logEvent('CMD: set_speed → 30', 'command');
+
+  addChatMessage('Starting conveyor demo sequence. Belt running forward at 30 Hz — that\'s about 50% speed. Current draw should be around 4-5 amps, well within the motor\'s rated capacity.', 'ai', { typing: 2000 });
+
+  // ---- Stage 2: Ramp to 100% (15-35s) ----
+  setTimeout(function() {
+    setStage('Stage 2/5 — Ramping to full speed');
+    demoState.commandHz = 60;
+    demoState.commandCount++;
+    logEvent('CMD: set_speed → 60', 'command');
+    logEvent('State → Running forward @ 60 Hz', 'state');
+
+    addChatMessage('Ramping to 60 Hz — full speed. Watch the current gauge climb. At this speed, you\'d expect around 8-9 amps on a loaded belt. I\'m monitoring the acceleration profile for any irregularities.', 'ai', { typing: 2500 });
+  }, 15000);
+
+  // ---- Stage 3: Overcurrent alarm (35-55s) ----
+  setTimeout(function() {
+    setStage('Stage 3/5 — Overcurrent detected');
+    forcedCurrent = 8.5;
+    demoState.runState = 'fault';
+    demoState.faultText = 'Overcurrent';
+    logEvent('FAULT: Overcurrent — motor current 8.5A exceeds threshold', 'fault');
+
+    addChatMessage('OVERCURRENT ALARM — Motor current has spiked to 8.5A. I\'ve triggered a protective fault stop. This is above the 7A threshold configured for this drive. Do NOT restart until the root cause is identified.', 'ai', { typing: 1500, warning: true });
+  }, 35000);
+
+  // ---- Stage 4: AI diagnosis (55-75s) ----
+  setTimeout(function() {
+    setStage('Stage 4/5 — AI analyzing fault');
+
+    addChatMessage('Analyzing current waveform pattern...', 'ai', { typing: 3000 });
+
+    setTimeout(function() {
+      addChatMessage(
+        'Root cause analysis complete.\n\n' +
+        'Pattern: Gradual current rise followed by spike — consistent with mechanical overload, not electrical fault.\n\n' +
+        'Top 3 probable causes:\n' +
+        '1. Belt misalignment causing drag (68% confidence)\n' +
+        '2. Bearing seizure on tail pulley (22%)\n' +
+        '3. Product jam at discharge chute (10%)\n\n' +
+        'Recommended action: Inspect belt tracking and tail pulley bearing. Check for debris at discharge point. Safe to restart at reduced speed after visual inspection.',
+        'ai', { typing: 4000 }
+      );
+    }, 3500);
+  }, 55000);
+
+  // ---- Stage 5: Clear & recover (75-90s) ----
+  setTimeout(function() {
+    setStage('Stage 5/5 — Clearing fault, restarting');
+    forcedCurrent = null;
+    demoState.runState = 'running';
+    demoState.direction = 'forward';
+    demoState.commandHz = 20;
+    demoState.actualHz = 0;
+    demoState.faultText = '';
+    demoState.commandCount++;
+    logEvent('Fault cleared', 'state');
+    logEvent('CMD: forward @ 20 Hz (reduced speed)', 'command');
+    logEvent('State → Running forward @ 20 Hz', 'state');
+
+    addChatMessage('Fault cleared. Restarting at 20 Hz — reduced speed as a precaution until the maintenance tech completes the inspection. I\'ll continue monitoring current draw for any recurrence. Normal operations can resume once alignment is verified.', 'ai', { typing: 2000 });
+  }, 75000);
+
+  // ---- Demo complete ----
+  setTimeout(function() {
+    setStage('Demo complete');
+    demoRunning = false;
+    btn.disabled = false;
+    btn.classList.remove('running');
+    btn.textContent = 'Run Demo Scenario';
+
+    addChatMessage('Demo sequence complete. That\'s FactoryLM — predictive maintenance intelligence for your factory floor, no $50,000 SCADA system required.', 'ai', { typing: 1500 });
+
+    logEvent('Demo scenario completed', 'info');
+
+    // Leave demo mode running so UI stays interactive
+  }, 90000);
+}
+
 const btnFwd  = document.getElementById('btn-fwd');
 const btnStop = document.getElementById('btn-stop');
 const btnRev  = document.getElementById('btn-rev');
 
 async function sendCommand(action, value) {
   if (cooldown) return showToast('Wait a moment between commands');
+
+  // DEMO_MODE: mutate demoState directly
+  if (DEMO_MODE) {
+    if (action === 'forward') {
+      demoState.runState = 'running'; demoState.direction = 'forward'; demoState.commandCount++;
+    } else if (action === 'reverse') {
+      demoState.runState = 'running'; demoState.direction = 'reverse'; demoState.commandCount++;
+    } else if (action === 'stop') {
+      demoState.runState = 'stopped'; demoState.commandHz = 0; demoState.commandCount++;
+    } else if (action === 'set_speed') {
+      demoState.commandHz = Number(value); demoState.commandCount++;
+    }
+    logEvent('CMD: ' + action + (value !== undefined ? ' → ' + value : ''), 'command');
+    fetchStatus();
+    return;
+  }
 
   const body = { action };
   if (value !== undefined) body.value = Number(value);
@@ -994,6 +1245,11 @@ async function sendCommand(action, value) {
 }
 
 async function fetchStatus() {
+  if (DEMO_MODE) {
+    updatePlcStatus(false);
+    updateStatusPanel(demoState);
+    return;
+  }
   try {
     const resp = await fetch(API + '/api/status');
     if (!resp.ok) throw new Error();
