@@ -60,6 +60,22 @@ LLM_SYSTEM_PROMPT = (
     "Be concise — this goes into an Obsidian daily note."
 )
 
+# Wikilink mapping: keyword patterns → vault links
+# Used to add cross-references in enriched summaries
+WIKILINK_MAP = {
+    r'\bTony\b|\btony[_-]macaroni\b': '[[04_Agents/Tony_Macaroni/Tony_Macaroni|Tony]]',
+    r'\bUltron\b': '[[04_Agents/Ultron/Ultron|Ultron]]',
+    r'\bJarvis\b': '[[04_Agents/Jarvis_Local/Jarvis_Local|Jarvis]]',
+    r'\bHetzner\b': '[[04_Agents/Hetzner/Hetzner|Hetzner]]',
+    r'\bOpenClaw\b|openclaw': '[[03_Projects/OpenClaw/OpenClaw|OpenClaw]]',
+    r'\bAntfarm\b|antfarm': '[[03_Projects/Antfarm/Antfarm|Antfarm]]',
+    r'\bCMMS\b|cmms|Atlas': '[[03_Projects/Atlas_CMMS/Atlas_CMMS|Atlas CMMS]]',
+    r'\bCosmos\b|cosmos': '[[03_Projects/Cosmos/Cosmos|Cosmos]]',
+    r'\bdiscord[_-]layer\b|discord.layer': '[[03_Projects/Discord_Adapter/Discord_Adapter|Discord Layer]]',
+    r'\bgist[_-]watch\b|gist.poller': '[[03_Projects/Gist_Watch/Gist_Watch|Gist Watch]]',
+    r'\bMicro820\b|PLC|Modbus': '[[05_Infrastructure/PLCs/Micro820|Micro820 PLC]]',
+}
+
 SECTION_RE = re.compile(r'^## (?:(.+?) — )?Push at \d{2}:\d{2} UTC')
 HASH_RE = re.compile(r'^\| `([a-f0-9]{7,40})` \|')
 ENRICHED_MARKER = '> **What changed:**'
@@ -298,12 +314,27 @@ class LocalEnricher:
         return []
 
     @staticmethod
+    def _add_wikilinks(text: str) -> str:
+        """Add Obsidian wikilinks to enriched text based on keyword matching."""
+        for pattern, link in WIKILINK_MAP.items():
+            # Only add wikilink on the first match, avoid double-linking
+            if link in text:
+                continue
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                # Replace the first occurrence with the wikilink
+                text = text[:match.start()] + link + text[match.end():]
+        return text
+
+    @staticmethod
     def _build_blockquote(summaries: Dict[str, str]) -> str:
         if len(summaries) == 1:
             summary = next(iter(summaries.values()))
+            summary = LocalEnricher._add_wikilinks(summary)
             return f"\n> **What changed:** {summary}"
         bq_lines = ["\n> **What changed:**"]
         for sha, summary in summaries.items():
+            summary = LocalEnricher._add_wikilinks(summary)
             bq_lines.append(f"> - `{sha}`: {summary}")
         return '\n'.join(bq_lines)
 
