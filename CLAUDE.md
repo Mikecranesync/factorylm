@@ -71,6 +71,10 @@ See `docs/jarvis-devops-mode.md` for the full spec.
 This is Mike's personal HIL mode — max capability, human gate on risky actions.
 Features, Antfarm workflows, and the `telegram_trainer` skill all operate within this mode.
 
+## Cluster Operations
+
+For cluster topology, the 7 Laws, and ops procedures see **[CLUSTER.md](CLUSTER.md)**.
+
 ---
 
 ## VPS Change Protocol
