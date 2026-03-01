@@ -232,6 +232,61 @@
   .indicator.fault   { background: #e44; }
   .indicator.offline { background: #666; }
 
+  /* Event Log Panel */
+  .event-log-panel {
+    background: #0e0e14;
+    border: 1px solid #222;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .event-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #222;
+  }
+
+  .event-log-header span {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #666;
+  }
+
+  .event-log-header button {
+    font-size: 10px;
+    padding: 2px 8px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #1a1a24;
+    color: #777;
+    cursor: pointer;
+  }
+
+  .event-log-body {
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 6px 12px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .event-log-body::-webkit-scrollbar { width: 4px; }
+  .event-log-body::-webkit-scrollbar-track { background: transparent; }
+  .event-log-body::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  .log-entry { padding: 1px 0; }
+  .log-ts { color: #555; margin-right: 8px; }
+  .log-command .log-msg { color: #76b900; }
+  .log-state .log-msg { color: #5588cc; }
+  .log-fault .log-msg { color: #e44; }
+  .log-speed .log-msg { color: #da5; }
+  .log-info .log-msg { color: #777; }
+
   .explainer {
     background: #0d0d14;
     border: 1px solid #1a1a2a;
@@ -437,6 +492,14 @@
     <span class="indicator offline"></span> Connecting...
   </div>
 
+  <div class="event-log-panel">
+    <div class="event-log-header">
+      <span>EVENT LOG</span>
+      <button onclick="clearEventLog()">Clear</button>
+    </div>
+    <div class="event-log-body" id="event-log-body"></div>
+  </div>
+
   <div class="explainer">
     <strong>You're controlling a real Allen-Bradley Micro 820 PLC</strong> running a conveyor belt
     in Lakeland, Florida. Every button press sends a command from your browser to the cloud,
@@ -479,6 +542,29 @@ function updatePlcStatus(online) {
   text.textContent = online ? 'PLC: Online' : 'PLC: Offline';
 }
 
+// --- Event Log ---
+let lastLoggedState = null;
+
+function logEvent(message, type) {
+  const body = document.getElementById('event-log-body');
+  const now = new Date();
+  const ts = now.toLocaleTimeString('en-US', { hour12: false });
+  const entry = document.createElement('div');
+  entry.className = 'log-entry log-' + (type || 'info');
+  entry.innerHTML = '<span class="log-ts">' + ts + '</span><span class="log-msg">' + message + '</span>';
+  body.appendChild(entry);
+  // Trim to 50 entries
+  while (body.children.length > 50) body.removeChild(body.firstChild);
+  body.scrollTop = body.scrollHeight;
+}
+
+function clearEventLog() {
+  document.getElementById('event-log-body').innerHTML = '';
+  logEvent('Log cleared', 'info');
+}
+
+logEvent('HMI initialized', 'info');
+
 const btnFwd  = document.getElementById('btn-fwd');
 const btnStop = document.getElementById('btn-stop');
 const btnRev  = document.getElementById('btn-rev');
@@ -504,6 +590,8 @@ async function sendCommand(action, value) {
     } else if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
       showToast(err.detail || 'Command failed');
+    } else {
+      logEvent('CMD: ' + action + (value !== undefined ? ' → ' + value : ''), 'command');
     }
     // Immediately refresh status
     fetchStatus();
@@ -562,6 +650,19 @@ function setLed(id, on) {
 function updateStatusPanel(s) {
   updateIOLeds(s);
   const state = s.runState || 'offline';
+
+  // Log state changes
+  const stateKey = state + '|' + (s.direction || '') + '|' + (s.commandHz || '');
+  if (lastLoggedState !== null && lastLoggedState !== stateKey) {
+    if (state === 'fault') {
+      logEvent('FAULT: ' + (s.faultText || 'unknown'), 'fault');
+    } else if (state === 'running') {
+      logEvent('State → Running ' + (s.direction || '') + ' @ ' + (s.commandHz || '?') + ' Hz', 'state');
+    } else if (state === 'stopped') {
+      logEvent('State → Stopped', 'state');
+    }
+  }
+  lastLoggedState = stateKey;
   const dir = s.direction || '-';
   const cmdHz = s.commandHz != null ? s.commandHz : '-';
   const actualHz = s.actualHz != null ? Number(s.actualHz).toFixed(1) : '-';
