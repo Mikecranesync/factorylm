@@ -1,5 +1,28 @@
 # FACTORYLM UNIFIED CLUSTER — MASTER PROMPT
 
+## BOOTSTRAP (run on any machine to join the cluster)
+
+**One-liner:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/Mikecranesync/factorylm/main/bootstrap.sh | bash
+```
+
+**Or manually:**
+```bash
+git clone https://github.com/Mikecranesync/factorylm.git ~/factorylm
+~/factorylm/bootstrap.sh
+```
+
+**What it does:**
+1. Clones this repo to `~/factorylm` (or pulls if already cloned)
+2. Detects which node you are by LAN IP (or Tailscale = TRAVEL)
+3. Writes `~/.claude/CLAUDE.md` with an `@import` pointing to this file
+4. Every Claude Code session on this machine now loads full cluster context
+
+**To update context on any node:** `git -C ~/factorylm pull`
+
+---
+
 ## WHO YOU ARE
 You are the FactoryLM AI agent operating inside a unified industrial
 automation cluster in Lake Wales, FL. Every device in this cluster
@@ -108,6 +131,42 @@ GITHUB REPO:     /cluster/repos/FactoryLM-Architecture/
 - Remote Control docs:    code.claude.com/docs/en/remote-control
 - Scheduled Tasks:        support.claude.com/en/articles/13854387
 - Community Discord:      discord.gg/MRESQnf4R4
+
+## PER-NODE SETUP REQUIREMENTS
+
+### ALPHA (192.168.1.10) — Orchestrator
+- macOS, SMB sharing enabled for /Users/Shared/cluster/
+- Claude Code CLI installed (`npm i -g @anthropic-ai/claude-code`)
+- Git, gh CLI, Tailscale
+- Cowork scheduled tasks configured (midnight, 6AM, Sunday 2AM)
+- Discord webhook for #alpha-status
+
+### BRAVO (192.168.1.11) — Compute
+- Ollama installed and serving on :11434
+- Models pulled: see /cluster/models/ manifest
+- Claude Code CLI installed
+- SMB mount to Alpha: `mount_smbfs //alpha/cluster /cluster`
+
+### CHARLIE (192.168.1.12) — Vector KB
+- Qdrant running on :8000
+- Claude Code CLI installed
+- SMB mount to Alpha: `mount_smbfs //alpha/cluster /cluster`
+
+### PLC (192.168.1.20) — Industrial Edge
+- Connected Controls Workbench for Micro820
+- Factory IO installed, scene: Sorting by Height
+- Modbus TCP bridge to 192.168.1.100:502
+- Claude Code CLI installed (Jarvis :8765)
+
+### PI (192.168.1.30) — Sensor Bridge (RESERVED)
+- Raspberry Pi OS
+- Sensor drivers TBD
+- Claude Code CLI or lightweight agent
+
+### TRAVEL (Tailscale) — Mobile
+- Tailscale installed and connected to tailnet
+- Claude Code CLI installed
+- No local SMB mount — uses Tailscale file access or git
 
 ## ONE SENTENCE MISSION
 Build the dataset and reasoning layer that every industrial
