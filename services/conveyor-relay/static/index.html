@@ -43,6 +43,50 @@
     text-decoration: none;
   }
 
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .live-clock {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    color: #76b900;
+    letter-spacing: 0.5px;
+  }
+
+  .plc-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #999;
+  }
+
+  .plc-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #666;
+    transition: background 0.3s;
+  }
+
+  .plc-dot.online {
+    background: #4c4;
+    box-shadow: 0 0 6px 2px rgba(76, 204, 76, 0.4);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .plc-dot.offline {
+    background: #e44;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
   .video-box {
     width: 100%;
     aspect-ratio: 16/9;
@@ -335,7 +379,14 @@
 <div class="container">
   <header>
     <h1>Live Factory View</h1>
-    <a class="brand" href="https://factorylm.com" target="_blank">FactoryLM</a>
+    <div class="header-right">
+      <span class="live-clock" id="live-clock">--:--:--</span>
+      <div class="plc-status">
+        <span class="plc-dot" id="plc-dot"></span>
+        <span id="plc-status-text">PLC: —</span>
+      </div>
+      <a class="brand" href="https://factorylm.com" target="_blank">FactoryLM</a>
+    </div>
   </header>
 
   <div class="io-rack">
@@ -408,6 +459,25 @@
 const API = '';  // Same origin
 let cooldown = false;
 const COOLDOWN_MS = 3200;
+let plcOnline = false;
+
+// --- Live Clock ---
+function updateClock() {
+  const now = new Date();
+  document.getElementById('live-clock').textContent =
+    now.toLocaleTimeString('en-US', { hour12: false });
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// --- PLC Connection Status ---
+function updatePlcStatus(online) {
+  plcOnline = online;
+  const dot = document.getElementById('plc-dot');
+  const text = document.getElementById('plc-status-text');
+  dot.className = 'plc-dot ' + (online ? 'online' : 'offline');
+  text.textContent = online ? 'PLC: Online' : 'PLC: Offline';
+}
 
 const btnFwd  = document.getElementById('btn-fwd');
 const btnStop = document.getElementById('btn-stop');
@@ -452,8 +522,10 @@ async function fetchStatus() {
     const resp = await fetch(API + '/api/status');
     if (!resp.ok) throw new Error();
     const s = resp.json ? await resp.json() : {};
+    updatePlcStatus(true);
     updateStatusPanel(s);
   } catch {
+    updatePlcStatus(false);
     document.getElementById('status-panel').innerHTML =
       '<span class="indicator offline"></span> Relay offline';
   }
