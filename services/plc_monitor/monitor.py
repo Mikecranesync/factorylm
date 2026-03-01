@@ -65,9 +65,20 @@ class PLCMonitor:
     async def _incident_loop(self) -> None:
         """Poll Matrix API for open incidents, analyze with Cosmos, alert."""
         logger.info("Incident watcher loop started (every %.1fs)", self.config.poll_interval)
+        consecutive_failures = 0
         while self._running:
             try:
                 await self._check_incidents()
+                consecutive_failures = 0
+            except (httpx.ConnectError, httpx.ConnectTimeout):
+                consecutive_failures += 1
+                backoff = min(self.config.poll_interval * (2 ** consecutive_failures), 300)
+                logger.warning(
+                    "Matrix unreachable, retry in %ds (%d consecutive failures)",
+                    backoff, consecutive_failures,
+                )
+                await asyncio.sleep(backoff)
+                continue
             except Exception:
                 logger.exception("Incident loop error")
             await asyncio.sleep(self.config.poll_interval)
@@ -78,9 +89,8 @@ class PLCMonitor:
         try:
             resp = await self._http.get(url, params={"status": "open"})
             resp.raise_for_status()
-        except httpx.ConnectError:
-            logger.debug("Matrix API not reachable at %s", url)
-            return
+        except (httpx.ConnectError, httpx.ConnectTimeout):
+            raise  # propagate to loop for backoff handling
         except httpx.HTTPStatusError as e:
             logger.warning("Matrix API error: %s", e)
             return
@@ -150,9 +160,20 @@ class PLCMonitor:
             self.config.twin_compare_interval,
             self.config.twin_divergence_threshold * 100,
         )
+        consecutive_failures = 0
         while self._running:
             try:
                 await self._compare_twins()
+                consecutive_failures = 0
+            except (httpx.ConnectError, httpx.ConnectTimeout):
+                consecutive_failures += 1
+                backoff = min(self.config.twin_compare_interval * (2 ** consecutive_failures), 300)
+                logger.warning(
+                    "Matrix unreachable (twin), retry in %ds (%d consecutive failures)",
+                    backoff, consecutive_failures,
+                )
+                await asyncio.sleep(backoff)
+                continue
             except Exception:
                 logger.exception("Twin loop error")
             await asyncio.sleep(self.config.twin_compare_interval)
@@ -164,9 +185,8 @@ class PLCMonitor:
         try:
             resp = await self._http.get(url, params={"limit": 1})
             resp.raise_for_status()
-        except httpx.ConnectError:
-            logger.debug("Matrix API not reachable for twin compare")
-            return
+        except (httpx.ConnectError, httpx.ConnectTimeout):
+            raise  # propagate to loop for backoff handling
         except httpx.HTTPStatusError as e:
             logger.warning("Matrix API tags error: %s", e)
             return
