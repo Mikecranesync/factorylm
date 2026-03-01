@@ -14,12 +14,17 @@ echo "=== $(date -u '+%Y-%m-%d %H:%M:%S UTC') === Starting enrichment ==="
 cd "$VAULT_DIR"
 git pull --rebase --quiet origin main 2>/dev/null || true
 
-# Get GROQ_API_KEY from Doppler
+# Get GROQ_API_KEY from openclaw config (Doppler key is truncated)
 export GROQ_API_KEY
-GROQ_API_KEY=$(doppler secrets get GROQ_API_KEY --plain 2>/dev/null)
+GROQ_API_KEY=$(python3 -c "
+import re
+with open('$HOME/.openclaw/openclaw.json') as f:
+    m = re.search(r'\"GROQ_API_KEY\":\s*\"(gsk_[^\"]+)\"', f.read())
+    print(m.group(1) if m else '')
+" 2>/dev/null)
 
 if [ -z "$GROQ_API_KEY" ]; then
-    echo "ERROR: Could not get GROQ_API_KEY from Doppler"
+    echo "ERROR: Could not get GROQ_API_KEY from openclaw.json"
     exit 1
 fi
 
