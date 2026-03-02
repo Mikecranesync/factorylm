@@ -49,6 +49,8 @@ def _detect_subnet() -> str:
             line = line.strip()
             if line.startswith("inet ") and "127.0.0.1" not in line:
                 addr = line.split()[1].split("/")[0]
+                if addr.startswith("169.254."):
+                    continue  # skip link-local
                 parts = addr.split(".")
                 if len(parts) == 4:
                     subnet = ".".join(parts[:3])

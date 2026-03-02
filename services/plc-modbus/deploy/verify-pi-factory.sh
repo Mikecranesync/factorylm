@@ -11,10 +11,10 @@ check() {
     shift
     if "$@" > /dev/null 2>&1; then
         echo "  [PASS] $label"
-        ((PASS++))
+        PASS=$((PASS + 1))
     else
         echo "  [FAIL] $label"
-        ((FAIL++))
+        FAIL=$((FAIL + 1))
     fi
 }
 
@@ -24,7 +24,7 @@ echo ""
 # 1. eth0 has a usable IP (DHCP 192.x or link-local 169.254.x)
 echo "Network:"
 check "eth0 has IPv4 address" \
-    ip addr show eth0 | grep -qE "inet (192|10|172|169\.254)\."
+    bash -c 'ip addr show eth0 | grep -qE "inet (192|10|172|169\.254)\."'
 
 # 2. Hostname
 echo "Hostname:"

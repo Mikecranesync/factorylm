@@ -38,8 +38,6 @@ network:
   ethernets:
     eth0:
       dhcp4: true
-      dhcp4-overrides:
-        route-metric: 100
       link-local: [ipv4]
       optional: true
 NETPLAN_EOF
