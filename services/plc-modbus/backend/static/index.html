@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pi Factory</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+         background: #1a1a2e; color: #e0e0e0; min-height: 100vh; padding: 1rem; }
+  header { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0 1rem; }
+  header h1 { font-size: 1.4rem; font-weight: 600; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .dot.green { background: #00e676; box-shadow: 0 0 6px #00e676; animation: pulse 2s ease-in-out infinite; }
+  .dot.red { background: #ff5252; box-shadow: 0 0 6px #ff5252; }
+  .dot.yellow { background: #ffc107; box-shadow: 0 0 6px #ffc107; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  #status-text { font-size: 0.85rem; color: #888; }
+  #last-update { font-size: 0.75rem; color: #666; margin-left: auto; font-family: monospace; }
+  .empty { text-align: center; padding: 4rem 1rem; color: #666; }
+  .empty h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #444;
+             border-top-color: #00e676; border-radius: 50%;
+             animation: spin 1s linear infinite; margin-bottom: 0.5rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #devices { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1rem; }
+  .device-card { background: #16213e; border: 1px solid #0f3460; border-radius: 8px;
+                 padding: 1rem; transition: border-color 0.3s; }
+  .device-card.polling { border-color: #00e676; }
+  .device-card.offline { border-color: #ff5252; opacity: 0.6; }
+  .card-header { display: flex; justify-content: space-between; align-items: center;
+                 margin-bottom: 0.75rem; }
+  .card-header h3 { font-size: 1rem; }
+  .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+  .badge.polling { background: #00e67633; color: #00e676; }
+  .badge.online { background: #ffc10733; color: #ffc107; }
+  .badge.offline { background: #ff525233; color: #ff5252; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th { text-align: left; padding: 4px 8px; color: #888; border-bottom: 1px solid #0f3460; font-weight: 500; }
+  td { padding: 4px 8px; border-bottom: 1px solid #0f346033; }
+  td.val { font-family: monospace; font-weight: 600; text-align: right; transition: color 0.2s; }
+  @keyframes flash { 0% { background: #ffc10744; } 100% { background: transparent; } }
+  td.val.changed { animation: flash 0.6s ease-out; }
+  td.val.on { color: #00e676; }
+  td.val.off { color: #555; }
+  td.val.num { color: #64b5f6; }
+  .section-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em;
+                   padding: 6px 0 2px; }
+  @media (max-width: 480px) {
+    #devices { grid-template-columns: 1fr; }
+    body { padding: 0.5rem; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Pi Factory</h1>
+  <span id="conn-dot" class="dot red"></span>
+  <span id="status-text">Connecting...</span>
+  <span id="last-update"></span>
+</header>
+<div id="empty" class="empty">
+  <div class="spinner"></div>
+  <h2>Scanning for PLCs...</h2>
+  <p>Devices on this subnet will appear automatically.</p>
+</div>
+<div id="devices"></div>
+
+<script>
+const devicesEl = document.getElementById('devices');
+const emptyEl = document.getElementById('empty');
+const connDot = document.getElementById('conn-dot');
+const statusText = document.getElementById('status-text');
+const lastUpdateEl = document.getElementById('last-update');
+let deviceData = {};
+let firstRender = true;
+
+function formatVal(val) {
+  if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
+  return String(val);
+}
+
+function valClass(val) {
+  if (typeof val === 'boolean') return val ? 'on' : 'off';
+  return 'num';
+}
+
+function buildCardHTML(ip, d) {
+  const cls = d.status || 'online';
+  const product = d.product || '';
+  const tagCount = d.tag_count || 0;
+  let html = `<div class="device-card ${cls}" data-ip="${ip}">`;
+  html += `<div class="card-header"><h3>${ip}</h3><span class="badge ${cls}" data-badge="${ip}">${cls}</span></div>`;
+  if (product) html += `<div class="section-label">${product} &mdash; ${tagCount} tags</div>`;
+  const tags = d.tags || {};
+  const entries = Object.entries(tags);
+  if (entries.length) {
+    html += `<table><tr><th>Tag</th><th style="text-align:right">Value</th></tr>`;
+    for (const [name, val] of entries) {
+      const vc = valClass(val);
+      html += `<tr><td>${name}</td><td class="val ${vc}" data-tag="${ip}:${name}">${formatVal(val)}</td></tr>`;
+    }
+    html += `</table>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderFull() {
+  const ips = Object.keys(deviceData);
+  if (ips.length === 0) {
+    emptyEl.style.display = '';
+    devicesEl.innerHTML = '';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  devicesEl.innerHTML = ips.sort().map(ip => buildCardHTML(ip, deviceData[ip])).join('');
+  firstRender = false;
+}
+
+function renderDiff() {
+  const ips = Object.keys(deviceData);
+  if (ips.length === 0) {
+    emptyEl.style.display = '';
+    devicesEl.innerHTML = '';
+    firstRender = true;
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  // Add new device cards if any
+  for (const ip of ips) {
+    if (!devicesEl.querySelector(`[data-ip="${ip}"]`)) {
+      // New device — do a full rebuild (rare event)
+      renderFull();
+      return;
+    }
+  }
+
+  // Update existing cards
+  for (const ip of ips) {
+    const d = deviceData[ip];
+    const cls = d.status || 'online';
+
+    // Update card class
+    const card = devicesEl.querySelector(`[data-ip="${ip}"]`);
+    if (card) card.className = `device-card ${cls}`;
+
+    // Update badge
+    const badge = devicesEl.querySelector(`[data-badge="${ip}"]`);
+    if (badge) { badge.className = `badge ${cls}`; badge.textContent = cls; }
+
+    // Update tag values — only text/class that changed
+    const tags = d.tags || {};
+    for (const [name, val] of Object.entries(tags)) {
+      const td = devicesEl.querySelector(`[data-tag="${ip}:${name}"]`);
+      if (!td) continue;
+      const display = formatVal(val);
+      if (td.textContent !== display) {
+        td.textContent = display;
+        td.className = `val ${valClass(val)}`;
+        // Trigger flash animation
+        td.classList.remove('changed');
+        void td.offsetWidth; // force reflow to restart animation
+        td.classList.add('changed');
+      }
+    }
+  }
+}
+
+function updateTimestamp() {
+  const now = new Date();
+  const ts = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    + '.' + String(now.getMilliseconds()).padStart(3, '0');
+  lastUpdateEl.textContent = `updated ${ts}`;
+}
+
+function connect() {
+  const es = new EventSource('/api/stream');
+  es.addEventListener('tags', (e) => {
+    connDot.className = 'dot green';
+    statusText.textContent = 'Live';
+    try {
+      deviceData = JSON.parse(e.data);
+      if (firstRender) renderFull(); else renderDiff();
+      updateTimestamp();
+    } catch (err) { console.error('SSE parse error:', err, e.data?.slice(0, 200)); }
+  });
+  es.onerror = () => {
+    connDot.className = 'dot red';
+    statusText.textContent = 'Reconnecting...';
+    lastUpdateEl.textContent = '';
+  };
+  es.onopen = () => {
+    connDot.className = 'dot green';
+    statusText.textContent = 'Connected';
+  };
+}
+
+// Initial fetch to get current state
+fetch('/api/devices').then(r => r.json()).then(data => {
+  if (data.devices && data.devices.length > 0) {
+    statusText.textContent = `Found ${data.devices.length} device(s)`;
+  }
+}).catch(() => {});
+
+connect();
+</script>
+</body>
+</html>

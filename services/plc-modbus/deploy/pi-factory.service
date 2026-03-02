@@ -1,0 +1,19 @@
+[Unit]
+Description=Pi Factory — PLC Auto-Discovery Dashboard
+After=network-online.target avahi-daemon.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/factorylm/services/plc-modbus
+ExecStart=/home/pi/factorylm/services/plc-modbus/.venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+Environment=FACTORYLM_DISCOVERY_ENABLED=true
+Environment=FACTORYLM_DISCOVERY_PORT=8000
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
