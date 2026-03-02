@@ -30,5 +30,14 @@ class Settings(BaseSettings):
     scanner_default_start: int = 1
     scanner_default_end: int = 254
 
+    # Mock mode — use simulated PLC (no hardware needed)
+    mock_mode: bool = False
+
+    # Discovery daemon settings
+    discovery_enabled: bool = True
+    discovery_scan_interval: int = 30
+    discovery_poll_interval: float = 0.5
+    discovery_port: int = 8000
+
 
 settings = Settings()
