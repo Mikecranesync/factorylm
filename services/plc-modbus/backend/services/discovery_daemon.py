@@ -8,11 +8,19 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Optional
 
-from pycomm3 import LogixDriver
+try:
+    from pycomm3 import LogixDriver
+    HAS_PYCOMM3 = True
+except ImportError:
+    LogixDriver = None  # type: ignore[assignment,misc]
+    HAS_PYCOMM3 = False
 
 from backend.config import settings
 
 logger = logging.getLogger(__name__)
+
+if not HAS_PYCOMM3:
+    logger.warning("pycomm3 not installed — EtherNet/IP discovery disabled")
 
 ETHERNET_IP_PORT = 44818
 
@@ -27,7 +35,7 @@ class DeviceState:
     tags: dict = field(default_factory=dict)
     tag_list: list = field(default_factory=list)
     plc_info: dict = field(default_factory=dict)
-    _driver: Optional[LogixDriver] = field(default=None, repr=False)
+    _driver: Optional[Any] = field(default=None, repr=False)
     _miss_count: int = field(default=0, repr=False)
 
 
@@ -146,6 +154,9 @@ class DiscoveryDaemon:
 
     async def start(self):
         """Start the discovery scan and poll loops."""
+        if not HAS_PYCOMM3:
+            logger.warning("Skipping EtherNet/IP discovery — pycomm3 not installed")
+            return
         self._subnet = await asyncio.to_thread(_detect_subnet)
         self._running = True
         self._scan_task = asyncio.create_task(self._scan_loop())

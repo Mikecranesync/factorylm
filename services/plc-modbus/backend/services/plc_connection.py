@@ -4,6 +4,8 @@ import logging
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
+from backend.config import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -81,7 +83,7 @@ class PLCConnectionService:
 
     def connect(self, ip: str, port: int = 502) -> Dict[str, Any]:
         """
-        Connect to PLC via Modbus TCP.
+        Connect to PLC via Modbus TCP (or MockPLC if mock_mode is enabled).
 
         Args:
             ip: PLC IP address
@@ -90,9 +92,6 @@ class PLCConnectionService:
         Returns:
             Dict with success status and message
         """
-        # Import here to avoid circular imports
-        from src.factorylm_plc.modbus_client import ModbusTCPClient
-
         # Disconnect existing connection if any
         if self._client:
             try:
@@ -104,6 +103,16 @@ class PLCConnectionService:
         self._port = port
 
         try:
+            if settings.mock_mode:
+                from src.factorylm_plc.mock_plc import MockPLC
+                self._client = MockPLC()
+                self._client.connect()
+                self._connected = True
+                self._last_seen = datetime.now()
+                logger.info("Connected to MockPLC (mock mode)")
+                return {"success": True, "message": "Connected to MockPLC (mock mode)"}
+
+            from src.factorylm_plc.modbus_client import ModbusTCPClient
             self._client = ModbusTCPClient(host=ip, port=port, timeout=3.0)
             if self._client.connect():
                 self._connected = True

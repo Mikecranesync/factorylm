@@ -40,11 +40,16 @@ except ImportError:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Start/stop discovery daemon with the app."""
-    if settings.discovery_enabled:
+    if settings.mock_mode:
+        logger.info("Mock mode enabled — using simulated PLC, discovery disabled")
+        # Auto-connect the mock PLC so /api/plc/io works immediately
+        from backend.services.plc_connection import plc_service
+        plc_service.connect("mock", 0)
+    elif settings.discovery_enabled:
         await discovery_daemon.start()
         logger.info("Discovery daemon started")
     yield
-    if settings.discovery_enabled:
+    if not settings.mock_mode and settings.discovery_enabled:
         await discovery_daemon.stop()
         logger.info("Discovery daemon stopped")
 
