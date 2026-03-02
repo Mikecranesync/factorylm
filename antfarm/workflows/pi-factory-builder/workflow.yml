@@ -1,0 +1,173 @@
+id: pi-factory-builder
+name: "PRD-006 — Pi Factory Appliance Build & Validate"
+version: 1
+description: >
+  Antfarm workflow for PRD-006 Pi Factory zero-config PLC discovery appliance.
+  Validates deploy scripts against Ubuntu Server 24.04 LTS requirements, runs
+  mock-mode API tests, optionally checks live Pi hardware, and produces a
+  consolidated pass/fail report with evidence.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: prd-analyzer
+    name: PRD Analyzer
+    role: analysis
+    description: Reads PRD-006, extracts completion criteria, maps done vs todo checkboxes
+    workspace:
+      files:
+        AGENTS.md: agents/prd-analyzer/AGENTS.md
+
+  - id: deploy-validator
+    name: Deploy Script Validator
+    role: verification
+    description: Validates setup-pi-factory.sh, verify-pi-factory.sh, service files, and README against Ubuntu 24.04 LTS requirements
+    workspace:
+      files:
+        AGENTS.md: agents/deploy-validator/AGENTS.md
+
+  - id: mock-tester
+    name: Mock Mode API Tester
+    role: coding
+    description: Starts plc-modbus service in mock mode, tests all API endpoints, reports results
+    workspace:
+      files:
+        AGENTS.md: agents/mock-tester/AGENTS.md
+
+  - id: hardware-checker
+    name: Hardware Checker
+    role: coding
+    description: SSHs to pi-factory.local, runs verify-pi-factory.sh, checks systemd and Avahi (skip-safe)
+    workspace:
+      files:
+        AGENTS.md: agents/hardware-checker/AGENTS.md
+
+  - id: reporter
+    name: Report Aggregator
+    role: analysis
+    description: Collects results from all steps and produces OVERALL pass/fail with evidence
+    workspace:
+      files:
+        AGENTS.md: agents/reporter/AGENTS.md
+
+steps:
+  - id: analyze_prd
+    agent: prd-analyzer
+    input: |
+      Read PRD-006 and extract the completion criteria.
+
+      1. Find and read the PRD-006 file (PRD-006_Pi_Factory.md or similar) in the repo
+      2. Parse the completion criteria / checklist section
+      3. Count checked [x] items (done) vs unchecked [ ] items (todo)
+      4. List all criteria with their status
+
+      Reply with:
+      DONE_COUNT: <number of completed items>
+      TODO_COUNT: <number of remaining items>
+      CRITERIA_LIST: <markdown checklist>
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: validate_deploy
+    agent: deploy-validator
+    input: |
+      Validate deploy scripts for Ubuntu Server 24.04 LTS compliance.
+
+      Run these deterministic checks (bash only, no LLM reasoning):
+
+      1. grep -c dhcpcd services/plc-modbus/deploy/setup-pi-factory.sh → must be 0
+      2. grep -c netplan services/plc-modbus/deploy/setup-pi-factory.sh → must be > 0
+      3. grep -q net-tools services/plc-modbus/deploy/setup-pi-factory.sh → must succeed
+      4. test -f services/plc-modbus/deploy/verify-pi-factory.sh → must exist
+      5. grep -q "Ubuntu Server 24.04" services/plc-modbus/deploy/README.md → must match
+      6. test -f services/plc-modbus/deploy/pi-factory.service → must exist
+      7. test -f services/plc-modbus/deploy/avahi-pi-factory.service → must exist
+
+      Reply with:
+      NETPLAN: pass/fail
+      NO_DHCPCD: pass/fail
+      NET_TOOLS: pass/fail
+      VERIFY_SCRIPT: pass/fail
+      README: pass/fail
+      PI_SERVICE: pass/fail
+      AVAHI_SERVICE: pass/fail
+      RESULT: pass/fail
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: run_mock_tests
+    agent: mock-tester
+    input: |
+      Start the plc-modbus service in mock mode and test all API endpoints.
+
+      Steps:
+      1. cd services/plc-modbus
+      2. Start server on port 8111 (8000 is Qdrant on CHARLIE):
+         PYTHONPATH=src:. FACTORYLM_MOCK_MODE=true .venv/bin/python -m factorylm_plc --port 8111 &
+      3. Sleep 4 seconds for startup
+      4. Test endpoints:
+         - curl -s http://localhost:8111/api/health → expect {"status":"healthy"}
+         - curl -s http://localhost:8111/api/plc/status → expect "connected"
+         - curl -s http://localhost:8111/api/plc/io → expect coils + registers
+         - curl -s http://localhost:8111/api/devices → expect array response
+      5. Kill the server process
+      6. Report results
+
+      Reply with:
+      HEALTH: pass/fail
+      PLC_STATUS: pass/fail
+      PLC_IO: pass/fail
+      DEVICES: pass/fail
+      RESULT: pass/fail
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: check_hardware
+    agent: hardware-checker
+    input: |
+      Check if the Pi Factory hardware is reachable and validated.
+
+      Steps:
+      1. Attempt SSH: ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no pi@pi-factory.local echo "reachable"
+      2. If reachable:
+         - Copy verify script: scp services/plc-modbus/deploy/verify-pi-factory.sh pi@pi-factory.local:/tmp/
+         - Run: ssh pi@pi-factory.local bash /tmp/verify-pi-factory.sh
+         - Report results
+      3. If unreachable:
+         - Report SKIP — Pi may not be on the network, this is not a blocker
+
+      Reply with:
+      PI_REACHABLE: yes/no
+      VERIFY_RESULT: pass/skip/fail
+      RESULT: pass/skip
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: generate_report
+    agent: reporter
+    input: |
+      Aggregate results from all prior steps:
+
+      - analyze_prd: {{analyze_prd.DONE_COUNT}} done, {{analyze_prd.TODO_COUNT}} todo
+      - validate_deploy: {{validate_deploy.RESULT}}
+      - run_mock_tests: {{run_mock_tests.RESULT}}
+      - check_hardware: {{check_hardware.RESULT}}
+
+      Determine OVERALL:
+      - pass if validate_deploy=pass AND run_mock_tests=pass (hardware can be skip)
+      - fail if validate_deploy=fail OR run_mock_tests=fail
+
+      Reply with:
+      PRD_DONE: <count>
+      PRD_TODO: <count>
+      DEPLOY: pass/fail
+      MOCK: pass/fail
+      HARDWARE: pass/fail/skip
+      OVERALL: pass/fail
+      STATUS: done
+    expects: "STATUS: done"
+
+triggers:
+  - type: manual
+    command: "/pi-factory build"
+  - type: github_issue
+    filter: "label:pi-factory"
