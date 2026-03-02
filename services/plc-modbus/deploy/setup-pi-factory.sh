@@ -14,7 +14,7 @@ echo "Install dir: $INSTALL_DIR"
 # --- 1. System packages ---
 echo "[1/6] Installing system packages..."
 sudo apt-get update -qq
-sudo apt-get install -y -qq avahi-daemon avahi-utils python3 python3-venv python3-pip
+sudo apt-get install -y -qq avahi-daemon avahi-utils python3 python3-venv python3-pip net-tools
 
 # --- 2. Hostname ---
 echo "[2/6] Setting hostname to pi-factory..."
@@ -29,26 +29,23 @@ else
 fi
 
 # --- 3. DHCP with link-local fallback ---
-echo "[3/6] Configuring network (DHCP + link-local fallback)..."
-DHCPCD_CONF="/etc/dhcpcd.conf"
-if [ -f "$DHCPCD_CONF" ]; then
-    if ! grep -q "Pi Factory" "$DHCPCD_CONF" 2>/dev/null; then
-        sudo tee -a "$DHCPCD_CONF" > /dev/null <<'DHCP_EOF'
-
-# Pi Factory: DHCP primary, link-local fallback
-profile fallback_static
-static ip_address=169.254.42.1/16
-
-interface eth0
-fallback fallback_static
-DHCP_EOF
-        echo "dhcpcd fallback configured"
-    else
-        echo "dhcpcd fallback already configured"
-    fi
-else
-    echo "Warning: $DHCPCD_CONF not found (NetworkManager system?), skipping"
-fi
+echo "[3/6] Configuring network (Netplan: DHCP + link-local fallback)..."
+NETPLAN_FILE="/etc/netplan/99-pi-factory.yaml"
+sudo tee "$NETPLAN_FILE" > /dev/null <<'NETPLAN_EOF'
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        route-metric: 100
+      link-local: [ipv4]
+      optional: true
+NETPLAN_EOF
+sudo chmod 600 "$NETPLAN_FILE"
+sudo netplan apply
+echo "Netplan configured: DHCP primary + link-local fallback on eth0"
 
 # --- 4. Avahi mDNS ---
 echo "[4/6] Installing Avahi service definition..."

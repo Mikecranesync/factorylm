@@ -64,7 +64,7 @@ Factory LAN (192.168.1.0/24)
 | Item | Spec | Notes |
 |------|------|-------|
 | Raspberry Pi | Pi 4 Model B (2GB+ RAM) or Pi 5 | Pi 3B+ minimum but not recommended |
-| SD Card | 32GB+ Class 10 / A1 | Pre-flash Raspberry Pi OS Lite (64-bit) |
+| SD Card | 32GB+ Class 10 / A1 | Pre-flash Ubuntu Server 24.04 LTS (64-bit) |
 | Ethernet | Cat5e cable to factory switch | **Wi-Fi NOT recommended** for industrial |
 | Power | USB-C 5V/3A (Pi 4) or 5V/5A (Pi 5) | Use official PSU for reliability |
 | Case (optional) | DIN-rail mount enclosure | For panel mounting in electrical cabinets |
@@ -86,15 +86,20 @@ sudo apt-get install -y avahi-daemon avahi-utils python3 python3-venv python3-pi
 Sets hostname to `pi-factory` via `hostnamectl` and updates `/etc/hosts`.
 
 ### Step 3: DHCP + Link-Local Fallback
-Appends to `/etc/dhcpcd.conf`:
+Writes `/etc/netplan/99-pi-factory.yaml`:
+```yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        route-metric: 100
+      link-local: [ipv4]
+      optional: true
 ```
-profile fallback_static
-static ip_address=169.254.42.1/16
-
-interface eth0
-fallback fallback_static
-```
-If no DHCP server exists on the network, the Pi falls back to `169.254.42.1` and is still reachable.
+If no DHCP server exists on the network, systemd-networkd assigns an automatic `169.254.x.x` link-local address and the Pi is still reachable.
 
 ### Step 4: Avahi mDNS
 Installs `/etc/avahi/services/pi-factory.service` which advertises:
@@ -130,7 +135,7 @@ bash deploy/setup-pi-factory.sh
 
 | Layer | Config | Fallback |
 |-------|--------|----------|
-| **IP** | DHCP on `eth0` | `169.254.42.1/16` (link-local, no server needed) |
+| **IP** | DHCP on `eth0` (Netplan + systemd-networkd) | Automatic `169.254.x.x/16` link-local (no server needed) |
 | **DNS** | mDNS via Avahi | Direct IP access always works |
 | **Hostname** | `pi-factory.local` | Avahi auto-resolves on Linux/macOS/Windows |
 | **Service** | `_factorylm._tcp` on port 8000 | `_http._tcp` also advertised |
@@ -372,7 +377,7 @@ sudo systemctl restart pi-factory
 - [x] CORS enabled for cross-origin dashboard access
 
 ### Needs Testing on Real Pi Hardware
-- [ ] `setup-pi-factory.sh` runs clean on fresh Raspberry Pi OS
+- [ ] `setup-pi-factory.sh` runs clean on fresh Ubuntu Server 24.04 LTS
 - [ ] Systemd service starts on boot and stays running
 - [ ] Avahi resolves `pi-factory.local` from other machines on LAN
 - [ ] Link-local fallback works when no DHCP server present
@@ -397,7 +402,7 @@ FACTORYLM_PI_FACTORY_COMPLETE
 
 Plug a Raspberry Pi into any factory Ethernet switch.
 Within 60 seconds:
-  1. Pi gets an IP (DHCP or 169.254.42.1 fallback)
+  1. Pi gets an IP (DHCP or 169.254.x.x link-local fallback)
   2. pi-factory.local resolves via mDNS
   3. http://pi-factory.local:8000 loads the dashboard
   4. Every Modbus TCP and EtherNet/IP PLC on the subnet appears
@@ -431,7 +436,7 @@ DESIGN PHASE:
 4. Document in DESIGN.md
 
 EXECUTION PHASE:
-1. Flash Raspberry Pi OS Lite (64-bit) to SD card
+1. Flash Ubuntu Server 24.04 LTS (64-bit) to SD card
 2. Run setup-pi-factory.sh on the Pi
 3. Verify each completion criteria checkbox
 4. Test link-local fallback (disconnect from DHCP network)
