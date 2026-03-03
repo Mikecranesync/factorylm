@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 import uuid
 from collections import defaultdict
 from typing import Callable, Awaitable
+
+import httpx
 
 from telegram import Update
 from telegram.constants import ChatAction
@@ -115,6 +118,22 @@ class TelegramAdapter(ChannelAdapter):
         if len(self._history[user_id]) > _MAX_HISTORY:
             self._history[user_id] = self._history[user_id][-_MAX_HISTORY:]
 
+    async def _capture_to_brain(self, role: str, content: str, user_id: str, source: str = "telegram") -> None:
+        """Non-blocking capture of conversation to Open Brain."""
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                await client.post(
+                    os.environ.get("BRAIN_INGEST_URL", "http://localhost:8500") + "/ingest",
+                    json={
+                        "content": content,
+                        "source": source,
+                        "tags": [role, "conversation"],
+                        "metadata": {"user_id": user_id, "role": role},
+                    },
+                )
+        except Exception:
+            logger.debug("brain capture failed (non-blocking)")
+
     async def _send_long(self, update: Update, text: str, parse_mode: str | None = None) -> None:
         """Send message, chunking if over Telegram's 4096 char limit."""
         MAX = 4096
@@ -217,6 +236,7 @@ class TelegramAdapter(ChannelAdapter):
 
         # Store user message in history
         self._add_to_history(user_id, "user", user_text)
+        asyncio.create_task(self._capture_to_brain("user", user_text, user_id))
 
         try:
             response = await self._dispatch(msg)
@@ -229,6 +249,7 @@ class TelegramAdapter(ChannelAdapter):
                 await self._send_voice(update, response.text)
             # Store assistant response in history
             self._add_to_history(user_id, "assistant", response.text[:500])
+            asyncio.create_task(self._capture_to_brain("assistant", response.text, user_id))
         except Exception:
             logger.exception("dispatch failed for message from user %s", user.id)
             await update.message.reply_text("Error processing request. Logged for review.")
@@ -265,6 +286,7 @@ class TelegramAdapter(ChannelAdapter):
         # Store user message in history (note photo was sent)
         caption = update.message.caption or ""
         self._add_to_history(user_id, "user", f"[Sent a photo] {caption}".strip())
+        asyncio.create_task(self._capture_to_brain("user", f"[Photo] {caption}", user_id, source="telegram_photo"))
 
         try:
             response = await self._dispatch(msg)

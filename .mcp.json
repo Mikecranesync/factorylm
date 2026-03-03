@@ -4,6 +4,11 @@
       "command": "python",
       "args": ["-m", "services.mcp.gist_server"],
       "cwd": "C:\\Users\\hharp\\Desktop\\factorylm-monorepo"
+    },
+    "factorylm-brain": {
+      "command": "python",
+      "args": ["-m", "services.mcp.brain_server"],
+      "cwd": "C:\\Users\\hharp\\Desktop\\factorylm-monorepo"
     }
   }
 }

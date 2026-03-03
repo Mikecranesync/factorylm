@@ -1,0 +1,6 @@
+mem0ai
+fastapi
+uvicorn
+psycopg2-binary
+google-genai
+groq
