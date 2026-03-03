@@ -1,5 +1,22 @@
 # CLAUDE.md
 
+## Open Brain — Startup Protocol
+
+**On every new conversation**, before doing any work:
+1. Call `brain_search` with the user's first message to load relevant past context
+2. When you make a significant decision, learn something, or complete a milestone — call `brain_capture` to save it
+3. If `brain_search` fails (MCP not available), fall back to MEMORY.md
+
+**Backfill** (run once per machine when env vars are available):
+```bash
+# Install deps if needed: pip install mem0ai psycopg2-binary google-genai groq
+# Needs: NEON_DATABASE_URL (Doppler openclaw/dev), GEMINI_API_KEY (Doppler factorylm/dev), GROQ_API_KEY (Doppler openclaw/dev)
+doppler run -p openclaw -c dev -- bash -c 'export GEMINI_API_KEY=$(doppler secrets get GEMINI_API_KEY -p factorylm -c dev --plain) && python tools/brain_backfill.py --limit 1400'
+```
+Resume-aware — safe to run repeatedly. ~1,400/day (Gemini free tier). 2,706 total turns.
+
+---
+
 ## ⚠️ READ FIRST: The Vision
 
 Before doing ANY work, read the FactoryLM Vision:
