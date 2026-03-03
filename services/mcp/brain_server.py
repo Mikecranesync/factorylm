@@ -23,13 +23,37 @@ if _monorepo not in sys.path:
 app = FastMCP("factorylm-brain")
 
 _memory = None
+_setup_error = None
+
+# Check env vars on import so we can give a helpful message
+_REQUIRED_VARS = ["NEON_DATABASE_URL", "GEMINI_API_KEY", "GROQ_API_KEY"]
+_missing = [v for v in _REQUIRED_VARS if not os.environ.get(v)]
+if _missing:
+    _setup_error = (
+        f"Open Brain not configured — missing env vars: {', '.join(_missing)}. "
+        "To set up: install Doppler CLI (doppler.com), then run the brain MCP server via "
+        ".mcp.json which uses Doppler to inject secrets. "
+        "Needed: NEON_DATABASE_URL (Doppler openclaw/dev), "
+        "GEMINI_API_KEY (Doppler factorylm/dev), "
+        "GROQ_API_KEY (Doppler openclaw/dev). "
+        "See CLAUDE.md 'Open Brain — Startup Protocol' for details."
+    )
+    logger.warning("Brain MCP: %s", _setup_error)
 
 
 def _get_memory():
     global _memory
+    if _setup_error:
+        raise RuntimeError(_setup_error)
     if _memory is None:
         from services.brain.config import get_memory
-        _memory = get_memory()
+        try:
+            _memory = get_memory()
+        except Exception as e:
+            raise RuntimeError(
+                f"Brain failed to initialize: {e}. "
+                "Check that NEON_DATABASE_URL, GEMINI_API_KEY, GROQ_API_KEY are set correctly."
+            ) from e
     return _memory
 
 
@@ -44,7 +68,11 @@ def brain_search(query: str, limit: int = 10) -> list[dict[str, Any]]:
 
     Returns the most relevant memories for the given query.
     """
-    mem = _get_memory()
+    try:
+        mem = _get_memory()
+    except RuntimeError as e:
+        return [{"error": str(e)}]
+
     results = mem.search(query, user_id="mike", limit=limit)
 
     memories = results.get("results", []) if isinstance(results, dict) else results
@@ -71,8 +99,12 @@ def brain_capture(
     Use this to save anything worth remembering — decisions, discoveries,
     patterns, or context that might be useful later.
     """
+    try:
+        mem = _get_memory()
+    except RuntimeError as e:
+        return {"error": str(e)}
+
     meta = {"source": source, "tags": tags, **metadata}
-    mem = _get_memory()
     result = mem.add(content, user_id="mike", metadata=meta)
 
     memories = result.get("results", []) if isinstance(result, dict) else []
@@ -90,6 +122,11 @@ def brain_research(question: str, search_focus: str = "internet") -> dict[str, A
     or anything beyond the brain's existing knowledge.
     """
     import httpx
+
+    try:
+        _get_memory()  # verify brain is available before researching
+    except RuntimeError as e:
+        return {"error": str(e)}
 
     api_key = os.environ.get("PERPLEXITY_API_KEY")
     if not api_key:
@@ -128,10 +165,13 @@ def brain_ingest_file(file_path: str, source: str = "repo", tags: list[str] = []
     Use for .md knowledge files, code summaries, architecture docs, etc.
     Large files are chunked by paragraphs (split on double newlines).
     """
+    try:
+        mem = _get_memory()
+    except RuntimeError as e:
+        return {"error": str(e)}
+
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
-
-    mem = _get_memory()
     # Chunk large files by paragraphs
     chunks = [c.strip() for c in content.split("\n\n") if c.strip() and len(c.strip()) > 50]
 
