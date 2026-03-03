@@ -20,10 +20,16 @@ Rate limits:
 from __future__ import annotations
 
 import argparse
+import io
 import json
+import os
 import sys
 import time
 from pathlib import Path
+
+# Force UTF-8 stdout on Windows (Telegram messages contain emoji/unicode)
+if sys.stdout.encoding != "utf-8":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 # Allow running from repo root: `python tools/brain_backfill.py`
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
