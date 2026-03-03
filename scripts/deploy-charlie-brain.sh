@@ -3,22 +3,21 @@
 # Open Brain Ingest — Charlie Node One-Shot Deploy
 # ============================================================
 # Run on Charlie Mac Mini:
-#   curl -sL https://raw.githubusercontent.com/Mikecranesync/factorylm/worktree-feat-open-brain/scripts/deploy-charlie-brain.sh | bash
-#
-# Or if repo is already cloned:
 #   bash scripts/deploy-charlie-brain.sh
 #
 # What this does:
-#   1. Clones/updates the factorylm repo
-#   2. Installs Python dependencies
-#   3. Writes env secrets
+#   1. Uses the existing ~/factorylm repo (pulls latest)
+#   2. Creates a Python venv and installs dependencies
+#   3. Prompts for env secrets (or reads existing ~/.env.brain)
 #   4. Creates a macOS launchd plist (auto-start on boot)
 #   5. Starts the brain ingest server on port 8500
 #   6. Verifies health
 # ============================================================
 set -euo pipefail
 
-REPO_DIR="$HOME/factorylm-monorepo"
+REPO_DIR="$HOME/factorylm"
+WORKTREE_DIR="$REPO_DIR/.claude/worktrees/feat-open-brain"
+VENV_DIR="$HOME/brain-venv"
 BRANCH="worktree-feat-open-brain"
 PORT=8500
 LOG="/tmp/brain-ingest.log"
@@ -32,48 +31,66 @@ echo "============================================"
 echo ""
 
 # ----------------------------------------------------------
-# 1. Clone or update repo
+# 1. Repository — use existing clone
 # ----------------------------------------------------------
 echo "[1/6] Repository..."
 if [ -d "$REPO_DIR/.git" ]; then
-    echo "  Repo exists, pulling latest..."
-    cd "$REPO_DIR"
-    git fetch origin "$BRANCH"
-    git checkout "$BRANCH"
-    git pull origin "$BRANCH"
+    echo "  Repo exists at $REPO_DIR, pulling latest..."
+    git -C "$REPO_DIR" fetch origin "$BRANCH" 2>/dev/null || true
+    git -C "$REPO_DIR" pull --ff-only 2>/dev/null || true
 else
-    echo "  Cloning repo..."
-    gh repo clone Mikecranesync/factorylm "$REPO_DIR"
-    cd "$REPO_DIR"
-    git checkout "$BRANCH"
+    echo "  ERROR: Expected repo at $REPO_DIR — clone it first:"
+    echo "    gh repo clone Mikecranesync/factorylm $REPO_DIR"
+    exit 1
 fi
-echo "  OK — $(git log --oneline -1)"
+
+# Determine working directory (prefer worktree if it exists)
+if [ -d "$WORKTREE_DIR/services/brain" ]; then
+    WORK_DIR="$WORKTREE_DIR"
+    echo "  Using worktree at $WORK_DIR"
+else
+    WORK_DIR="$REPO_DIR"
+    echo "  Using repo root at $WORK_DIR"
+fi
+echo "  OK — $(git -C "$WORK_DIR" log --oneline -1)"
 echo ""
 
 # ----------------------------------------------------------
-# 2. Install Python dependencies
+# 2. Python venv + dependencies
 # ----------------------------------------------------------
-echo "[2/6] Python dependencies..."
-python3 -m pip install --user --quiet \
-    mem0ai fastapi uvicorn psycopg2-binary google-genai groq 2>&1 | tail -3
+echo "[2/6] Python venv + dependencies..."
+if [ ! -d "$VENV_DIR" ]; then
+    python3 -m venv "$VENV_DIR"
+    echo "  Created venv at $VENV_DIR"
+fi
+source "$VENV_DIR/bin/activate"
+pip install --quiet --upgrade pip 2>&1 | tail -1
+pip install --quiet -r "$WORK_DIR/services/brain/requirements.txt" 2>&1 | tail -3
 echo "  OK"
 echo ""
 
 # ----------------------------------------------------------
-# 3. Write env file (secrets)
+# 3. Environment secrets
 # ----------------------------------------------------------
 echo "[3/6] Environment secrets..."
 if [ -f "$ENV_FILE" ]; then
     echo "  $ENV_FILE already exists, skipping (delete to regenerate)"
 else
-    cat > "$ENV_FILE" <<'SECRETS'
-export NEON_DATABASE_URL="postgresql://neondb_owner:npg_c3UNa4KOlCeL@ep-purple-hall-ahimeyn0-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require"
-export GEMINI_API_KEY="AIzaSyCLcSmsEFkx5C_eGaATHvFRGYEBOHPPPbg"
-export GROQ_API_KEY="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"
+    echo "  No $ENV_FILE found. Enter secrets (or Ctrl-C to abort):"
+    read -rp "  NEON_DATABASE_URL: " NEON_URL
+    read -rp "  GEMINI_API_KEY:    " GEMINI_KEY
+    read -rp "  GROQ_API_KEY:      " GROQ_KEY
+    cat > "$ENV_FILE" <<SECRETS
+export NEON_DATABASE_URL="$NEON_URL"
+export GEMINI_API_KEY="$GEMINI_KEY"
+export GROQ_API_KEY="$GROQ_KEY"
 SECRETS
     chmod 600 "$ENV_FILE"
-    echo "  Written to $ENV_FILE"
+    echo "  Written to $ENV_FILE (mode 600)"
 fi
+
+# Source the env to get values for the plist
+source "$ENV_FILE"
 echo ""
 
 # ----------------------------------------------------------
@@ -82,8 +99,7 @@ echo ""
 echo "[4/6] launchd service..."
 mkdir -p "$HOME/Library/LaunchAgents"
 
-# Find python3 path
-PYTHON3=$(which python3)
+PYTHON3="$VENV_DIR/bin/python3"
 
 cat > "$PLIST_PATH" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -104,17 +120,17 @@ cat > "$PLIST_PATH" <<PLIST
         <string>${PORT}</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>${REPO_DIR}</string>
+    <string>${WORK_DIR}</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>NEON_DATABASE_URL</key>
-        <string>postgresql://neondb_owner:npg_c3UNa4KOlCeL@ep-purple-hall-ahimeyn0-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require</string>
+        <string>${NEON_DATABASE_URL}</string>
         <key>GEMINI_API_KEY</key>
-        <string>AIzaSyCLcSmsEFkx5C_eGaATHvFRGYEBOHPPPbg</string>
+        <string>${GEMINI_API_KEY}</string>
         <key>GROQ_API_KEY</key>
-        <string>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</string>
+        <string>${GROQ_API_KEY}</string>
         <key>PATH</key>
-        <string>/usr/local/bin:/usr/bin:/bin:${HOME}/.local/bin:${HOME}/Library/Python/3.9/bin:${HOME}/Library/Python/3.11/bin:${HOME}/Library/Python/3.12/bin</string>
+        <string>${VENV_DIR}/bin:/usr/local/bin:/usr/bin:/bin</string>
     </dict>
     <key>StandardOutPath</key>
     <string>/tmp/brain-ingest.log</string>
@@ -134,7 +150,6 @@ echo ""
 # 5. Start (or restart) the service
 # ----------------------------------------------------------
 echo "[5/6] Starting service..."
-# Unload if already loaded
 launchctl unload "$PLIST_PATH" 2>/dev/null || true
 launchctl load "$PLIST_PATH"
 echo "  Loaded $PLIST_NAME"
@@ -150,13 +165,13 @@ if curl -sf "http://localhost:${PORT}/health"; then
     echo ""
     echo "============================================"
     echo "  BRAIN INGEST RUNNING ON CHARLIE"
-    echo "  http://$(hostname -I 2>/dev/null || ipconfig getifaddr en1):${PORT}"
+    echo "  http://$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo localhost):${PORT}"
     echo "  Logs: tail -f $LOG"
     echo "  Stop: launchctl unload $PLIST_PATH"
     echo "============================================"
 else
     echo "  HEALTH CHECK FAILED"
     echo "  Check logs: cat /tmp/brain-ingest.err"
-    echo "  Try manual: source ~/.env.brain && cd $REPO_DIR && python3 -m uvicorn services.brain.ingest:app --host 0.0.0.0 --port $PORT"
+    echo "  Try manual: source ~/.env.brain && cd $WORK_DIR && $PYTHON3 -m uvicorn services.brain.ingest:app --host 0.0.0.0 --port $PORT"
     exit 1
 fi

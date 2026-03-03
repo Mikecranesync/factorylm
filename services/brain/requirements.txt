@@ -4,3 +4,4 @@ uvicorn
 psycopg2-binary
 google-genai
 groq
+eval_type_backport
