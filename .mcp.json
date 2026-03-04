@@ -4,6 +4,11 @@
       "command": "python",
       "args": ["-m", "services.mcp.gist_server"],
       "cwd": "C:\\Users\\hharp\\Desktop\\factorylm-monorepo"
+    },
+    "factorylm-brain": {
+      "command": "bash",
+      "args": ["-c", "export $(doppler secrets get NEON_DATABASE_URL GROQ_API_KEY -p openclaw -c dev --format env-no-quotes) && export GEMINI_API_KEY=$(doppler secrets get GEMINI_API_KEY -p factorylm -c dev --plain) && python -m services.mcp.brain_server"],
+      "cwd": "C:\\Users\\hharp\\Desktop\\factorylm-monorepo"
     }
   }
 }

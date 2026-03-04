@@ -1,0 +1,17 @@
+[Unit]
+Description=Open Brain Ingest Server (Mem0 + Neon pgvector)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/openclaw/brain-venv/bin/uvicorn services.brain.ingest:app --host 0.0.0.0 --port 8500
+WorkingDirectory=/opt/openclaw
+Restart=always
+RestartSec=10
+
+# Env vars — injected by Doppler or set here
+EnvironmentFile=-/opt/openclaw/.env.brain
+
+[Install]
+WantedBy=multi-user.target
