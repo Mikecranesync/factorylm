@@ -1,0 +1,368 @@
+id: mechanical_bolted_joint
+title: "Mechanical - Bolted Joint Troubleshooting"
+start_node: mechanical_start
+
+nodes:
+  mechanical_start:
+    type: question
+    text: "🔧 Mechanical Issue Diagnosis\n\nWhat type of mechanical problem are you seeing?"
+    options:
+      - label: "Loose bolts / fasteners"
+        id: loose_bolts
+        next: check_bolt_condition
+      - label: "Vibration / noise"
+        id: vibration
+        next: check_vibration
+      - label: "Misalignment"
+        id: misalignment
+        next: check_alignment
+      - label: "Visible damage / wear"
+        id: damage
+        next: photo_damage
+
+  check_bolt_condition:
+    type: question
+    text: "Describe the bolt condition:"
+    options:
+      - label: "Bolts are backing out"
+        id: backing_out
+        next: assess_bolt_loosening
+      - label: "Bolts are stretched or broken"
+        id: broken
+        next: assess_bolt_failure
+      - label: "Gap between flanges"
+        id: gap
+        next: assess_gap
+      - label: "Not sure — send photo"
+        id: photo_bolts
+        next: photo_bolt_condition
+
+  photo_bolt_condition:
+    type: await_photo
+    text: "📸 Send a photo of the bolted connection.\n\nTry to capture:\n- The bolt heads\n- Any gaps between surfaces\n- Surrounding area"
+    store_as: bolt_photo
+    on_photo_received: classify_bolt_photo
+    on_text_received: check_bolt_condition
+
+  classify_bolt_photo:
+    type: vision_classify
+    photo_field: bolt_photo
+    prompt: |
+      Analyze this photo of a bolted joint connection. Classify the issue:
+
+      Return ONLY valid JSON:
+      {"category": "<one of: backing_out, broken, gap, corrosion, normal, unknown>", "confidence": <0.0-1.0>, "description": "<what you observe>"}
+
+      Categories:
+      - backing_out: Bolts visibly loose, partially unscrewed, thread showing
+      - broken: Broken bolt, sheared fastener, missing bolt head
+      - gap: Visible gap between mating surfaces/flanges
+      - corrosion: Rust, oxidation, or chemical attack on fasteners
+      - normal: Connection appears normal/tight
+      - unknown: Cannot determine
+    store_result_as: bolt_vision_result
+    routes:
+      backing_out: assess_bolt_loosening
+      broken: assess_bolt_failure
+      gap: assess_gap
+      corrosion: advice_corrosion
+      normal: advice_normal_bolts
+      unknown: escalate_bolt_issue
+
+  assess_bolt_loosening:
+    type: question
+    text: "Bolts are backing out. How many bolts in the pattern are affected?"
+    options:
+      - label: "1-2 bolts"
+        id: few_bolts
+        next: advice_retorque_few
+      - label: "Multiple bolts (3+)"
+        id: many_bolts
+        next: advice_retorque_pattern
+      - label: "All bolts"
+        id: all_bolts
+        next: advice_retorque_all
+
+  advice_retorque_few:
+    type: advice
+    text: |
+      🔧 Retorque 1-2 loose bolts:
+
+      1. Clean bolt threads and mating surfaces
+      2. Inspect bolt threads for damage — replace if stretched
+      3. Apply appropriate thread locker (blue Loctite 242 for removable)
+      4. Torque to specification using calibrated torque wrench
+      5. Mark bolt heads with paint pen for future monitoring
+      6. Re-check torque after 24 hours of operation
+
+      ⚠️ If bolts keep loosening, the joint may have a design issue — vibration, thermal cycling, or insufficient clamp load.
+
+  advice_retorque_pattern:
+    type: advice
+    text: |
+      🔧 Multiple bolts loose — retorque full pattern:
+
+      1. STOP the machine if safe to do so
+      2. Break all bolts loose in the pattern
+      3. Clean all bolt threads and flange faces
+      4. Inspect every bolt — replace any that are stretched, corroded, or damaged
+      5. Apply thread locker to all bolts
+      6. Tighten in a STAR PATTERN to 50% torque
+      7. Second pass: star pattern to 75% torque
+      8. Final pass: star pattern to 100% specification
+      9. Mark all bolt heads with paint pen
+      10. Schedule re-check after 4 hours of operation
+
+  advice_retorque_all:
+    type: advice
+    text: |
+      ⚠️ ALL bolts loose — this indicates a systemic issue:
+
+      1. STOP the machine immediately
+      2. Assess if the joint has shifted or separated
+      3. Check for damage to mating surfaces
+      4. Consider root cause:
+         - Wrong bolt grade? (check markings)
+         - Under-torqued originally?
+         - Severe vibration?
+         - Thermal cycling?
+         - Gasket compression set?
+      5. Replace ALL fasteners with new ones of correct grade
+      6. Follow proper torque sequence (star pattern, 3 passes)
+      7. Consider adding Belleville washers or Nord-Lock washers
+      8. Document and report — this may be a design issue
+
+  assess_bolt_failure:
+    type: question
+    text: "Bolt failure detected. What do the fracture surfaces look like?"
+    options:
+      - label: "Clean break (shiny surface)"
+        id: clean_break
+        next: advice_overload_failure
+      - label: "Rough/grainy break"
+        id: fatigue_break
+        next: advice_fatigue_failure
+      - label: "Corroded / rusted through"
+        id: corroded
+        next: advice_corrosion
+      - label: "Not sure"
+        id: unsure_failure
+        next: escalate_bolt_issue
+
+  advice_overload_failure:
+    type: advice
+    text: |
+      ⚠️ Overload failure — the bolt was subjected to force beyond its capacity:
+
+      1. STOP machine and lock out
+      2. Do NOT simply replace with same bolt
+      3. Investigate the cause of overload:
+         - Impact event?
+         - Machine jam?
+         - Improper bolt grade?
+      4. Check adjacent bolts for stretching
+      5. Replace with correct grade bolt (or upgrade)
+      6. Verify torque specification matches application
+      7. Report the incident — overload failures indicate a safety concern
+
+  advice_fatigue_failure:
+    type: advice
+    text: |
+      ⚠️ Fatigue failure — cyclic loading caused crack propagation:
+
+      1. STOP machine and lock out
+      2. Fatigue = repeated stress cycles over time (this didn't happen suddenly)
+      3. Check ALL bolts in the pattern — others may be cracking
+      4. Look for "beach marks" on fracture surface (concentric rings)
+      5. Root cause investigation:
+         - Vibration source?
+         - Insufficient preload (under-torqued)?
+         - Stress concentration (sharp corners, notches)?
+      6. Consider engineering review of the joint design
+      7. Replace all bolts with new fasteners
+      8. Consider upgraded fastener design (rolled threads, higher grade)
+
+  assess_gap:
+    type: question
+    text: "There's a gap between mating surfaces. How large is the gap?"
+    options:
+      - label: "Hairline (can barely see it)"
+        id: hairline
+        next: advice_shim_hairline
+      - label: "Small gap (1-3mm)"
+        id: small_gap
+        next: advice_shim_small
+      - label: "Large gap (>3mm)"
+        id: large_gap
+        next: advice_gap_large
+
+  advice_shim_hairline:
+    type: advice
+    text: |
+      Hairline gap assessment:
+
+      1. Check if gap is uniform around the joint
+      2. If uniform: may be normal gasket compression — measure and compare to spec
+      3. If uneven: indicates misalignment
+         - Check mounting surface flatness
+         - Look for debris between surfaces
+      4. Retorque bolts in star pattern
+      5. Re-measure gap after torque
+      6. If gap remains, a shim may be needed — consult maintenance engineering
+
+  advice_shim_small:
+    type: advice
+    text: |
+      Small gap (1-3mm) — action required:
+
+      1. STOP machine if gap is growing
+      2. Check if bolts are fully torqued
+      3. Inspect mating surfaces for:
+         - Warping or distortion
+         - Debris or buildup
+         - Gasket failure
+      4. If surfaces are true but gap persists:
+         - Machine shims to exact thickness needed
+         - Use stainless steel shim stock
+         - Install shims and retorque
+      5. If surfaces are warped: escalate to engineering for machining/replacement
+
+  advice_gap_large:
+    type: advice
+    text: |
+      ⚠️ Large gap (>3mm) — STOP machine immediately:
+
+      1. Lock out the machine
+      2. This indicates a serious structural issue
+      3. Do NOT attempt to close gap by over-torquing bolts
+      4. Investigate root cause:
+         - Foundation shift?
+         - Structural member failure?
+         - Thermal expansion beyond design?
+      5. Measure and document the gap at all bolt locations
+      6. Take photos for engineering review
+      7. Contact maintenance engineering — this requires professional assessment
+
+  advice_corrosion:
+    type: advice
+    text: |
+      Corrosion damage on fasteners:
+
+      1. Assess extent of corrosion on all bolts in the joint
+      2. Replace ALL corroded fasteners — do not reuse
+      3. Clean mating surfaces of corrosion products
+      4. Apply anti-seize compound to new bolt threads
+      5. Use corrosion-resistant fasteners if in corrosive environment:
+         - Stainless steel (316 for chemical exposure)
+         - Hot-dip galvanized (outdoor/wet)
+         - Zinc-nickel plated
+      6. Address the source of corrosion:
+         - Water intrusion?
+         - Chemical exposure?
+         - Dissimilar metals?
+
+  advice_normal_bolts:
+    type: advice
+    text: |
+      The bolted connection appears to be in normal condition.
+
+      If you're still experiencing issues:
+      1. Check torque on all bolts with a calibrated wrench
+      2. Look for issues in adjacent components
+      3. The problem may not be at this joint
+
+      Would you like to restart and check something else? Use /start to begin again.
+
+  check_vibration:
+    type: question
+    text: "Vibration/noise troubleshooting. What are you observing?"
+    options:
+      - label: "New vibration that wasn't there before"
+        id: new_vibration
+        next: advice_new_vibration
+      - label: "Vibration getting worse over time"
+        id: worsening
+        next: advice_worsening_vibration
+      - label: "Abnormal noise"
+        id: noise
+        next: advice_noise
+
+  advice_new_vibration:
+    type: advice
+    text: |
+      New vibration troubleshooting:
+
+      1. What changed recently? (maintenance, new parts, process change)
+      2. Check for:
+         - Loose mounting bolts
+         - Unbalanced rotating components
+         - Misalignment after maintenance
+         - Damaged coupling
+         - Bearing failure beginning
+      3. Touch-check temperatures of bearings and housings
+      4. If vibration is severe: STOP machine to prevent further damage
+      5. Recommend vibration analysis if cause is unclear
+
+  advice_worsening_vibration:
+    type: advice
+    text: |
+      ⚠️ Worsening vibration — progressive failure in progress:
+
+      1. Schedule shutdown ASAP — this will only get worse
+      2. Likely causes:
+         - Bearing degradation
+         - Coupling wear
+         - Foundation loosening
+         - Rotor imbalance (buildup or loss of material)
+      3. Plan for:
+         - Bearing replacement
+         - Coupling inspection
+         - Alignment check
+         - Foundation bolt re-torque
+      4. Get vibration baseline readings before and after repair
+
+  advice_noise:
+    type: advice
+    text: |
+      Abnormal noise diagnosis:
+
+      - **Grinding**: Metal-on-metal contact. Bearing failure, gear damage, or foreign object
+      - **Squealing**: Belt slip, brake drag, or dry bearing
+      - **Knocking/banging**: Loose component, cavitation (pumps), or mechanical interference
+      - **Humming/buzzing**: Electrical (motor), loose laminations, or resonance
+      - **Clicking**: Chipped gear tooth, cracked race, or loose fastener
+
+      For any metallic grinding or banging: STOP machine immediately to prevent catastrophic failure.
+
+  check_alignment:
+    type: advice
+    text: |
+      Misalignment troubleshooting:
+
+      1. Check coupling alignment (parallel and angular):
+         - Use dial indicators or laser alignment tool
+         - Compare to manufacturer tolerance
+      2. Check for soft foot:
+         - Loosen each mounting bolt one at a time
+         - Measure gap under foot with feeler gauge
+         - Shim any foot with >0.05mm gap
+      3. Common alignment causes:
+         - Thermal growth (check hot vs cold alignment)
+         - Foundation settling
+         - Piping strain
+      4. Always check alignment after any bearing or coupling work
+
+  photo_damage:
+    type: await_photo
+    text: "📸 Send a photo of the visible damage or wear.\n\nCapture the full extent of the damage if possible."
+    store_as: damage_photo
+    on_photo_received: escalate_damage
+    on_text_received: mechanical_start
+
+  escalate_damage:
+    type: escalate_llm
+    text: "The user has sent a photo of visible mechanical damage. Analyze the session context, including any vision classification results, and provide specific troubleshooting guidance for the damage observed."
+
+  escalate_bolt_issue:
+    type: escalate_llm
+    text: "The user has a bolted joint issue that doesn't fit standard categories. Analyze the session context and provide specific troubleshooting guidance."
