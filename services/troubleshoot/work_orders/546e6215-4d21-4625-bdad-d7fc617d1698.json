@@ -1,0 +1,36 @@
+{
+  "session_id": "546e6215-4d21-4625-bdad-d7fc617d1698",
+  "user_id": "tg_8445149012",
+  "created_at": "2026-02-19T23:28:02.784731+00:00",
+  "completed_at": "2026-02-19T23:28:05.422643+00:00",
+  "workflow_id": "photo_triage",
+  "path_taken": [
+    "welcome",
+    "take_photo"
+  ],
+  "data": {},
+  "evidence_photos": [],
+  "events": [
+    {
+      "type": "session_start",
+      "ts": 1771543682.7847307
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771543682.7847307,
+      "node_id": "welcome",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1771543685.4226432,
+      "button_id": "send_photo"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771543685.4226432,
+      "node_id": "take_photo",
+      "workflow_id": "photo_triage"
+    }
+  ]
+}

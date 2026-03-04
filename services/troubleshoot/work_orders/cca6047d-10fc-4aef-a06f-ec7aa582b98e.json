@@ -1,0 +1,71 @@
+{
+  "session_id": "cca6047d-10fc-4aef-a06f-ec7aa582b98e",
+  "user_id": "tg_8445149012",
+  "created_at": "2026-02-20T01:02:47.253848+00:00",
+  "completed_at": "2026-02-20T01:03:09.168208+00:00",
+  "workflow_id": "photo_triage",
+  "path_taken": [
+    "welcome",
+    "take_photo",
+    "classify_photo",
+    "controls_start"
+  ],
+  "data": {
+    "photo": "C:\\Users\\hharp\\OneDrive\\Desktop\\FactoryLM\\services\\troubleshoot\\photos\\cca6047d-10fc-4aef-a06f-ec7aa582b98e_1.jpg",
+    "vision_result": {
+      "category": "controls",
+      "confidence": 1.0,
+      "description": "HMI screen displaying active alarms and system issues"
+    }
+  },
+  "evidence_photos": [
+    "C:\\Users\\hharp\\OneDrive\\Desktop\\FactoryLM\\services\\troubleshoot\\photos\\cca6047d-10fc-4aef-a06f-ec7aa582b98e_1.jpg"
+  ],
+  "events": [
+    {
+      "type": "session_start",
+      "ts": 1771549367.2538483
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771549367.2538483,
+      "node_id": "welcome",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1771549370.332534,
+      "button_id": "send_photo"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771549370.332534,
+      "node_id": "take_photo",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "photo_received",
+      "ts": 1771549384.9933174,
+      "path": "C:\\Users\\hharp\\OneDrive\\Desktop\\FactoryLM\\services\\troubleshoot\\photos\\cca6047d-10fc-4aef-a06f-ec7aa582b98e_1.jpg"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771549384.9933174,
+      "node_id": "classify_photo",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "vision_result",
+      "ts": 1771549389.1682081,
+      "category": "controls",
+      "confidence": 1.0,
+      "description": "HMI screen displaying active alarms and system issues"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771549389.1682081,
+      "node_id": "controls_start",
+      "workflow_id": "photo_triage"
+    }
+  ]
+}
