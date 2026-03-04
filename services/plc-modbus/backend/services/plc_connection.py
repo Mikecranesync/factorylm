@@ -43,11 +43,11 @@ class PLCConnectionService:
 
     REGISTER_NAMES = {
         100: "ItemCount",
-        101: "register_101",
-        102: "register_102",
-        103: "register_103",
-        104: "register_104",
-        105: "register_105",
+        101: "ConveyorHz",
+        102: "MotorCurrentX10",
+        103: "MotorTempX10",
+        104: "VFDStatus",
+        105: "ErrorCode",
     }
 
     # Writable coils: outputs (0,1), RunCommand (4), unused (5,6), physical outputs (15-17)
