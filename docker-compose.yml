@@ -1,0 +1,81 @@
+# FactoryLM SCADA Stack — Local Simulation
+#
+# Usage:  docker-compose up -d
+# HMI:    http://localhost:1880/ui
+# PLC:    http://localhost:8001/api/plc/io
+# Diag:   http://localhost:8200/sim
+# Modbus: localhost:502 (raw Modbus TCP)
+#
+# Env vars (optional):
+#   WEBCAM_URL    — MJPEG stream URL (default: PLC laptop webcam)
+#   GROQ_API_KEY  — enables AI diagnosis via Groq
+#
+services:
+
+  # ── Raw Modbus TCP simulator (Micro 820 register map) ──────────
+  modbus-sim:
+    image: oitc/modbus-server:latest
+    container_name: factorylm-modbus
+    ports:
+      - "502:5020"
+    volumes:
+      - ./infra/scada/modbus/server_config.json:/server_config.json:ro
+    restart: unless-stopped
+
+  # ── PLC API + MockPLC (dynamic simulation) ─────────────────────
+  plc-modbus:
+    build:
+      context: ./services/plc-modbus
+      dockerfile: ../../infra/scada/plc-modbus.Dockerfile
+    container_name: factorylm-plc
+    ports:
+      - "8001:8001"
+    environment:
+      FACTORYLM_MOCK_MODE: "true"
+      FACTORYLM_DISCOVERY_PORT: "8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ── AI Diagnosis service ───────────────────────────────────────
+  diagnosis:
+    build:
+      context: ./services/diagnosis
+      dockerfile: ../../infra/scada/diagnosis.Dockerfile
+    container_name: factorylm-diagnosis
+    ports:
+      - "8200:8200"
+    environment:
+      PLC_MODBUS_URL: "http://plc-modbus:8001"
+      LLM_ROUTER_URL: "http://llm-router:8100"
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+    depends_on:
+      plc-modbus:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Node-RED SCADA HMI ────────────────────────────────────────
+  node-red:
+    build:
+      context: ./infra/scada/node-red
+    container_name: factorylm-hmi
+    ports:
+      - "1880:1880"
+    volumes:
+      - node-red-data:/data
+    environment:
+      PLC_API_URL: "http://plc-modbus:8001"
+      DIAGNOSIS_URL: "http://diagnosis:8200"
+      MODBUS_HOST: "modbus-sim"
+      MODBUS_PORT: "502"
+      WEBCAM_URL: "${WEBCAM_URL:-http://100.72.2.99:8081/stream}"
+    depends_on:
+      - plc-modbus
+      - modbus-sim
+    restart: unless-stopped
+
+volumes:
+  node-red-data:

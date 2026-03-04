@@ -1,11 +1,18 @@
 """
-Mock PLC implementation for testing without hardware.
+Mock PLC — simulates a Micro 820 + VFD + conveyor ("From A to B" scene).
 
-Simulates realistic machine behavior including:
-- Temperature increases when motor runs
-- Current changes with speed
-- Sensor toggling
-- Error conditions
+Coil map matches plc_connection.py COIL_NAMES exactly:
+  0-6   program coils   (Conveyor, Emitter, SensorStart, SensorEnd, RunCommand, …)
+  7-14  physical inputs  (DI_00-DI_07: selector switch, E-stop, pushbutton)
+  15-17 physical outputs (DO_00, DO_01, DO_03: indicator LEDs)
+
+Register map (100-105):
+  100  ItemCount       — items that reached SensorEnd
+  101  ConveyorHz      — VFD frequency 0-60 Hz
+  102  MotorCurrentX10 — motor current in tenths of amp (e.g. 45 = 4.5 A)
+  103  MotorTempX10    — motor temperature in tenths of °C (e.g. 312 = 31.2 °C)
+  104  VFDStatus       — 0=idle, 1=running, 2=fault
+  105  ErrorCode       — 0=none, 1=overload, 2=overheat, 3=sensor-fail, 4=jam, 7=e-stop
 """
 
 import random
@@ -17,351 +24,305 @@ from .models import FactoryState
 
 
 class MockPLC(BasePLCClient):
-    """
-    Mock PLC for testing without real hardware.
+    """Simulated Micro 820 + VFD for the 'From A to B' Factory I/O scene."""
 
-    Simulates Factory I/O + Micro 820 behavior with realistic values
-    and state changes.
-    """
+    # ── Coil addresses (match plc_connection.py exactly) ──────────────
+    # Program coils
+    COIL_CONVEYOR = 0       # belt motor output
+    COIL_EMITTER = 1        # item spawner output
+    COIL_SENSOR_START = 2   # entry sensor (Factory I/O → PLC)
+    COIL_SENSOR_END = 3     # exit sensor  (Factory I/O → PLC)
+    COIL_RUN_COMMAND = 4    # remote start/stop
+    # Physical inputs
+    COIL_DI_00 = 7          # 3-pos switch CENTER
+    COIL_DI_01 = 8          # E-stop NO contact
+    COIL_DI_02 = 9          # E-stop NC contact (True = released)
+    COIL_DI_03 = 10         # 3-pos switch RIGHT
+    COIL_DI_04 = 11         # Left pushbutton
+    # Physical outputs
+    COIL_DO_00 = 15         # switch indicator LED
+    COIL_DO_01 = 16         # E-stop indicator LED
+    COIL_DO_03 = 17         # auxiliary output
 
-    # Holding register addresses (matching Micro 820 config)
-    REGISTER_MOTOR_SPEED = 100
-    REGISTER_MOTOR_CURRENT = 101
-    REGISTER_TEMPERATURE = 102
-    REGISTER_PRESSURE = 103
-    REGISTER_CONVEYOR_SPEED = 104
-    REGISTER_ERROR_CODE = 105
+    # ── Register addresses ────────────────────────────────────────────
+    REG_ITEM_COUNT = 100
+    REG_CONVEYOR_HZ = 101
+    REG_MOTOR_CURRENT_X10 = 102
+    REG_MOTOR_TEMP_X10 = 103
+    REG_VFD_STATUS = 104
+    REG_ERROR_CODE = 105
 
-    # Coil addresses
-    COIL_MOTOR_RUNNING = 0
-    COIL_MOTOR_STOPPED = 1
-    COIL_FAULT_ALARM = 2
-    COIL_CONVEYOR_RUNNING = 3
-    COIL_SENSOR_1 = 4
-    COIL_SENSOR_2 = 5
-    COIL_E_STOP = 6
-
-    def __init__(self, initial_state: Dict[str, Any] = None):
-        """
-        Initialize MockPLC with optional initial state.
-
-        Args:
-            initial_state: Optional dict to override default register/coil values.
-        """
+    def __init__(self, initial_state: Dict[str, Any] | None = None):
         self._connected = False
+        self._tick = 0          # monotonic sim tick (incremented each read)
+        self._item_in_transit = False
+        self._item_progress = 0  # 0-5, when it hits 5 the item reaches SensorEnd
 
-        # Initialize registers with realistic defaults
-        # Values stored as raw integers (before scale factor applied)
+        # 18 coils (0-17), all False except E-stop NC (released = True)
+        self._coils: Dict[int, bool] = {i: False for i in range(18)}
+        self._coils[self.COIL_DI_02] = True   # NC contact: True when e-stop released
+        self._coils[self.COIL_DI_00] = True    # switch starts at CENTER
+        self._coils[self.COIL_DO_00] = True    # switch indicator reflects CENTER
+
+        # 6 registers
         self._registers: Dict[int, int] = {
-            self.REGISTER_MOTOR_SPEED: 0,       # 0%
-            self.REGISTER_MOTOR_CURRENT: 0,     # 0.0A (raw: 0)
-            self.REGISTER_TEMPERATURE: 250,     # 25.0C (raw: 250)
-            self.REGISTER_PRESSURE: 100,        # 100 PSI
-            self.REGISTER_CONVEYOR_SPEED: 0,    # 0%
-            self.REGISTER_ERROR_CODE: 0,        # No error
+            self.REG_ITEM_COUNT: 0,
+            self.REG_CONVEYOR_HZ: 0,
+            self.REG_MOTOR_CURRENT_X10: 0,
+            self.REG_MOTOR_TEMP_X10: 250,   # 25.0 °C ambient
+            self.REG_VFD_STATUS: 0,          # idle
+            self.REG_ERROR_CODE: 0,
         }
 
-        # Initialize coils (boolean states)
-        self._coils: Dict[int, bool] = {
-            self.COIL_MOTOR_RUNNING: False,
-            self.COIL_MOTOR_STOPPED: True,
-            self.COIL_FAULT_ALARM: False,
-            self.COIL_CONVEYOR_RUNNING: False,
-            self.COIL_SENSOR_1: False,
-            self.COIL_SENSOR_2: False,
-            self.COIL_E_STOP: False,
-        }
-
-        # Apply initial state if provided
         if initial_state:
             self._apply_initial_state(initial_state)
 
-        # Scene name for Factory I/O
-        self.scene_name = "sorting_station"
+        self.scene_name = "from_a_to_b"
 
-    def _apply_initial_state(self, state: Dict[str, Any]) -> None:
-        """Apply initial state values to registers and coils."""
-        # Map friendly names to register addresses
-        register_map = {
-            "motor_speed": self.REGISTER_MOTOR_SPEED,
-            "motor_current": self.REGISTER_MOTOR_CURRENT,
-            "temperature": self.REGISTER_TEMPERATURE,
-            "pressure": self.REGISTER_PRESSURE,
-            "conveyor_speed": self.REGISTER_CONVEYOR_SPEED,
-            "error_code": self.REGISTER_ERROR_CODE,
-        }
-
-        coil_map = {
-            "motor_running": self.COIL_MOTOR_RUNNING,
-            "motor_stopped": self.COIL_MOTOR_STOPPED,
-            "fault_alarm": self.COIL_FAULT_ALARM,
-            "conveyor_running": self.COIL_CONVEYOR_RUNNING,
-            "sensor_1_active": self.COIL_SENSOR_1,
-            "sensor_2_active": self.COIL_SENSOR_2,
-            "e_stop_active": self.COIL_E_STOP,
-        }
-
-        for key, value in state.items():
-            if key in register_map:
-                self._registers[register_map[key]] = value
-            elif key in coil_map:
-                self._coils[coil_map[key]] = value
+    # ── BasePLCClient interface ───────────────────────────────────────
 
     def connect(self) -> bool:
-        """Simulate connection (always succeeds for mock)."""
         self._connected = True
         return True
 
     def disconnect(self) -> None:
-        """Simulate disconnection."""
         self._connected = False
 
     def is_connected(self) -> bool:
-        """Check simulated connection state."""
         return self._connected
 
     def _ensure_connected(self) -> None:
-        """Raise ConnectionError if not connected."""
         if not self._connected:
             raise ConnectionError("MockPLC is not connected")
 
-    def read_holding_registers(self, address: int, count: int) -> List[int]:
-        """
-        Read simulated holding registers.
-
-        Args:
-            address: Starting register address.
-            count: Number of registers to read.
-
-        Returns:
-            List[int]: Simulated register values.
-        """
-        self._ensure_connected()
-        self._simulate_behavior()
-
-        values = []
-        for i in range(count):
-            addr = address + i
-            values.append(self._registers.get(addr, 0))
-        return values
-
     def read_coils(self, address: int, count: int) -> List[bool]:
-        """
-        Read simulated coils.
-
-        Args:
-            address: Starting coil address.
-            count: Number of coils to read.
-
-        Returns:
-            List[bool]: Simulated coil values.
-        """
         self._ensure_connected()
+        self._simulate()
+        return [self._coils.get(address + i, False) for i in range(count)]
 
-        values = []
-        for i in range(count):
-            addr = address + i
-            values.append(self._coils.get(addr, False))
-        return values
-
-    def write_register(self, address: int, value: int) -> bool:
-        """
-        Write to a simulated holding register.
-
-        Args:
-            address: Register address.
-            value: Value to write.
-
-        Returns:
-            bool: Always True for mock.
-        """
+    def read_holding_registers(self, address: int, count: int) -> List[int]:
         self._ensure_connected()
-        self._registers[address] = value
-
-        # Update motor_stopped coil when speed changes
-        if address == self.REGISTER_MOTOR_SPEED:
-            self._coils[self.COIL_MOTOR_STOPPED] = (value == 0)
-
-        return True
+        self._simulate()
+        return [self._registers.get(address + i, 0) for i in range(count)]
 
     def write_coil(self, address: int, value: bool) -> bool:
-        """
-        Write to a simulated coil.
-
-        Args:
-            address: Coil address.
-            value: Boolean value to write.
-
-        Returns:
-            bool: Always True for mock.
-        """
         self._ensure_connected()
         self._coils[address] = value
 
-        # Keep motor_running and motor_stopped in sync
-        if address == self.COIL_MOTOR_RUNNING:
-            self._coils[self.COIL_MOTOR_STOPPED] = not value
-            if not value:
-                self._registers[self.REGISTER_MOTOR_SPEED] = 0
-                self._registers[self.REGISTER_MOTOR_CURRENT] = 0
-        elif address == self.COIL_MOTOR_STOPPED:
-            self._coils[self.COIL_MOTOR_RUNNING] = not value
+        # RunCommand controls Conveyor + Emitter
+        if address == self.COIL_RUN_COMMAND:
+            if value:
+                self._coils[self.COIL_CONVEYOR] = True
+                self._coils[self.COIL_EMITTER] = True
+                self._registers[self.REG_CONVEYOR_HZ] = 30  # default 30 Hz
+                self._registers[self.REG_VFD_STATUS] = 1
+            else:
+                self._coils[self.COIL_CONVEYOR] = False
+                self._coils[self.COIL_EMITTER] = False
+                self._registers[self.REG_CONVEYOR_HZ] = 0
+                self._registers[self.REG_VFD_STATUS] = 0
 
         return True
 
-    def _simulate_behavior(self) -> None:
-        """
-        Simulate realistic machine behavior.
+    def write_register(self, address: int, value: int) -> bool:
+        self._ensure_connected()
+        self._registers[address] = value
+        return True
 
-        Called on each read to update state based on running conditions.
-        """
-        motor_running = self._coils[self.COIL_MOTOR_RUNNING]
-        speed = self._registers[self.REGISTER_MOTOR_SPEED]
-        temp = self._registers[self.REGISTER_TEMPERATURE]
+    # ── Simulation engine ─────────────────────────────────────────────
 
-        if motor_running and speed > 0:
-            # Current increases with speed (scaled by 10)
-            base_current = int(speed * 0.5)  # 0.5A per % speed
+    def _simulate(self) -> None:
+        """Advance one tick of conveyor + VFD physics."""
+        self._tick += 1
+        conveyor_on = self._coils[self.COIL_CONVEYOR]
+        estop = self._coils[self.COIL_DI_01] and not self._coils[self.COIL_DI_02]
+        hz = self._registers[self.REG_CONVEYOR_HZ]
+        temp = self._registers[self.REG_MOTOR_TEMP_X10]
+
+        # ── E-stop overrides everything ───────────────────────────────
+        if estop:
+            self._coils[self.COIL_CONVEYOR] = False
+            self._coils[self.COIL_EMITTER] = False
+            self._registers[self.REG_CONVEYOR_HZ] = 0
+            self._registers[self.REG_MOTOR_CURRENT_X10] = 0
+            self._registers[self.REG_VFD_STATUS] = 2  # fault
+            self._registers[self.REG_ERROR_CODE] = 7
+            self._coils[self.COIL_DO_01] = True  # e-stop LED on
+            return
+
+        self._coils[self.COIL_DO_01] = False  # e-stop LED off
+
+        # ── VFD physics ───────────────────────────────────────────────
+        if conveyor_on and hz > 0:
+            # Current = (hz/60) * 8.0 A baseline + noise, stored as tenths
+            base = int((hz / 60.0) * 80)
             noise = random.randint(-5, 5)
-            self._registers[self.REGISTER_MOTOR_CURRENT] = max(0, base_current + noise)
+            self._registers[self.REG_MOTOR_CURRENT_X10] = max(0, base + noise)
 
-            # Temperature slowly increases when running (max 80C = 800 raw)
-            if temp < 800:
-                self._registers[self.REGISTER_TEMPERATURE] = min(800, temp + random.randint(1, 3))
+            # Temperature rises when running (max 75.0 °C = 750)
+            if temp < 750:
+                self._registers[self.REG_MOTOR_TEMP_X10] = min(750, temp + random.randint(1, 3))
+
+            self._registers[self.REG_VFD_STATUS] = 1  # running
         else:
-            # Motor off - current drops, temp cools
-            if temp > 250:  # Cool back to 25C
-                self._registers[self.REGISTER_TEMPERATURE] = max(250, temp - random.randint(1, 5))
+            # Cool down toward ambient
+            self._registers[self.REG_MOTOR_CURRENT_X10] = 0
+            if temp > 250:
+                self._registers[self.REG_MOTOR_TEMP_X10] = max(250, temp - random.randint(2, 6))
+            self._registers[self.REG_VFD_STATUS] = 0 if self._registers[self.REG_ERROR_CODE] == 0 else 2
 
-        # Randomly toggle sensors to simulate parts moving
-        if self._coils[self.COIL_CONVEYOR_RUNNING]:
-            if random.random() < 0.1:  # 10% chance to toggle
-                self._coils[self.COIL_SENSOR_1] = random.choice([True, False])
-            if random.random() < 0.1:
-                self._coils[self.COIL_SENSOR_2] = random.choice([True, False])
+        # ── Item flow (conveyor moving items from A to B) ─────────────
+        if conveyor_on:
+            if not self._item_in_transit:
+                # New item appears at entry sensor (20% chance per tick)
+                if random.random() < 0.20:
+                    self._item_in_transit = True
+                    self._item_progress = 0
+                    self._coils[self.COIL_SENSOR_START] = True
+                    self._coils[self.COIL_SENSOR_END] = False
+            else:
+                # Item progresses along conveyor
+                self._item_progress += 1
+                # Item leaves entry sensor after 2 ticks
+                if self._item_progress >= 2:
+                    self._coils[self.COIL_SENSOR_START] = False
+                # Item reaches exit sensor at 5 ticks
+                if self._item_progress >= 5:
+                    self._coils[self.COIL_SENSOR_END] = True
+                    self._registers[self.REG_ITEM_COUNT] += 1
+                    self._item_in_transit = False
+                    self._item_progress = 0
+        else:
+            self._coils[self.COIL_SENSOR_START] = False
+            self._coils[self.COIL_SENSOR_END] = False
+
+        # ── Physical output LEDs ──────────────────────────────────────
+        # Switch indicator: ON when CENTER or RIGHT
+        self._coils[self.COIL_DO_00] = (
+            self._coils[self.COIL_DI_00] or self._coils[self.COIL_DI_03]
+        )
+
+    # ── Convenience methods for fault injection ───────────────────────
+
+    def start_conveyor(self, hz: int = 30) -> None:
+        """Start the conveyor at given frequency."""
+        self.write_coil(self.COIL_RUN_COMMAND, True)
+        self._registers[self.REG_CONVEYOR_HZ] = min(60, max(0, hz))
+
+    def stop_conveyor(self) -> None:
+        """Stop the conveyor."""
+        self.write_coil(self.COIL_RUN_COMMAND, False)
+
+    def trigger_estop(self) -> None:
+        """Press the E-stop button."""
+        self._coils[self.COIL_DI_01] = True   # NO closes
+        self._coils[self.COIL_DI_02] = False   # NC opens
+
+    def release_estop(self) -> None:
+        """Release the E-stop button."""
+        self._coils[self.COIL_DI_01] = False
+        self._coils[self.COIL_DI_02] = True
+        self._registers[self.REG_ERROR_CODE] = 0
+
+    def inject_overload(self) -> None:
+        """Simulate motor overload (current spike)."""
+        self._registers[self.REG_MOTOR_CURRENT_X10] = 95  # 9.5 A
+        self._registers[self.REG_ERROR_CODE] = 1
+        self._registers[self.REG_VFD_STATUS] = 2
+
+    def inject_overheat(self) -> None:
+        """Simulate motor overheat."""
+        self._registers[self.REG_MOTOR_TEMP_X10] = 850  # 85.0 °C
+        self._registers[self.REG_ERROR_CODE] = 2
+        self._registers[self.REG_VFD_STATUS] = 2
+
+    def inject_sensor_failure(self) -> None:
+        """Simulate both sensors stuck off."""
+        self._coils[self.COIL_SENSOR_START] = False
+        self._coils[self.COIL_SENSOR_END] = False
+        self._item_in_transit = False
+        self._registers[self.REG_ERROR_CODE] = 3
+
+    def inject_jam(self) -> None:
+        """Simulate item jammed on entry sensor."""
+        self._coils[self.COIL_SENSOR_START] = True
+        self._coils[self.COIL_SENSOR_END] = False
+        self._item_in_transit = True
+        self._item_progress = 0  # stuck
+        self._registers[self.REG_ERROR_CODE] = 4
+
+    def clear_faults(self) -> None:
+        """Reset all fault conditions."""
+        self._registers[self.REG_ERROR_CODE] = 0
+        self._registers[self.REG_VFD_STATUS] = 1 if self._coils[self.COIL_CONVEYOR] else 0
+
+    # ── Legacy interface (used by read_state / FactoryState) ──────────
 
     def read_state(self) -> FactoryState:
-        """
-        Read the complete factory state.
-
-        Returns:
-            FactoryState: Current simulated state with all values.
-        """
+        """Read complete factory state (legacy interface for FactoryState model)."""
         self._ensure_connected()
-        self._simulate_behavior()
+        self._simulate()
 
-        # Read all registers
-        registers = self.read_holding_registers(100, 6)
-        coils = self.read_coils(0, 7)
-
-        # Apply scale factors
-        motor_current = registers[1] / 10.0  # Scale by 10
-        temperature = registers[2] / 10.0    # Scale by 10
+        # Read raw data without triggering extra _simulate() calls
+        coils = [self._coils.get(i, False) for i in range(18)]
+        regs = [self._registers.get(100 + i, 0) for i in range(6)]
 
         return FactoryState(
-            # Motor state
-            motor_running=coils[0],
-            motor_speed=registers[0],
-            motor_current=motor_current,
-
-            # Environmental
-            temperature=temperature,
-            pressure=registers[3],
-
-            # Fault
-            fault_active=coils[2],
-
-            # Conveyor
-            conveyor_speed=registers[4],
-            conveyor_running=coils[3],
-
-            # Sensors
-            sensor_1_active=coils[4],
-            sensor_2_active=coils[5],
-
-            # Safety
-            e_stop_active=coils[6],
-
-            # Error
-            error_code=registers[5],
-
-            # Metadata
+            motor_running=coils[self.COIL_CONVEYOR],
+            motor_speed=regs[1],                    # ConveyorHz
+            motor_current=regs[2] / 10.0,           # tenths → amps
+            temperature=regs[3] / 10.0,             # tenths → °C
+            pressure=0,                             # not simulated in this scene
+            fault_active=regs[5] > 0,               # any error code
+            conveyor_speed=regs[1],                 # same as motor speed
+            conveyor_running=coils[self.COIL_CONVEYOR],
+            sensor_1_active=coils[self.COIL_SENSOR_START],
+            sensor_2_active=coils[self.COIL_SENSOR_END],
+            e_stop_active=coils[self.COIL_DI_01] and not coils[self.COIL_DI_02],
+            error_code=regs[5],
             timestamp=datetime.now(),
             scene_name=self.scene_name,
         )
 
-    def start_motor(self, speed: int = 50) -> bool:
-        """
-        Helper method to start the motor.
+    def _apply_initial_state(self, state: Dict[str, Any]) -> None:
+        """Apply initial state overrides."""
+        coil_map = {
+            "conveyor": self.COIL_CONVEYOR,
+            "emitter": self.COIL_EMITTER,
+            "sensor_start": self.COIL_SENSOR_START,
+            "sensor_end": self.COIL_SENSOR_END,
+            "run_command": self.COIL_RUN_COMMAND,
+            "e_stop_no": self.COIL_DI_01,
+            "e_stop_nc": self.COIL_DI_02,
+        }
+        register_map = {
+            "item_count": self.REG_ITEM_COUNT,
+            "conveyor_hz": self.REG_CONVEYOR_HZ,
+            "motor_current": self.REG_MOTOR_CURRENT_X10,
+            "motor_temp": self.REG_MOTOR_TEMP_X10,
+            "error_code": self.REG_ERROR_CODE,
+        }
+        for key, value in state.items():
+            if key in coil_map:
+                self._coils[coil_map[key]] = bool(value)
+            elif key in register_map:
+                self._registers[register_map[key]] = int(value)
 
-        Args:
-            speed: Motor speed percentage (0-100).
-
-        Returns:
-            bool: True on success.
-        """
-        self.write_coil(self.COIL_MOTOR_RUNNING, True)
-        self.write_register(self.REGISTER_MOTOR_SPEED, min(100, max(0, speed)))
+    # Keep old helper names working
+    def start_motor(self, speed: int = 30) -> bool:
+        self.start_conveyor(speed)
         return True
 
     def stop_motor(self) -> bool:
-        """
-        Helper method to stop the motor.
-
-        Returns:
-            bool: True on success.
-        """
-        self.write_coil(self.COIL_MOTOR_RUNNING, False)
-        return True
-
-    def start_conveyor(self, speed: int = 50) -> bool:
-        """
-        Helper method to start the conveyor.
-
-        Args:
-            speed: Conveyor speed percentage (0-100).
-
-        Returns:
-            bool: True on success.
-        """
-        self.write_coil(self.COIL_CONVEYOR_RUNNING, True)
-        self.write_register(self.REGISTER_CONVEYOR_SPEED, min(100, max(0, speed)))
-        return True
-
-    def stop_conveyor(self) -> bool:
-        """
-        Helper method to stop the conveyor.
-
-        Returns:
-            bool: True on success.
-        """
-        self.write_coil(self.COIL_CONVEYOR_RUNNING, False)
-        self.write_register(self.REGISTER_CONVEYOR_SPEED, 0)
+        self.stop_conveyor()
         return True
 
     def trigger_error(self, error_code: int) -> None:
-        """
-        Simulate an error condition.
-
-        Args:
-            error_code: Error code to set (1-5).
-        """
-        self.write_register(self.REGISTER_ERROR_CODE, error_code)
         if error_code > 0:
-            self.write_coil(self.COIL_FAULT_ALARM, True)
+            self._registers[self.REG_ERROR_CODE] = error_code
+            self._registers[self.REG_VFD_STATUS] = 2
         else:
-            self.write_coil(self.COIL_FAULT_ALARM, False)
+            self.clear_faults()
 
     def clear_error(self) -> None:
-        """Clear any active error condition."""
-        self.trigger_error(0)
-
-    def trigger_estop(self) -> None:
-        """Simulate emergency stop activation."""
-        self.write_coil(self.COIL_E_STOP, True)
-        self.stop_motor()
-        self.stop_conveyor()
-
-    def release_estop(self) -> None:
-        """Release emergency stop."""
-        self.write_coil(self.COIL_E_STOP, False)
+        self.clear_faults()

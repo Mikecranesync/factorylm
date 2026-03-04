@@ -43,50 +43,6 @@
     text-decoration: none;
   }
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .live-clock {
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 13px;
-    color: #76b900;
-    letter-spacing: 0.5px;
-  }
-
-  .plc-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: #999;
-  }
-
-  .plc-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #666;
-    transition: background 0.3s;
-  }
-
-  .plc-dot.online {
-    background: #4c4;
-    box-shadow: 0 0 6px 2px rgba(76, 204, 76, 0.4);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  .plc-dot.offline {
-    background: #e44;
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
   .video-box {
     width: 100%;
     aspect-ratio: 16/9;
@@ -208,106 +164,6 @@
     text-align: right;
   }
 
-  /* Status Row — gauge + status panel side by side */
-  .status-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-    align-items: stretch;
-  }
-
-  .gauge-container {
-    width: 170px;
-    flex-shrink: 0;
-    background: #0e0e14;
-    border: 1px solid #222;
-    border-radius: 8px;
-    padding: 10px 8px 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .gauge-label {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    color: #666;
-    margin-bottom: 4px;
-  }
-
-  .gauge-value {
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 18px;
-    font-weight: 700;
-    margin-top: 2px;
-  }
-
-  .gauge-value.green { color: #4c4; text-shadow: 0 0 8px rgba(76, 204, 76, 0.4); }
-  .gauge-value.yellow { color: #da5; text-shadow: 0 0 8px rgba(221, 170, 85, 0.4); }
-  .gauge-value.red { color: #e44; text-shadow: 0 0 8px rgba(238, 68, 68, 0.4); }
-
-  /* Demo Row */
-  .demo-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding: 0 4px;
-  }
-
-  .demo-btn {
-    padding: 10px 20px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 2px solid #76b900;
-    border-radius: 8px;
-    background: transparent;
-    color: #76b900;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-
-  .demo-btn:hover:not(:disabled) { background: rgba(118,185,0,0.1); }
-  .demo-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .demo-btn.running { border-color: #da5; color: #da5; }
-
-  .demo-progress {
-    flex: 1;
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .demo-progress.visible { display: flex; }
-
-  .demo-progress-bar {
-    width: 100%;
-    height: 6px;
-    background: #222;
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .demo-progress-fill {
-    height: 100%;
-    width: 0%;
-    background: #76b900;
-    border-radius: 3px;
-    transition: width 0.5s ease;
-  }
-
-  .demo-stage {
-    font-size: 11px;
-    color: #777;
-  }
-
-  @media (max-width: 700px) {
-    .status-row { flex-direction: column; }
-    .gauge-container { width: 100%; }
-  }
-
   .status-panel {
     background: #111118;
     border: 1px solid #222;
@@ -332,61 +188,6 @@
   .indicator.fault   { background: #e44; }
   .indicator.offline { background: #666; }
 
-  /* Event Log Panel */
-  .event-log-panel {
-    background: #0e0e14;
-    border: 1px solid #222;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-
-  .event-log-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    border-bottom: 1px solid #222;
-  }
-
-  .event-log-header span {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    color: #666;
-  }
-
-  .event-log-header button {
-    font-size: 10px;
-    padding: 2px 8px;
-    border: 1px solid #333;
-    border-radius: 4px;
-    background: #1a1a24;
-    color: #777;
-    cursor: pointer;
-  }
-
-  .event-log-body {
-    max-height: 150px;
-    overflow-y: auto;
-    padding: 6px 12px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 11px;
-    line-height: 1.6;
-  }
-
-  .event-log-body::-webkit-scrollbar { width: 4px; }
-  .event-log-body::-webkit-scrollbar-track { background: transparent; }
-  .event-log-body::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-
-  .log-entry { padding: 1px 0; }
-  .log-ts { color: #555; margin-right: 8px; }
-  .log-command .log-msg { color: #76b900; }
-  .log-state .log-msg { color: #5588cc; }
-  .log-fault .log-msg { color: #e44; }
-  .log-speed .log-msg { color: #da5; }
-  .log-info .log-msg { color: #777; }
-
   .explainer {
     background: #0d0d14;
     border: 1px solid #1a1a2a;
@@ -400,180 +201,6 @@
 
   .explainer strong {
     color: #ccc;
-  }
-
-  /* Chat Panel */
-  .chat-toggle {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #76b900;
-    border: none;
-    cursor: pointer;
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 12px rgba(118, 185, 0, 0.4);
-    transition: transform 0.15s;
-  }
-
-  .chat-toggle:hover { transform: scale(1.08); }
-  .chat-toggle svg { fill: #fff; width: 24px; height: 24px; }
-
-  .chat-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    background: #e44;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    line-height: 18px;
-    text-align: center;
-  }
-
-  .chat-panel {
-    position: fixed;
-    top: 0;
-    right: -380px;
-    width: 360px;
-    height: 100vh;
-    background: #0e0e16;
-    border-left: 1px solid #222;
-    z-index: 300;
-    display: flex;
-    flex-direction: column;
-    transition: right 0.3s ease;
-  }
-
-  .chat-panel.open { right: 0; }
-
-  .chat-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    border-bottom: 1px solid #222;
-    flex-shrink: 0;
-  }
-
-  .chat-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #76b900, #4a7a00);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .chat-header-info { flex: 1; }
-  .chat-header-info .chat-name { font-size: 13px; font-weight: 600; color: #e0e0e0; }
-  .chat-header-info .chat-status { font-size: 10px; color: #76b900; display: flex; align-items: center; gap: 4px; }
-  .chat-header-info .chat-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #76b900; }
-
-  .chat-close {
-    background: none;
-    border: none;
-    color: #666;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 4px 8px;
-  }
-
-  .chat-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .chat-body::-webkit-scrollbar { width: 4px; }
-  .chat-body::-webkit-scrollbar-track { background: transparent; }
-  .chat-body::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-
-  .chat-bubble {
-    max-width: 85%;
-    padding: 8px 12px;
-    border-radius: 12px;
-    font-size: 13px;
-    line-height: 1.5;
-    word-wrap: break-word;
-  }
-
-  .chat-bubble.ai {
-    align-self: flex-start;
-    background: #1a1a28;
-    color: #d0d0d0;
-    border-bottom-left-radius: 4px;
-  }
-
-  .chat-bubble.user {
-    align-self: flex-end;
-    background: #1a2a14;
-    color: #d0d0d0;
-    border-bottom-right-radius: 4px;
-  }
-
-  .chat-bubble.typing {
-    color: #666;
-    font-style: italic;
-  }
-
-  .chat-bubble.warning {
-    border-left: 3px solid #e44;
-  }
-
-  .chat-input-row {
-    display: flex;
-    gap: 8px;
-    padding: 10px 12px;
-    border-top: 1px solid #222;
-    flex-shrink: 0;
-  }
-
-  .chat-input-row input {
-    flex: 1;
-    background: #111118;
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 8px 12px;
-    color: #e0e0e0;
-    font-size: 13px;
-    outline: none;
-  }
-
-  .chat-input-row input:focus { border-color: #76b900; }
-
-  .chat-input-row button {
-    background: #76b900;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  @media (max-width: 700px) {
-    .chat-panel { width: 100%; right: -100%; }
-    .chat-toggle { bottom: 12px; right: 12px; }
   }
 
   .toast {
@@ -679,6 +306,276 @@
     box-shadow: 0 0 6px 2px rgba(255, 34, 34, 0.5);
   }
 
+  /* Feature 3: Header status */
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .plc-status {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .plc-status.connected { color: #00ff88; }
+  .plc-status.demo { color: #666; }
+
+  .live-clock {
+    font-size: 12px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    color: #76b900;
+    letter-spacing: 0.5px;
+  }
+
+  /* Feature 5: Demo scenario button */
+  #btn-demo {
+    background: #1a2a1a;
+    border-color: #76b900;
+    color: #76b900;
+  }
+
+  #btn-demo:hover:not(:disabled) { background: #253525; }
+  #btn-demo:disabled { opacity: 0.4; cursor: not-allowed; }
+  #btn-demo.running { animation: pulse-green 1s infinite; }
+
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 4px rgba(118, 185, 0, 0.3); }
+    50% { box-shadow: 0 0 12px rgba(118, 185, 0, 0.7); }
+  }
+
+  /* Feature 1: Current Meter Gauge */
+  .current-meter {
+    background: #111118;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+
+  .current-meter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .current-meter-label {
+    font-size: 13px;
+    color: #999;
+  }
+
+  .current-meter-value {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Consolas', 'Courier New', monospace;
+    color: #00ff88;
+    transition: color 0.3s;
+  }
+
+  .current-meter-value.warning { color: #ffaa00; }
+  .current-meter-value.danger  { color: #ff3333; }
+
+  .current-meter-track {
+    position: relative;
+    height: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .current-meter-zone { height: 100%; }
+  .current-meter-zone.green  { flex: 6; background: rgba(0, 255, 136, 0.15); }
+  .current-meter-zone.yellow { flex: 2; background: rgba(255, 170, 0, 0.15); }
+  .current-meter-zone.red    { flex: 2; background: rgba(255, 51, 51, 0.15); }
+
+  .current-meter-fill {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%; width: 0%;
+    border-radius: 4px;
+    transition: width 0.5s ease, background 0.3s;
+    background: #00ff88;
+  }
+
+  .current-meter-fill.warning { background: #ffaa00; }
+  .current-meter-fill.danger  { background: #ff3333; }
+
+  .current-meter-needle {
+    position: absolute;
+    top: -2px;
+    width: 3px; height: 24px;
+    background: #fff;
+    border-radius: 1px;
+    left: 0%;
+    transition: left 0.5s ease;
+    box-shadow: 0 0 4px rgba(255,255,255,0.5);
+  }
+
+  .current-meter-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 10px;
+    color: #555;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+
+  .alarm-banner {
+    background: #ff3333;
+    color: #fff;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    animation: alarm-blink 0.8s infinite;
+    letter-spacing: 1px;
+  }
+
+  @keyframes alarm-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  body.alarm-active .led.fault-led.on {
+    animation: fault-pulse 0.5s infinite;
+  }
+
+  @keyframes fault-pulse {
+    0%, 100% { box-shadow: 0 0 6px 2px rgba(255, 34, 34, 0.5); }
+    50% { box-shadow: 0 0 14px 4px rgba(255, 34, 34, 0.9); }
+  }
+
+  /* Feature 2: LM Chat Panel */
+  .chat-panel {
+    background: #0d0d14;
+    border: 1px solid #1a1a2a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+
+  .chat-header {
+    font-size: 13px;
+    font-weight: 700;
+    color: #76b900;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #222;
+  }
+
+  .chat-log {
+    height: 160px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 8px;
+    background: #08080d;
+    border-radius: 4px;
+    border: 1px solid #1a1a22;
+  }
+
+  .chat-log .msg-user {
+    color: #e0e0e0;
+    margin-bottom: 4px;
+  }
+
+  .chat-log .msg-user::before {
+    content: '> ';
+    color: #76b900;
+  }
+
+  .chat-log .msg-lm {
+    color: #00ff88;
+    margin-bottom: 8px;
+    padding-left: 8px;
+    border-left: 2px solid #1a3a1a;
+  }
+
+  .chat-log .msg-lm::before {
+    content: 'LM: ';
+    color: #76b900;
+    font-weight: 700;
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .chat-input-row input {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    background: #111118;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 6px;
+    outline: none;
+  }
+
+  .chat-input-row input:focus { border-color: #76b900; }
+
+  .chat-input-row button {
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #1a2a1a;
+    color: #76b900;
+    border: 1px solid #76b900;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .chat-input-row button:hover { background: #253525; }
+
+  /* Feature 4: Event Log */
+  .event-log-panel { margin-bottom: 16px; }
+
+  .event-log-toggle {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #0d0d14;
+    color: #999;
+    border: 1px solid #1a1a2a;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+  }
+
+  .event-log-toggle:hover { background: #111120; }
+  .event-log-toggle.open { border-radius: 8px 8px 0 0; border-bottom: none; }
+
+  .event-log {
+    background: #08080d;
+    border: 1px solid #1a1a2a;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 10px 14px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+    color: #888;
+  }
+
+  .event-log .event-entry { margin-bottom: 2px; }
+  .event-log .event-time { color: #555; }
+  .event-log .event-fault { color: #ff3333; font-weight: 600; }
+  .event-log .event-warn { color: #ffaa00; }
+
   /* Mobile: stack panels horizontally above video */
   @media (max-width: 700px) {
     .io-rack {
@@ -709,11 +606,8 @@
   <header>
     <h1>Live Factory View</h1>
     <div class="header-right">
+      <span class="plc-status demo" id="plc-status">PLC: DEMO &#9675;</span>
       <span class="live-clock" id="live-clock">--:--:--</span>
-      <div class="plc-status">
-        <span class="plc-dot" id="plc-dot"></span>
-        <span id="plc-status-text">PLC: —</span>
-      </div>
       <a class="brand" href="https://factorylm.com" target="_blank">FactoryLM</a>
     </div>
   </header>
@@ -750,6 +644,7 @@
     <button id="btn-rev" onclick="sendCommand('reverse')">&#9664; Reverse</button>
     <button id="btn-stop" class="stop-btn" onclick="sendCommand('stop')">&#9724; Stop</button>
     <button id="btn-fwd" onclick="sendCommand('forward')">Forward &#9654;</button>
+    <button id="btn-demo" onclick="runDemoScenario()">&#9654; Run Demo</button>
   </div>
 
   <div class="speed-row">
@@ -762,31 +657,27 @@
             onclick="sendCommand('set_speed', document.getElementById('speed-slider').value)">Set</button>
   </div>
 
-  <div class="demo-row">
-    <button class="demo-btn" id="demo-btn" onclick="runDemoScenario()">Run Demo Scenario</button>
-    <div class="demo-progress" id="demo-progress">
-      <div class="demo-progress-bar"><div class="demo-progress-fill" id="demo-progress-fill"></div></div>
-      <div class="demo-stage" id="demo-stage"></div>
+  <!-- Feature 1: Current Meter Gauge -->
+  <div class="current-meter">
+    <div class="current-meter-header">
+      <span class="current-meter-label">Motor Current:</span>
+      <span class="current-meter-value" id="current-value">0.0 A</span>
+    </div>
+    <div class="current-meter-track">
+      <div class="current-meter-zone green"></div>
+      <div class="current-meter-zone yellow"></div>
+      <div class="current-meter-zone red"></div>
+      <div class="current-meter-fill" id="current-fill"></div>
+      <div class="current-meter-needle" id="current-needle"></div>
+    </div>
+    <div class="current-meter-ticks">
+      <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10A</span>
     </div>
   </div>
+  <div class="alarm-banner" id="alarm-banner" style="display:none;">&#9888; OVERLOAD WARNING</div>
 
-  <div class="status-row">
-    <div class="gauge-container">
-      <div class="gauge-label">MOTOR CURRENT</div>
-      <svg id="current-gauge" width="150" height="95" viewBox="0 0 160 100"></svg>
-      <div class="gauge-value green" id="gauge-value">0.00 A</div>
-    </div>
-    <div class="status-panel" id="status-panel" style="flex:1; margin-bottom:0;">
-      <span class="indicator offline"></span> Connecting...
-    </div>
-  </div>
-
-  <div class="event-log-panel">
-    <div class="event-log-header">
-      <span>EVENT LOG</span>
-      <button onclick="clearEventLog()">Clear</button>
-    </div>
-    <div class="event-log-body" id="event-log-body"></div>
+  <div class="status-panel" id="status-panel">
+    <span class="indicator offline"></span> Connecting...
   </div>
 
   <div class="explainer">
@@ -799,422 +690,269 @@
     check. <strong>That's FactoryLM.</strong>
   </div>
 
+  <!-- Feature 2: LM Chat Panel -->
+  <div class="chat-panel">
+    <div class="chat-header">&#11045; ASK THE FACTORY LM</div>
+    <div class="chat-log" id="chat-log"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="What's wrong with the conveyor?"
+             onkeydown="if(event.key==='Enter') handleChatSend()">
+      <button onclick="handleChatSend()">Ask</button>
+    </div>
+  </div>
+
+  <!-- Feature 4: Event Log -->
+  <div class="event-log-panel">
+    <button class="event-log-toggle" id="event-log-toggle" onclick="toggleEventLog()">
+      &#9660; Event Log <span id="event-count">(0)</span>
+    </button>
+    <div class="event-log" id="event-log" style="display:none;"></div>
+  </div>
+
   <footer>
     Powered by <a href="https://factorylm.com" target="_blank">FactoryLM</a>
     &middot; NVIDIA Cosmos Cookoff 2026
   </footer>
 </div>
 
-<!-- Chat Toggle Button -->
-<button class="chat-toggle" id="chat-toggle" onclick="toggleChat()">
-  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
-  <span class="chat-badge" id="chat-badge">0</span>
-</button>
-
-<!-- Chat Panel -->
-<div class="chat-panel" id="chat-panel">
-  <div class="chat-header">
-    <div class="chat-avatar">LM</div>
-    <div class="chat-header-info">
-      <div class="chat-name">FactoryLM AI</div>
-      <div class="chat-status"><span class="chat-status-dot"></span> Online</div>
-    </div>
-    <button class="chat-close" onclick="toggleChat()">&times;</button>
-  </div>
-  <div class="chat-body" id="chat-body"></div>
-  <div class="chat-input-row">
-    <input type="text" id="chat-input" placeholder="Ask about the conveyor..." onkeydown="if(event.key==='Enter')sendChatMessage()">
-    <button onclick="sendChatMessage()">Send</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 const API = '';  // Same origin
+
+// ── DEMO MODE ──────────────────────────────────────────────
+const DEMO_MODE = true;
+let plcConnected = false;
+let demoScenarioRunning = false;
+let demoScenarioState = null;
+let eventLog = [];
+const MAX_EVENT_LOG = 10;
+let lastDirection = null;
+let lastRunState = null;
+let lastCommandHz = null;
+
 let cooldown = false;
 const COOLDOWN_MS = 3200;
-let plcOnline = false;
-
-// --- Live Clock ---
-function updateClock() {
-  const now = new Date();
-  document.getElementById('live-clock').textContent =
-    now.toLocaleTimeString('en-US', { hour12: false });
-}
-updateClock();
-setInterval(updateClock, 1000);
-
-// --- PLC Connection Status ---
-function updatePlcStatus(online) {
-  plcOnline = online;
-  const dot = document.getElementById('plc-dot');
-  const text = document.getElementById('plc-status-text');
-  dot.className = 'plc-dot ' + (online ? 'online' : 'offline');
-  text.textContent = online ? 'PLC: Online' : 'PLC: Offline';
-}
-
-// --- Event Log ---
-let lastLoggedState = null;
-
-function logEvent(message, type) {
-  const body = document.getElementById('event-log-body');
-  const now = new Date();
-  const ts = now.toLocaleTimeString('en-US', { hour12: false });
-  const entry = document.createElement('div');
-  entry.className = 'log-entry log-' + (type || 'info');
-  entry.innerHTML = '<span class="log-ts">' + ts + '</span><span class="log-msg">' + message + '</span>';
-  body.appendChild(entry);
-  // Trim to 50 entries
-  while (body.children.length > 50) body.removeChild(body.firstChild);
-  body.scrollTop = body.scrollHeight;
-}
-
-function clearEventLog() {
-  document.getElementById('event-log-body').innerHTML = '';
-  logEvent('Log cleared', 'info');
-}
-
-logEvent('HMI initialized', 'info');
-
-// --- Current Gauge (SVG Arc) ---
-const GAUGE = { cx: 80, cy: 90, r: 60, min: 0, max: 10, startAngle: -180, endAngle: 0 };
-
-function polarToCartesian(cx, cy, r, angleDeg) {
-  const rad = angleDeg * Math.PI / 180;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-}
-
-function describeArc(cx, cy, r, startAngle, endAngle) {
-  const s = polarToCartesian(cx, cy, r, endAngle);
-  const e = polarToCartesian(cx, cy, r, startAngle);
-  const large = (endAngle - startAngle) > 180 ? '1' : '0';
-  return 'M ' + s.x + ' ' + s.y + ' A ' + r + ' ' + r + ' 0 ' + large + ' 0 ' + e.x + ' ' + e.y;
-}
-
-function buildGaugeSVG() {
-  const svg = document.getElementById('current-gauge');
-  const { cx, cy, r } = GAUGE;
-  const sw = 10; // stroke width
-
-  // Background arc
-  svg.innerHTML =
-    '<path d="' + describeArc(cx, cy, r, -180, 0) + '" fill="none" stroke="#222" stroke-width="' + sw + '" stroke-linecap="round"/>' +
-    // Green zone: 0-3A (0-30%)
-    '<path d="' + describeArc(cx, cy, r, -180, -180 + 54) + '" fill="none" stroke="rgba(76,204,76,0.25)" stroke-width="' + sw + '" stroke-linecap="round"/>' +
-    // Yellow zone: 3-6A (30-60%)
-    '<path d="' + describeArc(cx, cy, r, -180 + 54, -180 + 108) + '" fill="none" stroke="rgba(221,170,85,0.25)" stroke-width="' + sw + '"/>' +
-    // Red zone: 6-10A (60-100%)
-    '<path d="' + describeArc(cx, cy, r, -180 + 108, 0) + '" fill="none" stroke="rgba(238,68,68,0.25)" stroke-width="' + sw + '" stroke-linecap="round"/>' +
-    // Tick marks + labels
-    buildGaugeTicks(cx, cy, r) +
-    // Needle
-    '<line id="gauge-needle" x1="' + cx + '" y1="' + cy + '" x2="' + (cx - r + 8) + '" y2="' + cy + '" stroke="#fff" stroke-width="2" stroke-linecap="round" style="transition: transform 0.3s ease-out; transform-origin: ' + cx + 'px ' + cy + 'px;"/>' +
-    // Center pivot
-    '<circle cx="' + cx + '" cy="' + cy + '" r="5" fill="#333" stroke="#555" stroke-width="1.5"/>';
-}
-
-function buildGaugeTicks(cx, cy, r) {
-  let html = '';
-  for (let i = 0; i <= 10; i++) {
-    const angle = -180 + (i / 10) * 180;
-    const outer = polarToCartesian(cx, cy, r + 8, angle);
-    const inner = polarToCartesian(cx, cy, r - 8, angle);
-    const labelPos = polarToCartesian(cx, cy, r + 20, angle);
-    html += '<line x1="' + inner.x + '" y1="' + inner.y + '" x2="' + outer.x + '" y2="' + outer.y + '" stroke="#555" stroke-width="' + (i % 5 === 0 ? 2 : 1) + '"/>';
-    if (i % 2 === 0) {
-      html += '<text x="' + labelPos.x + '" y="' + labelPos.y + '" text-anchor="middle" dominant-baseline="middle" fill="#666" font-size="9" font-family="Consolas, monospace">' + i + '</text>';
-    }
-  }
-  return html;
-}
-
-function updateGauge(amps) {
-  const clamped = Math.max(GAUGE.min, Math.min(GAUGE.max, amps));
-  const pct = clamped / GAUGE.max;
-  const angle = -180 + pct * 180;
-  const needle = document.getElementById('gauge-needle');
-  if (needle) needle.style.transform = 'rotate(' + (angle + 180) + 'deg)';
-
-  const el = document.getElementById('gauge-value');
-  el.textContent = amps.toFixed(2) + ' A';
-  if (amps >= 6) { el.className = 'gauge-value red'; }
-  else if (amps >= 3) { el.className = 'gauge-value yellow'; }
-  else { el.className = 'gauge-value green'; }
-}
-
-buildGaugeSVG();
-
-// --- Chat Panel ---
-let chatOpen = false;
-let unreadCount = 0;
-
-const MOCK_REPLIES = [
-  'Motor current looks nominal. No anomalies detected in the last 15 minutes.',
-  'Vibration levels on the drive-end bearing are within spec. Next scheduled inspection: Thursday.',
-  'Belt tension is within operating range. Consider checking alignment if you notice tracking drift.',
-  'VFD output frequency matches command. Drive is healthy.',
-  'No faults in the last 24 hours. System uptime: 47 hours continuous.',
-];
-
-function toggleChat() {
-  chatOpen = !chatOpen;
-  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
-  if (chatOpen) {
-    unreadCount = 0;
-    const badge = document.getElementById('chat-badge');
-    badge.style.display = 'none';
-    badge.textContent = '0';
-  }
-}
-
-function addChatMessage(text, sender, options) {
-  const body = document.getElementById('chat-body');
-  options = options || {};
-
-  if (options.typing) {
-    const typingBubble = document.createElement('div');
-    typingBubble.className = 'chat-bubble ai typing';
-    typingBubble.textContent = 'Analyzing...';
-    body.appendChild(typingBubble);
-    body.scrollTop = body.scrollHeight;
-
-    setTimeout(function() {
-      typingBubble.remove();
-      appendBubble(text, sender, options);
-    }, options.typing);
-  } else {
-    appendBubble(text, sender, options);
-  }
-}
-
-function appendBubble(text, sender, options) {
-  const body = document.getElementById('chat-body');
-  const bubble = document.createElement('div');
-  bubble.className = 'chat-bubble ' + sender;
-  if (options && options.warning) bubble.classList.add('warning');
-  bubble.textContent = text;
-  body.appendChild(bubble);
-  body.scrollTop = body.scrollHeight;
-
-  if (sender === 'ai' && !chatOpen) {
-    unreadCount++;
-    const badge = document.getElementById('chat-badge');
-    badge.textContent = unreadCount;
-    badge.style.display = 'flex';
-  }
-}
-
-function sendChatMessage() {
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  addChatMessage(text, 'user');
-  const reply = MOCK_REPLIES[Math.floor(Math.random() * MOCK_REPLIES.length)];
-  addChatMessage(reply, 'ai', { typing: 1200 });
-}
-
-addChatMessage('FactoryLM AI online. Monitoring conveyor systems.', 'ai');
-
-// --- DEMO_MODE ---
-let DEMO_MODE = false;
-let demoRunning = false;
-let demoTickInterval = null;
-let demoState = {
-  runState: 'stopped',
-  direction: '-',
-  commandHz: 0,
-  actualHz: 0,
-  motorCurrent: 0,
-  commandCount: 0,
-  faultText: '',
-};
-let forcedCurrent = null; // For overcurrent override
-
-function demoTick() {
-  const accel = 0.2;  // Hz per tick (100ms) = 2 Hz/s
-  const decel = 0.3;  // Hz per tick = 3 Hz/s
-
-  if (demoState.runState === 'running') {
-    if (demoState.actualHz < demoState.commandHz) {
-      demoState.actualHz = Math.min(demoState.actualHz + accel, demoState.commandHz);
-    } else if (demoState.actualHz > demoState.commandHz) {
-      demoState.actualHz = Math.max(demoState.actualHz - decel, demoState.commandHz);
-    }
-  } else {
-    demoState.actualHz = Math.max(0, demoState.actualHz - decel);
-  }
-
-  // Current from Hz: 0.5A base + 0.15A/Hz + noise
-  if (forcedCurrent !== null) {
-    demoState.motorCurrent = forcedCurrent + (Math.random() - 0.5) * 0.2;
-  } else if (demoState.actualHz > 0) {
-    demoState.motorCurrent = 0.5 + demoState.actualHz * 0.15 + (Math.random() - 0.5) * 0.3;
-  } else {
-    demoState.motorCurrent = Math.max(0, demoState.motorCurrent - 0.1);
-  }
-  demoState.motorCurrent = Math.max(0, demoState.motorCurrent);
-}
-
-function startDemoMode() {
-  DEMO_MODE = true;
-  demoState = { runState: 'stopped', direction: '-', commandHz: 0, actualHz: 0, motorCurrent: 0, commandCount: 0, faultText: '' };
-  forcedCurrent = null;
-  if (demoTickInterval) clearInterval(demoTickInterval);
-  demoTickInterval = setInterval(demoTick, 100);
-  logEvent('DEMO_MODE activated — PLC simulated', 'info');
-}
-
-function stopDemoMode() {
-  DEMO_MODE = false;
-  forcedCurrent = null;
-  if (demoTickInterval) { clearInterval(demoTickInterval); demoTickInterval = null; }
-}
-
-// --- Demo Scenario (90 seconds) ---
-function runDemoScenario() {
-  if (demoRunning) return;
-  demoRunning = true;
-
-  const btn = document.getElementById('demo-btn');
-  btn.disabled = true;
-  btn.classList.add('running');
-  btn.textContent = 'Demo Running...';
-
-  const progress = document.getElementById('demo-progress');
-  const fill = document.getElementById('demo-progress-fill');
-  const stage = document.getElementById('demo-stage');
-  progress.classList.add('visible');
-
-  startDemoMode();
-
-  // Open chat
-  if (!chatOpen) toggleChat();
-
-  const TOTAL = 90;
-  let elapsed = 0;
-  const progressTimer = setInterval(function() {
-    elapsed++;
-    fill.style.width = Math.min(100, (elapsed / TOTAL) * 100) + '%';
-    if (elapsed >= TOTAL) clearInterval(progressTimer);
-  }, 1000);
-
-  function setStage(text) { stage.textContent = text; }
-
-  // ---- Stage 1: Start at 50% (0-15s) ----
-  setStage('Stage 1/5 — Starting conveyor');
-  demoState.runState = 'running';
-  demoState.direction = 'forward';
-  demoState.commandHz = 30;
-  demoState.commandCount++;
-  logEvent('CMD: forward', 'command');
-  logEvent('CMD: set_speed → 30', 'command');
-
-  addChatMessage('Starting conveyor demo sequence. Belt running forward at 30 Hz — that\'s about 50% speed. Current draw should be around 4-5 amps, well within the motor\'s rated capacity.', 'ai', { typing: 2000 });
-
-  // ---- Stage 2: Ramp to 100% (15-35s) ----
-  setTimeout(function() {
-    setStage('Stage 2/5 — Ramping to full speed');
-    demoState.commandHz = 60;
-    demoState.commandCount++;
-    logEvent('CMD: set_speed → 60', 'command');
-    logEvent('State → Running forward @ 60 Hz', 'state');
-
-    addChatMessage('Ramping to 60 Hz — full speed. Watch the current gauge climb. At this speed, you\'d expect around 8-9 amps on a loaded belt. I\'m monitoring the acceleration profile for any irregularities.', 'ai', { typing: 2500 });
-  }, 15000);
-
-  // ---- Stage 3: Overcurrent alarm (35-55s) ----
-  setTimeout(function() {
-    setStage('Stage 3/5 — Overcurrent detected');
-    forcedCurrent = 8.5;
-    demoState.runState = 'fault';
-    demoState.faultText = 'Overcurrent';
-    logEvent('FAULT: Overcurrent — motor current 8.5A exceeds threshold', 'fault');
-
-    addChatMessage('OVERCURRENT ALARM — Motor current has spiked to 8.5A. I\'ve triggered a protective fault stop. This is above the 7A threshold configured for this drive. Do NOT restart until the root cause is identified.', 'ai', { typing: 1500, warning: true });
-  }, 35000);
-
-  // ---- Stage 4: AI diagnosis (55-75s) ----
-  setTimeout(function() {
-    setStage('Stage 4/5 — AI analyzing fault');
-
-    addChatMessage('Analyzing current waveform pattern...', 'ai', { typing: 3000 });
-
-    setTimeout(function() {
-      addChatMessage(
-        'Root cause analysis complete.\n\n' +
-        'Pattern: Gradual current rise followed by spike — consistent with mechanical overload, not electrical fault.\n\n' +
-        'Top 3 probable causes:\n' +
-        '1. Belt misalignment causing drag (68% confidence)\n' +
-        '2. Bearing seizure on tail pulley (22%)\n' +
-        '3. Product jam at discharge chute (10%)\n\n' +
-        'Recommended action: Inspect belt tracking and tail pulley bearing. Check for debris at discharge point. Safe to restart at reduced speed after visual inspection.',
-        'ai', { typing: 4000 }
-      );
-    }, 3500);
-  }, 55000);
-
-  // ---- Stage 5: Clear & recover (75-90s) ----
-  setTimeout(function() {
-    setStage('Stage 5/5 — Clearing fault, restarting');
-    forcedCurrent = null;
-    demoState.runState = 'running';
-    demoState.direction = 'forward';
-    demoState.commandHz = 20;
-    demoState.actualHz = 0;
-    demoState.faultText = '';
-    demoState.commandCount++;
-    logEvent('Fault cleared', 'state');
-    logEvent('CMD: forward @ 20 Hz (reduced speed)', 'command');
-    logEvent('State → Running forward @ 20 Hz', 'state');
-
-    addChatMessage('Fault cleared. Restarting at 20 Hz — reduced speed as a precaution until the maintenance tech completes the inspection. I\'ll continue monitoring current draw for any recurrence. Normal operations can resume once alignment is verified.', 'ai', { typing: 2000 });
-  }, 75000);
-
-  // ---- Demo complete ----
-  setTimeout(function() {
-    setStage('Demo complete');
-    demoRunning = false;
-    btn.disabled = false;
-    btn.classList.remove('running');
-    btn.textContent = 'Run Demo Scenario';
-
-    addChatMessage('Demo sequence complete. That\'s FactoryLM — predictive maintenance intelligence for your factory floor, no $50,000 SCADA system required.', 'ai', { typing: 1500 });
-
-    logEvent('Demo scenario completed', 'info');
-
-    // Leave demo mode running so UI stays interactive
-  }, 90000);
-}
 
 const btnFwd  = document.getElementById('btn-fwd');
 const btnStop = document.getElementById('btn-stop');
 const btnRev  = document.getElementById('btn-rev');
 
+// ── Feature 3: Live Clock ──────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('live-clock').textContent = `${hh}:${mm}:${ss}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function updatePLCStatus(connected) {
+  const el = document.getElementById('plc-status');
+  if (connected) {
+    el.innerHTML = 'PLC: CONNECTED &#9679;';
+    el.className = 'plc-status connected';
+  } else {
+    el.innerHTML = 'PLC: DEMO &#9675;';
+    el.className = 'plc-status demo';
+  }
+  plcConnected = connected;
+}
+
+// ── Feature 1: Current Meter ───────────────────────────────
+function updateCurrentGauge(currentAmps) {
+  const value = Math.max(0, Math.min(10, currentAmps));
+  const pct = (value / 10) * 100;
+
+  const fill = document.getElementById('current-fill');
+  const needle = document.getElementById('current-needle');
+  const label = document.getElementById('current-value');
+  const banner = document.getElementById('alarm-banner');
+
+  fill.style.width = pct + '%';
+  needle.style.left = `calc(${pct}% - 1.5px)`;
+  label.textContent = value.toFixed(1) + ' A';
+
+  let zone = 'normal';
+  if (value >= 8) zone = 'danger';
+  else if (value >= 6) zone = 'warning';
+
+  fill.className = 'current-meter-fill' + (zone !== 'normal' ? ' ' + zone : '');
+  label.className = 'current-meter-value' + (zone !== 'normal' ? ' ' + zone : '');
+
+  if (value >= 8) {
+    banner.style.display = 'block';
+    document.body.classList.add('alarm-active');
+  } else {
+    banner.style.display = 'none';
+    document.body.classList.remove('alarm-active');
+  }
+}
+
+// ── Feature 2: LM Chat ────────────────────────────────────
+const DEMO_RESPONSES = {
+  fault:   'FAULT bit active. Check drive enable signal and verify E-stop chain is healthy.',
+  current: 'Motor current is elevated. Check for belt jam or mechanical binding.',
+  start:   'Pre-start checklist: E-stop OK \u2705, Drive ready \u2705, Safety permissive \u2705. Safe to start.',
+  stop:    'Conveyor stopped. No active faults detected.',
+};
+const DEMO_DEFAULT = 'Monitoring conveyor. All systems nominal.';
+
+function handleChatSend() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  addChatMessage('user', text);
+
+  if (DEMO_MODE) {
+    const lower = text.toLowerCase();
+    let response = DEMO_DEFAULT;
+
+    if (lower.includes('fault'))        response = DEMO_RESPONSES.fault;
+    else if (lower.includes('current')) response = DEMO_RESPONSES.current;
+    else if (lower.includes('start'))   response = DEMO_RESPONSES.start;
+    else if (lower.includes('stop'))    response = DEMO_RESPONSES.stop;
+    else if (lower.includes('speed')) {
+      const hz = document.getElementById('speed-slider').value;
+      response = `Running at ${hz} Hz. Normal range 20-45 Hz.`;
+    }
+
+    setTimeout(() => addChatMessage('lm', response), 600);
+  }
+}
+
+function addChatMessage(role, text) {
+  const log = document.getElementById('chat-log');
+  const div = document.createElement('div');
+  div.className = role === 'user' ? 'msg-user' : 'msg-lm';
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── Feature 4: Event Log ───────────────────────────────────
+function addEvent(message) {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const timeStr = `${hh}:${mm}:${ss}`;
+
+  eventLog.unshift({ time: timeStr, message: message });
+  if (eventLog.length > MAX_EVENT_LOG) eventLog.pop();
+  renderEventLog();
+}
+
+function renderEventLog() {
+  const el = document.getElementById('event-log');
+  const count = document.getElementById('event-count');
+  count.textContent = `(${eventLog.length})`;
+
+  el.innerHTML = eventLog.map(e => {
+    let cls = 'event-entry';
+    if (e.message.includes('FAULT') || e.message.includes('\uD83D\uDD34')) cls += ' event-fault';
+    else if (e.message.includes('\u26A0') || e.message.toLowerCase().includes('warning')) cls += ' event-warn';
+    return `<div class="${cls}"><span class="event-time">${e.time}</span> \u2014 ${e.message}</div>`;
+  }).join('');
+}
+
+function toggleEventLog() {
+  const log = document.getElementById('event-log');
+  const btn = document.getElementById('event-log-toggle');
+  const visible = log.style.display !== 'none';
+  log.style.display = visible ? 'none' : 'block';
+  btn.classList.toggle('open', !visible);
+  const arrow = visible ? '\u25BC' : '\u25B2';
+  btn.innerHTML = `${arrow} Event Log <span id="event-count">(${eventLog.length})</span>`;
+}
+
+// ── Feature 5: Demo Scenario ───────────────────────────────
+function runDemoScenario() {
+  if (demoScenarioRunning) return;
+  demoScenarioRunning = true;
+  const btn = document.getElementById('btn-demo');
+  btn.disabled = true;
+  btn.classList.add('running');
+  btn.textContent = '\u23F3 Running...';
+  addEvent('Demo scenario started');
+
+  const slider = document.getElementById('speed-slider');
+  const speedDisplay = document.getElementById('speed-display');
+
+  // t=0s: Start forward at 20 Hz, current 1.5A — all green
+  demoScenarioState = {
+    runState: 'running', direction: 'forward',
+    commandHz: 20, actualHz: 20.0, motorCurrent: 1.5, commandCount: 42
+  };
+  slider.value = 20;
+  speedDisplay.textContent = '20 Hz';
+  updateStatusPanel(demoScenarioState);
+  updateCurrentGauge(1.5);
+  addEvent('Forward command issued @ 20 Hz');
+  addChatMessage('lm', 'Pre-start checklist: E-stop OK \u2705, Drive ready \u2705, Safety permissive \u2705. Safe to start.');
+
+  // t=5s: Ramp speed to 45 Hz, current 5A
+  setTimeout(() => {
+    demoScenarioState = {
+      runState: 'running', direction: 'forward',
+      commandHz: 45, actualHz: 45.0, motorCurrent: 5.0, commandCount: 43
+    };
+    slider.value = 45;
+    speedDisplay.textContent = '45 Hz';
+    updateStatusPanel(demoScenarioState);
+    updateCurrentGauge(5.0);
+    addEvent('Speed changed to 45 Hz \u2014 current 5.0A');
+  }, 5000);
+
+  // t=10s: Current climbs to 7.5A — yellow warning
+  setTimeout(() => {
+    demoScenarioState = {
+      runState: 'running', direction: 'forward',
+      commandHz: 45, actualHz: 44.2, motorCurrent: 7.5, commandCount: 43
+    };
+    updateStatusPanel(demoScenarioState);
+    updateCurrentGauge(7.5);
+    addEvent('\u26A0 Current elevated: 7.5A \u2014 yellow zone');
+  }, 10000);
+
+  // t=15s: Current hits 9.2A — FAULT triggered
+  setTimeout(() => {
+    demoScenarioState = {
+      runState: 'fault', direction: 'forward',
+      commandHz: 0, actualHz: 0, motorCurrent: 9.2,
+      faultText: 'Overcurrent', commandCount: 43
+    };
+    updateStatusPanel(demoScenarioState);
+    updateCurrentGauge(9.2);
+    addEvent('FAULT detected \u2014 Drive current 9.2A');
+  }, 15000);
+
+  // t=18s: LM chat auto-responds with diagnosis
+  setTimeout(() => {
+    addChatMessage('lm',
+      'Overcurrent detected at 9.2A. Belt jam suspected. ' +
+      'Recommend: Stop \u2192 Clear jam \u2192 Reset fault \u2192 Restart at reduced speed.');
+    addEvent('LM diagnosis: Belt jam suspected');
+
+    demoScenarioRunning = false;
+    demoScenarioState = null;
+    btn.disabled = false;
+    btn.classList.remove('running');
+    btn.textContent = '\u25B6 Run Demo';
+  }, 18000);
+}
+
+// ── Existing: Send Command ─────────────────────────────────
 async function sendCommand(action, value) {
   if (cooldown) return showToast('Wait a moment between commands');
-
-  // DEMO_MODE: mutate demoState directly
-  if (DEMO_MODE) {
-    if (action === 'forward') {
-      demoState.runState = 'running'; demoState.direction = 'forward'; demoState.commandCount++;
-    } else if (action === 'reverse') {
-      demoState.runState = 'running'; demoState.direction = 'reverse'; demoState.commandCount++;
-    } else if (action === 'stop') {
-      demoState.runState = 'stopped'; demoState.commandHz = 0; demoState.commandCount++;
-    } else if (action === 'set_speed') {
-      demoState.commandHz = Number(value); demoState.commandCount++;
-    }
-    logEvent('CMD: ' + action + (value !== undefined ? ' → ' + value : ''), 'command');
-    fetchStatus();
-    return;
-  }
 
   const body = { action };
   if (value !== undefined) body.value = Number(value);
 
-  // Disable buttons during cooldown
   cooldown = true;
   [btnFwd, btnStop, btnRev].forEach(b => b.disabled = true);
 
@@ -1225,14 +963,11 @@ async function sendCommand(action, value) {
       body: JSON.stringify(body),
     });
     if (resp.status === 429) {
-      showToast('Rate limited — wait a few seconds');
+      showToast('Rate limited \u2014 wait a few seconds');
     } else if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
       showToast(err.detail || 'Command failed');
-    } else {
-      logEvent('CMD: ' + action + (value !== undefined ? ' → ' + value : ''), 'command');
     }
-    // Immediately refresh status
     fetchStatus();
   } catch (e) {
     showToast('Network error');
@@ -1244,25 +979,40 @@ async function sendCommand(action, value) {
   }, COOLDOWN_MS);
 }
 
+// ── Existing: Fetch Status (modified for DEMO_MODE) ────────
 async function fetchStatus() {
-  if (DEMO_MODE) {
-    updatePlcStatus(false);
-    updateStatusPanel(demoState);
-    return;
-  }
   try {
     const resp = await fetch(API + '/api/status');
     if (!resp.ok) throw new Error();
-    const s = resp.json ? await resp.json() : {};
-    updatePlcStatus(true);
-    updateStatusPanel(s);
+    const s = await resp.json();
+    updatePLCStatus(true);
+
+    if (demoScenarioRunning && demoScenarioState) {
+      updateStatusPanel(demoScenarioState);
+    } else {
+      updateStatusPanel(s);
+    }
   } catch {
-    updatePlcStatus(false);
-    document.getElementById('status-panel').innerHTML =
-      '<span class="indicator offline"></span> Relay offline';
+    updatePLCStatus(false);
+
+    if (demoScenarioRunning && demoScenarioState) {
+      updateStatusPanel(demoScenarioState);
+    } else if (DEMO_MODE) {
+      const hz = Number(document.getElementById('speed-slider').value);
+      const simCurrent = (hz / 60) * 4.5 + (Math.random() * 0.4);
+      updateStatusPanel({
+        runState: 'stopped', direction: '-',
+        commandHz: hz, actualHz: 0,
+        motorCurrent: simCurrent, commandCount: 0,
+      });
+    } else {
+      document.getElementById('status-panel').innerHTML =
+        '<span class="indicator offline"></span> Relay offline';
+    }
   }
 }
 
+// ── Existing: LED + Status Panel (with new integrations) ───
 function updateIOLeds(s) {
   const state = s.runState || 'offline';
   const dir = s.direction || '';
@@ -1270,7 +1020,6 @@ function updateIOLeds(s) {
   const fault = state === 'fault';
   const cmdHz = s.commandHz != null ? Number(s.commandHz) : 0;
 
-  // Inputs
   setLed('led-di-running', running);
   setLed('led-di-forward', dir === 'forward');
   setLed('led-di-reverse', dir === 'reverse');
@@ -1278,7 +1027,6 @@ function updateIOLeds(s) {
   setLed('led-di-exit', running);
   setLed('led-di-fault', fault);
 
-  // Outputs
   setLed('led-do-conveyor', running);
   setLed('led-do-fwd', running && dir === 'forward');
   setLed('led-do-rev', running && dir === 'reverse');
@@ -1294,27 +1042,12 @@ function setLed(id, on) {
 function updateStatusPanel(s) {
   updateIOLeds(s);
   const state = s.runState || 'offline';
-
-  // Log state changes
-  const stateKey = state + '|' + (s.direction || '') + '|' + (s.commandHz || '');
-  if (lastLoggedState !== null && lastLoggedState !== stateKey) {
-    if (state === 'fault') {
-      logEvent('FAULT: ' + (s.faultText || 'unknown'), 'fault');
-    } else if (state === 'running') {
-      logEvent('State → Running ' + (s.direction || '') + ' @ ' + (s.commandHz || '?') + ' Hz', 'state');
-    } else if (state === 'stopped') {
-      logEvent('State → Stopped', 'state');
-    }
-  }
-  lastLoggedState = stateKey;
   const dir = s.direction || '-';
   const cmdHz = s.commandHz != null ? s.commandHz : '-';
   const actualHz = s.actualHz != null ? Number(s.actualHz).toFixed(1) : '-';
   const current = s.motorCurrent != null ? Number(s.motorCurrent).toFixed(2) : '-';
-  if (s.motorCurrent != null) updateGauge(Number(s.motorCurrent));
   const cmds = s.commandCount != null ? s.commandCount : '-';
 
-  // Highlight active direction button
   btnFwd.className = '';
   btnRev.className = '';
   if (state === 'running' && dir === 'forward') btnFwd.className = 'active-fwd';
@@ -1329,6 +1062,31 @@ function updateStatusPanel(s) {
     `${indicator} <strong>${label}</strong><br>` +
     `Command: ${cmdHz} Hz &middot; Motor: ${current} A &middot; ` +
     `Commands today: ${cmds}`;
+
+  // Feature 1: Update current gauge
+  const currentVal = s.motorCurrent != null ? Number(s.motorCurrent) : 0;
+  updateCurrentGauge(currentVal);
+
+  // Feature 4: Auto-log state changes
+  const curDir = s.direction || '';
+  const curState = s.runState || '';
+  const curHz = s.commandHz != null ? Number(s.commandHz) : 0;
+
+  if (lastDirection !== null && curDir !== lastDirection && curDir && curDir !== '-') {
+    addEvent(`Direction changed to ${curDir}`);
+  }
+  if (lastRunState !== null && curState !== lastRunState) {
+    if (curState === 'fault') addEvent(`FAULT detected \u2014 Drive current ${currentVal.toFixed(1)}A`);
+    else if (curState === 'running') addEvent(`Conveyor started ${curDir} @ ${curHz} Hz`);
+    else if (curState === 'stopped') addEvent('Conveyor stopped');
+  }
+  if (lastCommandHz !== null && curHz !== lastCommandHz && curHz > 0) {
+    addEvent(`Speed changed to ${curHz} Hz`);
+  }
+
+  lastDirection = curDir;
+  lastRunState = curState;
+  lastCommandHz = curHz;
 }
 
 function showToast(msg) {

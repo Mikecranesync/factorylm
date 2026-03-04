@@ -4,6 +4,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
+from backend.config import settings
 from backend.models.plc_models import (
     PLCStatusResponse,
     ConnectRequest,
@@ -96,3 +97,40 @@ async def write_coil(request: WriteCoilRequest) -> WriteCoilResponse:
         raise HTTPException(status_code=503, detail=str(e))
     except IOError as e:
         raise HTTPException(status_code=500, detail=f"Write failed: {str(e)}")
+
+
+@router.post("/mock/fault")
+async def mock_inject_fault(payload: dict):
+    """
+    Inject a fault into the MockPLC (only works in mock mode).
+
+    Fault types: overload, overheat, jam, sensor, estop, clear
+    """
+    if not settings.mock_mode:
+        raise HTTPException(status_code=400, detail="Only available in mock mode")
+
+    if not plc_service.is_connected or plc_service._client is None:
+        raise HTTPException(status_code=503, detail="Mock PLC not connected")
+
+    mock = plc_service._client
+    fault_type = payload.get("fault_type", "clear")
+
+    actions = {
+        "overload": mock.inject_overload,
+        "overheat": mock.inject_overheat,
+        "jam": mock.inject_jam,
+        "sensor": mock.inject_sensor_failure,
+        "estop": mock.trigger_estop,
+        "clear": mock.clear_faults,
+    }
+
+    fn = actions.get(fault_type)
+    if fn is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown fault type: {fault_type}. Options: {list(actions.keys())}",
+        )
+
+    fn()
+    logger.info("Mock fault injected: %s", fault_type)
+    return {"success": True, "fault_type": fault_type}

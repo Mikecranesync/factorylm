@@ -1,0 +1,34 @@
+{
+  "server": {
+    "listenerAddress": "0.0.0.0",
+    "listenerPort": 5020,
+    "logging": {
+      "loglevel": "info"
+    }
+  },
+  "slaves": [
+    {
+      "slaveId": 1,
+      "function_codes": [
+        {
+          "functionCode": 1,
+          "startAddress": 0,
+          "quantity": 18,
+          "values": [
+            false, false, false, false, false,
+            false, false,
+            true, false, true, false, false,
+            false, false, false,
+            true, false, false
+          ]
+        },
+        {
+          "functionCode": 3,
+          "startAddress": 100,
+          "quantity": 6,
+          "values": [0, 0, 0, 250, 0, 0]
+        }
+      ]
+    }
+  ]
+}
