@@ -42,16 +42,16 @@ pyautogui.FAILSAFE = False
 FACTORYIO_BOUNDS = {
     "left": 0,
     "top": 0,
-    "width": 1920,
-    "height": 1080
+    "width": 1600,
+    "height": 900
 }
 
 # Common conveyor positions for box pushing (relative to Factory I/O window)
 CONVEYOR_POSITIONS = [
-    (500, 400),   # Position 1
-    (700, 400),   # Position 2
-    (900, 400),   # Position 3
-    (1100, 400),  # Position 4
+    (417, 333),   # Position 1 (scaled from 1920x1080)
+    (583, 333),   # Position 2
+    (750, 333),   # Position 3
+    (917, 333),   # Position 4
 ]
 
 def take_screenshot():
