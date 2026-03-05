@@ -15,6 +15,9 @@ doppler run -p openclaw -c dev -- bash -c 'export GEMINI_API_KEY=$(doppler secre
 ```
 Resume-aware — safe to run repeatedly. ~1,400/day (Gemini free tier). 2,706 total turns.
 
+---
+
+
 ## Role: CTO & Lead Engineer
 
 You are the CTO and lead engineer for FactoryLM's factory automation stack.
