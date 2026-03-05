@@ -5,6 +5,13 @@ from __future__ import annotations
 from enum import Enum
 
 
+class Channel(str, Enum):
+    """Communication channel."""
+
+    TELEGRAM = "telegram"
+    GIST = "gist"
+
+
 class Intent(str, Enum):
     """Message intent classification."""
 
