@@ -1,0 +1,159 @@
+================================================================
+  CCW MODBUS TCP SERVER — REGISTER MAPPING
+  For: Micro820 2080-LC20-20QBB — Cosmos_Demo_v1 project
+================================================================
+
+This replaces the existing Modbus mapping. The old mapping had
+a DO_03 duplication bug (coils 18+19 both mapped to DO_03).
+This version fixes that and adds new registers.
+
+HOW TO CONFIGURE IN CCW:
+  1. Open Ethernet settings for the controller
+  2. Go to Modbus TCP → Mapping (or Server Configuration)
+  3. Delete ALL existing rows (start fresh)
+  4. Add each row below
+  5. Save and Download to PLC
+
+================================================================
+COILS (Function Code 01 — Read Coils)
+================================================================
+
+These are read-only BOOL values. External clients read them
+with Modbus function code 01 (Read Coils).
+
+  Addr   Variable            R/W   Purpose
+  ─────  ──────────────────  ────  ──────────────────────────
+  1      motor_running       R     Motor is running
+  2      conveyor_running    R     Belt is moving
+  3      fault_alarm         R     Fault active (latched)
+  4      vfd_comm_ok         R     VFD serial comm healthy
+  5      system_ready        R     System healthy + running
+  6      e_stop_active       R     E-stop engaged
+  7      auto_mode           R     Selector in AUTO
+  8      heartbeat           R     Toggles every scan
+  9      _IO_EM_DI_00        R     Digital input 00
+  10     _IO_EM_DI_01        R     Digital input 01
+  11     _IO_EM_DI_02        R     Digital input 02
+  12     _IO_EM_DI_03        R     Digital input 03
+  13     _IO_EM_DI_04        R     Digital input 04
+  14     _IO_EM_DI_05        R     Digital input 05
+  15     _IO_EM_DI_06        R     Digital input 06
+  16     _IO_EM_DI_07        R     Digital input 07
+  17     _IO_EM_DO_00        R     Digital output 00 (Power LED)
+  18     _IO_EM_DO_01        R     Digital output 01 (Fault LED)
+  19     _IO_EM_DO_02        R     Digital output 02 (Status LED)
+
+  Total coils: 19
+
+================================================================
+HOLDING REGISTERS (Function Code 03 — Read Holding Registers)
+================================================================
+
+These are INT/DINT values. External clients read them with
+Modbus function code 03 (Read Holding Registers).
+
+Address convention: 400101 = Modbus address 100 in "4xxxxx"
+notation. In CCW mapping, use the offset number (e.g., 100).
+
+  Addr     Variable            R/W   Purpose
+  ───────  ──────────────────  ────  ──────────────────────────
+  400101   motor_speed         R     Motor RPM / speed value
+  400102   motor_current       R     Motor current (raw)
+  400103   temperature         R     Temperature (raw)
+  400104   pressure            R     Pressure (raw)
+  400105   conveyor_speed      R     Belt speed (raw)
+  400106   error_code          R     Fault code (0=OK, 6=EStop,
+                                     7=WiringFault)
+  400107   vfd_frequency       R     VFD Hz * 10
+  400108   vfd_current         R     VFD Amps * 10
+  400109   vfd_voltage         R     VFD Volts * 10
+  400110   vfd_dc_bus          R     VFD DC bus voltage
+  400111   item_count          R     Items counted at exit
+  400112   uptime_seconds      R     Seconds since download
+                                     (low word of DINT)
+  400113   conveyor_speed_cmd  R/W   Speed setpoint (0-4095)
+  400114   conv_state          R     State machine state
+                                     (0-4)
+
+  Total registers: 14
+
+NOTE ON 400113 (conveyor_speed_cmd):
+  This is the ONLY writable register. External systems can
+  write a speed setpoint (0-4095) via Modbus function code 06
+  (Write Single Register) or 16 (Write Multiple Registers).
+  The PLC will use this as the analog output value when running.
+
+NOTE ON 400112 (uptime_seconds):
+  uptime_seconds is DINT (32-bit). Modbus registers are 16-bit.
+  Only the low 16 bits are mapped (wraps at 65535 = ~18 hours).
+  For full 32-bit, read via CIP instead.
+
+================================================================
+BACKWARDS COMPATIBILITY
+================================================================
+
+  Old addr  Old variable     New addr  Status
+  ────────  ──────────────   ────────  ──────────────────
+  Coil 1    motor_running    Coil 1    SAME
+  Coil 2    motor_stopped    —         REMOVED (redundant,
+                                       = NOT motor_running)
+  Coil 3    fault_alarm      Coil 3    SAME
+  Coil 4    conveyor_running Coil 2    MOVED (was 4, now 2)
+  Coil 5    sensor_1_active  —         Available via DI_05
+  Coil 6    sensor_2_active  —         Available via DI_06
+  Coil 7    e_stop_active    Coil 6    MOVED (was 7, now 6)
+  400101    motor_speed      400101    SAME
+  400102    motor_current    400102    SAME
+  400103    temperature      400103    SAME
+  400104    pressure         400104    SAME
+  400105    conveyor_speed   400105    SAME
+  400106    error_code       400106    SAME
+
+  New coils: 4-5, 7-8 (system_ready, e_stop, auto_mode, heartbeat)
+  New registers: 400107-400114 (VFD data, item_count, uptime,
+                                speed_cmd, conv_state)
+
+================================================================
+QUICK REFERENCE — CCW INPUT TABLE
+================================================================
+
+Copy this into CCW Modbus Mapping. Each row = one mapping entry.
+
+COILS:
+  Row 1:  Address=1,  Tag=motor_running,    Direction=Read
+  Row 2:  Address=2,  Tag=conveyor_running, Direction=Read
+  Row 3:  Address=3,  Tag=fault_alarm,      Direction=Read
+  Row 4:  Address=4,  Tag=vfd_comm_ok,      Direction=Read
+  Row 5:  Address=5,  Tag=system_ready,     Direction=Read
+  Row 6:  Address=6,  Tag=e_stop_active,    Direction=Read
+  Row 7:  Address=7,  Tag=auto_mode,        Direction=Read
+  Row 8:  Address=8,  Tag=heartbeat,        Direction=Read
+  Row 9:  Address=9,  Tag=_IO_EM_DI_00,     Direction=Read
+  Row 10: Address=10, Tag=_IO_EM_DI_01,     Direction=Read
+  Row 11: Address=11, Tag=_IO_EM_DI_02,     Direction=Read
+  Row 12: Address=12, Tag=_IO_EM_DI_03,     Direction=Read
+  Row 13: Address=13, Tag=_IO_EM_DI_04,     Direction=Read
+  Row 14: Address=14, Tag=_IO_EM_DI_05,     Direction=Read
+  Row 15: Address=15, Tag=_IO_EM_DI_06,     Direction=Read
+  Row 16: Address=16, Tag=_IO_EM_DI_07,     Direction=Read
+  Row 17: Address=17, Tag=_IO_EM_DO_00,     Direction=Read
+  Row 18: Address=18, Tag=_IO_EM_DO_01,     Direction=Read
+  Row 19: Address=19, Tag=_IO_EM_DO_02,     Direction=Read
+
+REGISTERS:
+  Row 1:  Address=100, Tag=motor_speed,        Direction=Read
+  Row 2:  Address=101, Tag=motor_current,      Direction=Read
+  Row 3:  Address=102, Tag=temperature,        Direction=Read
+  Row 4:  Address=103, Tag=pressure,           Direction=Read
+  Row 5:  Address=104, Tag=conveyor_speed,     Direction=Read
+  Row 6:  Address=105, Tag=error_code,         Direction=Read
+  Row 7:  Address=106, Tag=vfd_frequency,      Direction=Read
+  Row 8:  Address=107, Tag=vfd_current,        Direction=Read
+  Row 9:  Address=108, Tag=vfd_voltage,        Direction=Read
+  Row 10: Address=109, Tag=vfd_dc_bus,         Direction=Read
+  Row 11: Address=110, Tag=item_count,         Direction=Read
+  Row 12: Address=111, Tag=uptime_seconds,     Direction=Read
+  Row 13: Address=112, Tag=conveyor_speed_cmd, Direction=Read/Write
+  Row 14: Address=113, Tag=conv_state,         Direction=Read
+
+================================================================

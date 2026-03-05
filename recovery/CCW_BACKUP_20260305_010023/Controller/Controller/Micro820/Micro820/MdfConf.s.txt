@@ -1,0 +1,60 @@
+[__DEFIO_CPXDVC]
+Nb = 1
+NotMDF = 0, 1, AB_, OPTIMUS_, IO_Base
+MDF = -1
+RIdx = 0
+
+
+[__DEFIO_SPLDVC]
+Nb = 4
+NotMDF = 0, 0, 1, AB_, OPTIMUS_, digitOut_Base
+MDF = -1
+RIdx = 0, 0
+NotMDF = 0, 1, 1, AB_, OPTIMUS_, digitIn_Base
+MDF = -1
+RIdx = 0, 0
+NotMDF = 0, 2, 1, AB_, OPTIMUS_, analogIn_Base
+MDF = -1
+RIdx = 0, 0
+NotMDF = 0, 3, 1, AB_, OPTIMUS_, analogOut_Base
+MDF = -1
+RIdx = 0, 0
+
+
+[__DEFIO_CHAN]
+RIdx = 0, 0, 0
+Nb = 7
+MDF = 1\1, 1, 0, 0, -1, _IO_EM_DO_00
+MDF = 1\1, 1, 0, 1, -1, _IO_EM_DO_01
+MDF = 1\1, 1, 0, 2, -1, _IO_EM_DO_02
+MDF = 1\1, 1, 0, 3, -1, _IO_EM_DO_03
+MDF = 1\1, 1, 0, 4, -1, _IO_EM_DO_04
+MDF = 1\1, 1, 0, 5, -1, _IO_EM_DO_05
+MDF = 1\1, 1, 0, 6, -1, _IO_EM_DO_06
+RIdx = 0, 0, 1
+Nb = 12
+MDF = 1\1, 1, 0, 0, -1, _IO_EM_DI_00
+MDF = 1\1, 1, 0, 1, -1, _IO_EM_DI_01
+MDF = 1\1, 1, 0, 2, -1, _IO_EM_DI_02
+MDF = 1\1, 1, 0, 3, -1, _IO_EM_DI_03
+MDF = 1\1, 1, 0, 4, -1, _IO_EM_DI_04
+MDF = 1\1, 1, 0, 5, -1, _IO_EM_DI_05
+MDF = 1\1, 1, 0, 6, -1, _IO_EM_DI_06
+MDF = 1\1, 1, 0, 7, -1, _IO_EM_DI_07
+MDF = 1\1, 1, 0, 8, -1, _IO_EM_DI_08
+MDF = 1\1, 1, 0, 9, -1, _IO_EM_DI_09
+MDF = 1\1, 1, 0, 10, -1, _IO_EM_DI_10
+MDF = 1\1, 1, 0, 11, -1, _IO_EM_DI_11
+RIdx = 0, 0, 2
+Nb = 4
+MDF = 1\1, 1, 0, 0, -1, _IO_EM_AI_00
+MDF = 1\1, 1, 0, 1, -1, _IO_EM_AI_01
+MDF = 1\1, 1, 0, 2, -1, _IO_EM_AI_02
+MDF = 1\1, 1, 0, 3, -1, _IO_EM_AI_03
+RIdx = 0, 0, 3
+Nb = 1
+MDF = 1\1, 1, 0, 0, -1, _IO_EM_AO_00
+
+
+[__READONLY_VALUES]
+Nb = 0

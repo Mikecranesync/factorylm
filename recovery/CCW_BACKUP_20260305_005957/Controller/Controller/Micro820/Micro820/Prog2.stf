@@ -1,0 +1,57 @@
+PROGRAM Prog2
+(* I/O Mirroring *)
+_IO_EM_DO_00 := _IO_EM_DI_00;
+_IO_EM_DO_01 := _IO_EM_DI_01;
+_IO_EM_DO_02 := _IO_EM_DI_02;
+IF _IO_EM_DI_03 AND NOT prev_button3 THEN
+    all_leds_on := NOT all_leds_on;
+    IF all_leds_on THEN
+        _IO_EM_DO_00 := TRUE;
+        _IO_EM_DO_01 := TRUE;
+        _IO_EM_DO_02 := TRUE;
+    END_IF;
+END_IF;
+prev_button3 := _IO_EM_DI_03;
+
+(* VFD Modbus RTU config *)
+read_local_cfg.Channel := 2;
+read_local_cfg.TriggerType := 0;
+read_local_cfg.Cmd := 3;
+read_local_cfg.ElementCnt := 4;
+read_target_cfg.Addr := 8451;
+read_target_cfg.Node := 1;
+
+(* Poll timer — single call, runs when trigger is off *)
+vfd_poll_timer(IN := NOT vfd_write_trig, PT := T#1000ms);
+
+(* When timer fires, set trigger to start MSG *)
+IF vfd_poll_timer.Q AND NOT vfd_write_trig THEN
+    vfd_write_trig := TRUE;
+    vfd_msg_done := FALSE;
+END_IF;
+
+(* Always call MSG FB every scan *)
+mb_read_status(IN := vfd_write_trig, LocalCfg := read_local_cfg, TargetCfg := read_target_cfg, LocalAddr := read_data);
+
+(* Only check results when trigger is active and msg not yet handled *)
+IF vfd_write_trig AND NOT vfd_msg_done THEN
+    IF mb_read_status.Q THEN
+        (* Success *)
+        vfd_frequency := read_data(1);
+        vfd_current := read_data(2);
+        vfd_dc_bus := read_data(3);
+        vfd_voltage := read_data(4);
+        vfd_comm_ok := TRUE;
+        vfd_comm_err := FALSE;
+        vfd_msg_done := TRUE;
+        vfd_write_trig := FALSE;
+    END_IF;
+    IF mb_read_status.Error THEN
+        (* Error — clear trigger, timer will restart *)
+        vfd_comm_ok := FALSE;
+        vfd_comm_err := TRUE;
+        vfd_msg_done := TRUE;
+        vfd_write_trig := FALSE;
+    END_IF;
+END_IF;
+END_PROGRAM
