@@ -242,17 +242,43 @@ def verify_running(rect, delay=2.0, threshold=1.0):
 # ---------------------------------------------------------------------------
 
 def try_modbus(host="127.0.0.1", port=502):
-    """Attempt Modbus TCP connection and read coils + registers."""
+    """Attempt Modbus TCP connection and read coils + registers.
+
+    Tries the given host first, then falls back to common alternatives
+    (localhost, machine Tailscale IP) if the primary fails.
+    """
     try:
         from pymodbus.client import ModbusTcpClient
     except ImportError:
         return {"status": "SKIP", "reason": "pymodbus not installed"}
 
-    client = ModbusTcpClient(host, port=port, timeout=3)
-    if not client.connect():
-        return {"status": "FAIL", "reason": f"Cannot connect to {host}:{port}"}
+    # Try multiple hosts — Factory I/O may bind to a specific interface
+    hosts_to_try = [host]
+    if host == "127.0.0.1":
+        import socket
+        hostname = socket.gethostname()
+        try:
+            local_ips = socket.getaddrinfo(hostname, None, socket.AF_INET)
+            for info in local_ips:
+                ip = info[4][0]
+                if ip not in hosts_to_try and ip != "127.0.0.1":
+                    hosts_to_try.append(ip)
+        except socket.gaierror:
+            pass
 
-    result = {"status": "PASS", "coils": {}, "registers": {}}
+    connected_host = None
+    client = None
+    for h in hosts_to_try:
+        client = ModbusTcpClient(h, port=port, timeout=3)
+        if client.connect():
+            connected_host = h
+            break
+        client = None
+
+    if client is None:
+        return {"status": "FAIL", "reason": f"Cannot connect to any of {hosts_to_try}:{port}"}
+
+    result = {"status": "PASS", "host": connected_host, "coils": {}, "registers": {}}
 
     try:
         coils = client.read_coils(address=0, count=7)
@@ -356,7 +382,7 @@ def main():
     modbus = try_modbus()
     status = modbus["status"]
     if status == "PASS":
-        print(f"[7] Modbus connect ...... PASS")
+        print(f"[7] Modbus connect ...... PASS ({modbus.get('host', '?')}:{502})")
         print(f"    Coils:     {modbus['coils']}")
         print(f"    Registers: {modbus['registers']}")
     elif status == "SKIP":
