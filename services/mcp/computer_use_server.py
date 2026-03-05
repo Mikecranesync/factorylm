@@ -7,7 +7,6 @@ automation of Factory I/O, PLC software, and any desktop app.
 
 from __future__ import annotations
 
-import base64
 import io
 import logging
 import time
@@ -65,7 +64,7 @@ def screenshot(screen_index: int = 0) -> Image:
     """
     time.sleep(0.5)  # brief settle time
     png_bytes = _grab_screenshot(screen_index)
-    return Image(data=base64.b64encode(png_bytes).decode(), format="png")
+    return Image(data=png_bytes, format="png")
 
 
 @app.tool()
