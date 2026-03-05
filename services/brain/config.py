@@ -19,7 +19,7 @@ def get_memory() -> Memory:
             "config": {
                 "connection_string": os.environ["NEON_DATABASE_URL"],
                 "collection_name": "brain_memories",
-                "embedding_model_dims": 3072,  # Gemini gemini-embedding-001
+                "embedding_model_dims": 768,  # Gemini gemini-embedding-001 (output_dimensionality=768)
             },
         },
         "embedder": {

@@ -16,7 +16,7 @@
     <string>/Users/factorylm/factorylm</string>
 
     <key>KeepAlive</key>
-    <false/>
+    <true/>
 
     <key>RunAtLoad</key>
     <true/>

@@ -1,0 +1,196 @@
+id: photo_triage
+title: "Photo Triage"
+start_node: welcome
+
+nodes:
+  welcome:
+    type: question
+    text: "👋 Welcome to FactoryLM Troubleshoot!\n\nHow would you like to start?"
+    options:
+      - label: "📸 Send a photo"
+        id: send_photo
+        next: take_photo
+      - label: "🔧 Mechanical issue"
+        id: mechanical
+        next: route_mechanical
+      - label: "⚡ Electrical issue"
+        id: electrical
+        next: route_electrical
+      - label: "🖥️ Controls / PLC issue"
+        id: controls
+        next: route_controls
+
+  take_photo:
+    type: await_photo
+    text: "Please send a photo of the equipment or issue.\n\nTip: Get a clear shot of the problem area."
+    store_as: photo
+    on_photo_received: classify_photo
+    on_text_received: welcome
+
+  classify_photo:
+    type: vision_classify
+    photo_field: photo
+    prompt: |
+      You are an industrial equipment classifier. Analyze this photo and classify the issue into ONE category.
+
+      Return ONLY valid JSON:
+      {"category": "<one of: mechanical, electrical, controls, unknown>", "confidence": <0.0-1.0>, "description": "<brief description of what you see>"}
+
+      Categories:
+      - mechanical: Physical damage, wear, misalignment, loose bolts, broken parts, vibration damage
+      - electrical: Wiring issues, burned components, panel problems, motor issues
+      - controls: PLC, HMI, sensor, or automation issues visible on screen
+      - unknown: Cannot determine from photo
+    store_result_as: vision_result
+    routes:
+      mechanical: route_mechanical
+      electrical: electrical_start
+      controls: controls_start
+      unknown: unknown_category
+
+  route_mechanical:
+    type: redirect
+    target_workflow: mechanical_bolted_joint
+    target_start_node: mechanical_start
+
+  electrical_start:
+    type: question
+    text: "⚡ Electrical issue detected.\n\nWhat best describes the problem?"
+    options:
+      - label: "Motor not running"
+        id: motor_not_running
+        next: check_motor_power
+      - label: "Overheating"
+        id: overheating
+        next: check_overheating
+      - label: "Wiring / connections"
+        id: wiring
+        next: check_wiring
+      - label: "Other"
+        id: other_electrical
+        next: escalate_electrical
+
+  check_motor_power:
+    type: question
+    text: "Is the motor receiving power? Check the breaker and disconnect."
+    options:
+      - label: "Yes, power is on"
+        id: power_on
+        next: check_motor_starter
+      - label: "No power"
+        id: no_power
+        next: advice_restore_power
+
+  check_motor_starter:
+    type: advice
+    text: |
+      Check the motor starter/contactor:
+      1. Look for tripped overload relay — reset if tripped
+      2. Check contactor coil voltage
+      3. Inspect contactor contacts for pitting/welding
+      4. Verify control circuit continuity
+
+      If overload keeps tripping, the motor may be drawing excessive current. Check for mechanical binding.
+
+  advice_restore_power:
+    type: advice
+    text: |
+      Restore power to the motor circuit:
+      1. Check main breaker — reset if tripped
+      2. Check disconnect switch position
+      3. Verify supply voltage at the panel
+      4. If breaker trips again immediately, there may be a short circuit — DO NOT keep resetting
+
+      ⚠️ If you suspect a short circuit, contact a licensed electrician.
+
+  check_overheating:
+    type: advice
+    text: |
+      Overheating troubleshooting:
+      1. Check ambient temperature — is ventilation adequate?
+      2. Inspect cooling fans — are they running?
+      3. Check for excessive load on the motor
+      4. Measure current draw — compare to nameplate rating
+      5. Check for blocked air intake/exhaust
+
+  check_wiring:
+    type: advice
+    text: |
+      Wiring inspection checklist:
+      1. Check for loose connections at terminals
+      2. Look for burned or discolored wires
+      3. Verify wire gauge is appropriate for the load
+      4. Check for damaged insulation
+      5. Inspect conduit for damage or water intrusion
+
+  escalate_electrical:
+    type: escalate_llm
+    text: "The user has an electrical issue that doesn't fit standard categories. Please analyze the session context and provide troubleshooting guidance."
+
+  controls_start:
+    type: question
+    text: "🖥️ Controls / PLC issue detected.\n\nWhat are you experiencing?"
+    options:
+      - label: "PLC fault"
+        id: plc_fault
+        next: check_plc_fault
+      - label: "Sensor problem"
+        id: sensor
+        next: check_sensor
+      - label: "HMI error"
+        id: hmi
+        next: check_hmi
+      - label: "Other"
+        id: other_controls
+        next: escalate_controls
+
+  check_plc_fault:
+    type: advice
+    text: |
+      PLC fault troubleshooting:
+      1. Check PLC status LEDs — note any fault indicators
+      2. Connect to PLC software and read fault log
+      3. Check I/O module status lights
+      4. Verify 24V power supply to I/O modules
+      5. Clear fault and attempt restart if safe to do so
+
+  check_sensor:
+    type: advice
+    text: |
+      Sensor troubleshooting:
+      1. Check sensor indicator light — is it active?
+      2. Verify sensor wiring (signal, power, ground)
+      3. Check for physical damage or misalignment
+      4. Clean sensor face if proximity/photoelectric
+      5. Test with known-good sensor if available
+
+  check_hmi:
+    type: advice
+    text: |
+      HMI troubleshooting:
+      1. Check if HMI is powered on and displaying
+      2. Try restarting the HMI
+      3. Verify communication cable to PLC
+      4. Check HMI runtime application is running
+      5. Note any error codes displayed
+
+  escalate_controls:
+    type: escalate_llm
+    text: "The user has a controls/PLC issue that doesn't fit standard categories. Please analyze the session context and provide troubleshooting guidance."
+
+  unknown_category:
+    type: question
+    text: "I couldn't determine the issue category from the photo.\n\nCan you help me classify it?"
+    options:
+      - label: "🔧 Mechanical"
+        id: manual_mechanical
+        next: route_mechanical
+      - label: "⚡ Electrical"
+        id: manual_electrical
+        next: electrical_start
+      - label: "🖥️ Controls"
+        id: manual_controls
+        next: controls_start
+      - label: "📸 Try another photo"
+        id: retry_photo
+        next: take_photo

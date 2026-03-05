@@ -1,0 +1,83 @@
+{
+  "session_id": "c341301e-e508-4b38-95bb-8e3180fd87a9",
+  "user_id": "tg_8445149012",
+  "created_at": "2026-02-19T23:33:19.228962+00:00",
+  "completed_at": "2026-02-19T23:33:51.909824+00:00",
+  "workflow_id": "photo_triage",
+  "path_taken": [
+    "welcome",
+    "take_photo",
+    "classify_photo",
+    "controls_start",
+    "check_plc_fault"
+  ],
+  "data": {
+    "photo": "C:\\Users\\hharp\\OneDrive\\Desktop\\FactoryLM\\services\\troubleshoot\\photos\\c341301e-e508-4b38-95bb-8e3180fd87a9_1.jpg",
+    "vision_result": {
+      "category": "controls",
+      "confidence": 0.9,
+      "description": "HMI screen displaying alarm history with various error messages"
+    }
+  },
+  "evidence_photos": [
+    "C:\\Users\\hharp\\OneDrive\\Desktop\\FactoryLM\\services\\troubleshoot\\photos\\c341301e-e508-4b38-95bb-8e3180fd87a9_1.jpg"
+  ],
+  "events": [
+    {
+      "type": "session_start",
+      "ts": 1771543999.2289624
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771543999.2289624,
+      "node_id": "welcome",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1771544002.3776371,
+      "button_id": "send_photo"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771544002.3776371,
+      "node_id": "take_photo",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "photo_received",
+      "ts": 1771544019.9217436,
+      "path": "C:\\Users\\hharp\\OneDrive\\Desktop\\FactoryLM\\services\\troubleshoot\\photos\\c341301e-e508-4b38-95bb-8e3180fd87a9_1.jpg"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771544019.9217436,
+      "node_id": "classify_photo",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "vision_result",
+      "ts": 1771544022.4978697,
+      "category": "controls",
+      "confidence": 0.9,
+      "description": "HMI screen displaying alarm history with various error messages"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771544022.4978697,
+      "node_id": "controls_start",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1771544031.909824,
+      "button_id": "plc_fault"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1771544031.909824,
+      "node_id": "check_plc_fault",
+      "workflow_id": "photo_triage"
+    }
+  ]
+}

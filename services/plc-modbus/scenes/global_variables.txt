@@ -1,0 +1,49 @@
+CCW Global Variables — Copy-paste into Global Variables editor
+================================================================
+
+These variables must be added to the Global Variables table in CCW.
+The _IO_EM_* variables are auto-created by the controller — do NOT add them manually.
+
+CUSTOM VARIABLES (add these):
+-----------------------------
+Name              Data Type              Initial Value
+----              ---------              -------------
+prev_button3      BOOL                   FALSE
+all_leds_on       BOOL                   FALSE
+vfd_write_trig    BOOL                   FALSE
+vfd_msg_done      BOOL                   FALSE
+read_data         ARRAY[0..3] OF INT     {0,0,0,0}
+
+SCENE VARIABLES — "From A to B" (add these):
+---------------------------------------------
+Name              Data Type              Initial Value
+----              ---------              -------------
+Conveyor          BOOL                   FALSE
+Emitter           BOOL                   FALSE
+SensorStart       BOOL                   FALSE
+SensorEnd         BOOL                   FALSE
+RunCommand        BOOL                   FALSE
+ItemCount         INT                    0
+SensorEnd_Prev    BOOL                   FALSE
+
+MODBUS STATUS VARIABLES (add these):
+------------------------------------
+Name              Data Type              Initial Value
+----              ---------              -------------
+motor_running     BOOL                   FALSE
+motor_stopped     BOOL                   FALSE
+fault_alarm       BOOL                   FALSE
+conveyor_running  BOOL                   FALSE
+sensor_1_active   BOOL                   FALSE
+sensor_2_active   BOOL                   FALSE
+e_stop_active     BOOL                   FALSE
+
+AUTO-CREATED BY CONTROLLER (do NOT add — already exist):
+--------------------------------------------------------
+_IO_EM_DI_00  through  _IO_EM_DI_07   (Digital Inputs)
+_IO_EM_DO_00, _IO_EM_DO_01, _IO_EM_DO_03  (Digital Outputs)
+
+NOTE on read_data:
+  If CCW won't let you type "ARRAY[0..3] OF INT" directly,
+  click the "..." button next to Data Type, select Array,
+  base type = INT, dimension = 0 to 3.

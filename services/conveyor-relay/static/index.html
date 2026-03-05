@@ -306,6 +306,276 @@
     box-shadow: 0 0 6px 2px rgba(255, 34, 34, 0.5);
   }
 
+  /* Feature 3: Header status */
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .plc-status {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .plc-status.connected { color: #00ff88; }
+  .plc-status.demo { color: #666; }
+
+  .live-clock {
+    font-size: 12px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    color: #76b900;
+    letter-spacing: 0.5px;
+  }
+
+  /* Feature 5: Demo scenario button */
+  #btn-demo {
+    background: #1a2a1a;
+    border-color: #76b900;
+    color: #76b900;
+  }
+
+  #btn-demo:hover:not(:disabled) { background: #253525; }
+  #btn-demo:disabled { opacity: 0.4; cursor: not-allowed; }
+  #btn-demo.running { animation: pulse-green 1s infinite; }
+
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 4px rgba(118, 185, 0, 0.3); }
+    50% { box-shadow: 0 0 12px rgba(118, 185, 0, 0.7); }
+  }
+
+  /* Feature 1: Current Meter Gauge */
+  .current-meter {
+    background: #111118;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+
+  .current-meter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .current-meter-label {
+    font-size: 13px;
+    color: #999;
+  }
+
+  .current-meter-value {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Consolas', 'Courier New', monospace;
+    color: #00ff88;
+    transition: color 0.3s;
+  }
+
+  .current-meter-value.warning { color: #ffaa00; }
+  .current-meter-value.danger  { color: #ff3333; }
+
+  .current-meter-track {
+    position: relative;
+    height: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .current-meter-zone { height: 100%; }
+  .current-meter-zone.green  { flex: 6; background: rgba(0, 255, 136, 0.15); }
+  .current-meter-zone.yellow { flex: 2; background: rgba(255, 170, 0, 0.15); }
+  .current-meter-zone.red    { flex: 2; background: rgba(255, 51, 51, 0.15); }
+
+  .current-meter-fill {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%; width: 0%;
+    border-radius: 4px;
+    transition: width 0.5s ease, background 0.3s;
+    background: #00ff88;
+  }
+
+  .current-meter-fill.warning { background: #ffaa00; }
+  .current-meter-fill.danger  { background: #ff3333; }
+
+  .current-meter-needle {
+    position: absolute;
+    top: -2px;
+    width: 3px; height: 24px;
+    background: #fff;
+    border-radius: 1px;
+    left: 0%;
+    transition: left 0.5s ease;
+    box-shadow: 0 0 4px rgba(255,255,255,0.5);
+  }
+
+  .current-meter-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 10px;
+    color: #555;
+    font-family: 'Consolas', 'Courier New', monospace;
+  }
+
+  .alarm-banner {
+    background: #ff3333;
+    color: #fff;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    animation: alarm-blink 0.8s infinite;
+    letter-spacing: 1px;
+  }
+
+  @keyframes alarm-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  body.alarm-active .led.fault-led.on {
+    animation: fault-pulse 0.5s infinite;
+  }
+
+  @keyframes fault-pulse {
+    0%, 100% { box-shadow: 0 0 6px 2px rgba(255, 34, 34, 0.5); }
+    50% { box-shadow: 0 0 14px 4px rgba(255, 34, 34, 0.9); }
+  }
+
+  /* Feature 2: LM Chat Panel */
+  .chat-panel {
+    background: #0d0d14;
+    border: 1px solid #1a1a2a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+
+  .chat-header {
+    font-size: 13px;
+    font-weight: 700;
+    color: #76b900;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #222;
+  }
+
+  .chat-log {
+    height: 160px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 8px;
+    background: #08080d;
+    border-radius: 4px;
+    border: 1px solid #1a1a22;
+  }
+
+  .chat-log .msg-user {
+    color: #e0e0e0;
+    margin-bottom: 4px;
+  }
+
+  .chat-log .msg-user::before {
+    content: '> ';
+    color: #76b900;
+  }
+
+  .chat-log .msg-lm {
+    color: #00ff88;
+    margin-bottom: 8px;
+    padding-left: 8px;
+    border-left: 2px solid #1a3a1a;
+  }
+
+  .chat-log .msg-lm::before {
+    content: 'LM: ';
+    color: #76b900;
+    font-weight: 700;
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .chat-input-row input {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    background: #111118;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 6px;
+    outline: none;
+  }
+
+  .chat-input-row input:focus { border-color: #76b900; }
+
+  .chat-input-row button {
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #1a2a1a;
+    color: #76b900;
+    border: 1px solid #76b900;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .chat-input-row button:hover { background: #253525; }
+
+  /* Feature 4: Event Log */
+  .event-log-panel { margin-bottom: 16px; }
+
+  .event-log-toggle {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #0d0d14;
+    color: #999;
+    border: 1px solid #1a1a2a;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+  }
+
+  .event-log-toggle:hover { background: #111120; }
+  .event-log-toggle.open { border-radius: 8px 8px 0 0; border-bottom: none; }
+
+  .event-log {
+    background: #08080d;
+    border: 1px solid #1a1a2a;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 10px 14px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+    color: #888;
+  }
+
+  .event-log .event-entry { margin-bottom: 2px; }
+  .event-log .event-time { color: #555; }
+  .event-log .event-fault { color: #ff3333; font-weight: 600; }
+  .event-log .event-warn { color: #ffaa00; }
+
   /* Mobile: stack panels horizontally above video */
   @media (max-width: 700px) {
     .io-rack {
@@ -335,7 +605,11 @@
 <div class="container">
   <header>
     <h1>Live Factory View</h1>
-    <a class="brand" href="https://factorylm.com" target="_blank">FactoryLM</a>
+    <div class="header-right">
+      <span class="plc-status demo" id="plc-status">PLC: DEMO &#9675;</span>
+      <span class="live-clock" id="live-clock">--:--:--</span>
+      <a class="brand" href="https://factorylm.com" target="_blank">FactoryLM</a>
+    </div>
   </header>
 
   <div class="io-rack">
@@ -370,6 +644,7 @@
     <button id="btn-rev" onclick="sendCommand('reverse')">&#9664; Reverse</button>
     <button id="btn-stop" class="stop-btn" onclick="sendCommand('stop')">&#9724; Stop</button>
     <button id="btn-fwd" onclick="sendCommand('forward')">Forward &#9654;</button>
+    <button id="btn-demo" onclick="runDemoScenario()">&#9654; Run Demo</button>
   </div>
 
   <div class="speed-row">
@@ -381,6 +656,25 @@
                    background:#1a1a24; color:#e0e0e0; cursor:pointer;"
             onclick="sendCommand('set_speed', document.getElementById('speed-slider').value)">Set</button>
   </div>
+
+  <!-- Feature 1: Current Meter Gauge -->
+  <div class="current-meter">
+    <div class="current-meter-header">
+      <span class="current-meter-label">Motor Current:</span>
+      <span class="current-meter-value" id="current-value">0.0 A</span>
+    </div>
+    <div class="current-meter-track">
+      <div class="current-meter-zone green"></div>
+      <div class="current-meter-zone yellow"></div>
+      <div class="current-meter-zone red"></div>
+      <div class="current-meter-fill" id="current-fill"></div>
+      <div class="current-meter-needle" id="current-needle"></div>
+    </div>
+    <div class="current-meter-ticks">
+      <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10A</span>
+    </div>
+  </div>
+  <div class="alarm-banner" id="alarm-banner" style="display:none;">&#9888; OVERLOAD WARNING</div>
 
   <div class="status-panel" id="status-panel">
     <span class="indicator offline"></span> Connecting...
@@ -396,6 +690,25 @@
     check. <strong>That's FactoryLM.</strong>
   </div>
 
+  <!-- Feature 2: LM Chat Panel -->
+  <div class="chat-panel">
+    <div class="chat-header">&#11045; ASK THE FACTORY LM</div>
+    <div class="chat-log" id="chat-log"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="What's wrong with the conveyor?"
+             onkeydown="if(event.key==='Enter') handleChatSend()">
+      <button onclick="handleChatSend()">Ask</button>
+    </div>
+  </div>
+
+  <!-- Feature 4: Event Log -->
+  <div class="event-log-panel">
+    <button class="event-log-toggle" id="event-log-toggle" onclick="toggleEventLog()">
+      &#9660; Event Log <span id="event-count">(0)</span>
+    </button>
+    <div class="event-log" id="event-log" style="display:none;"></div>
+  </div>
+
   <footer>
     Powered by <a href="https://factorylm.com" target="_blank">FactoryLM</a>
     &middot; NVIDIA Cosmos Cookoff 2026
@@ -406,6 +719,18 @@
 
 <script>
 const API = '';  // Same origin
+
+// ── DEMO MODE ──────────────────────────────────────────────
+const DEMO_MODE = true;
+let plcConnected = false;
+let demoScenarioRunning = false;
+let demoScenarioState = null;
+let eventLog = [];
+const MAX_EVENT_LOG = 10;
+let lastDirection = null;
+let lastRunState = null;
+let lastCommandHz = null;
+
 let cooldown = false;
 const COOLDOWN_MS = 3200;
 
@@ -413,13 +738,221 @@ const btnFwd  = document.getElementById('btn-fwd');
 const btnStop = document.getElementById('btn-stop');
 const btnRev  = document.getElementById('btn-rev');
 
+// ── Feature 3: Live Clock ──────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('live-clock').textContent = `${hh}:${mm}:${ss}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function updatePLCStatus(connected) {
+  const el = document.getElementById('plc-status');
+  if (connected) {
+    el.innerHTML = 'PLC: CONNECTED &#9679;';
+    el.className = 'plc-status connected';
+  } else {
+    el.innerHTML = 'PLC: DEMO &#9675;';
+    el.className = 'plc-status demo';
+  }
+  plcConnected = connected;
+}
+
+// ── Feature 1: Current Meter ───────────────────────────────
+function updateCurrentGauge(currentAmps) {
+  const value = Math.max(0, Math.min(10, currentAmps));
+  const pct = (value / 10) * 100;
+
+  const fill = document.getElementById('current-fill');
+  const needle = document.getElementById('current-needle');
+  const label = document.getElementById('current-value');
+  const banner = document.getElementById('alarm-banner');
+
+  fill.style.width = pct + '%';
+  needle.style.left = `calc(${pct}% - 1.5px)`;
+  label.textContent = value.toFixed(1) + ' A';
+
+  let zone = 'normal';
+  if (value >= 8) zone = 'danger';
+  else if (value >= 6) zone = 'warning';
+
+  fill.className = 'current-meter-fill' + (zone !== 'normal' ? ' ' + zone : '');
+  label.className = 'current-meter-value' + (zone !== 'normal' ? ' ' + zone : '');
+
+  if (value >= 8) {
+    banner.style.display = 'block';
+    document.body.classList.add('alarm-active');
+  } else {
+    banner.style.display = 'none';
+    document.body.classList.remove('alarm-active');
+  }
+}
+
+// ── Feature 2: LM Chat ────────────────────────────────────
+const DEMO_RESPONSES = {
+  fault:   'FAULT bit active. Check drive enable signal and verify E-stop chain is healthy.',
+  current: 'Motor current is elevated. Check for belt jam or mechanical binding.',
+  start:   'Pre-start checklist: E-stop OK \u2705, Drive ready \u2705, Safety permissive \u2705. Safe to start.',
+  stop:    'Conveyor stopped. No active faults detected.',
+};
+const DEMO_DEFAULT = 'Monitoring conveyor. All systems nominal.';
+
+function handleChatSend() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  addChatMessage('user', text);
+
+  if (DEMO_MODE) {
+    const lower = text.toLowerCase();
+    let response = DEMO_DEFAULT;
+
+    if (lower.includes('fault'))        response = DEMO_RESPONSES.fault;
+    else if (lower.includes('current')) response = DEMO_RESPONSES.current;
+    else if (lower.includes('start'))   response = DEMO_RESPONSES.start;
+    else if (lower.includes('stop'))    response = DEMO_RESPONSES.stop;
+    else if (lower.includes('speed')) {
+      const hz = document.getElementById('speed-slider').value;
+      response = `Running at ${hz} Hz. Normal range 20-45 Hz.`;
+    }
+
+    setTimeout(() => addChatMessage('lm', response), 600);
+  }
+}
+
+function addChatMessage(role, text) {
+  const log = document.getElementById('chat-log');
+  const div = document.createElement('div');
+  div.className = role === 'user' ? 'msg-user' : 'msg-lm';
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── Feature 4: Event Log ───────────────────────────────────
+function addEvent(message) {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const timeStr = `${hh}:${mm}:${ss}`;
+
+  eventLog.unshift({ time: timeStr, message: message });
+  if (eventLog.length > MAX_EVENT_LOG) eventLog.pop();
+  renderEventLog();
+}
+
+function renderEventLog() {
+  const el = document.getElementById('event-log');
+  const count = document.getElementById('event-count');
+  count.textContent = `(${eventLog.length})`;
+
+  el.innerHTML = eventLog.map(e => {
+    let cls = 'event-entry';
+    if (e.message.includes('FAULT') || e.message.includes('\uD83D\uDD34')) cls += ' event-fault';
+    else if (e.message.includes('\u26A0') || e.message.toLowerCase().includes('warning')) cls += ' event-warn';
+    return `<div class="${cls}"><span class="event-time">${e.time}</span> \u2014 ${e.message}</div>`;
+  }).join('');
+}
+
+function toggleEventLog() {
+  const log = document.getElementById('event-log');
+  const btn = document.getElementById('event-log-toggle');
+  const visible = log.style.display !== 'none';
+  log.style.display = visible ? 'none' : 'block';
+  btn.classList.toggle('open', !visible);
+  const arrow = visible ? '\u25BC' : '\u25B2';
+  btn.innerHTML = `${arrow} Event Log <span id="event-count">(${eventLog.length})</span>`;
+}
+
+// ── Feature 5: Demo Scenario ───────────────────────────────
+function runDemoScenario() {
+  if (demoScenarioRunning) return;
+  demoScenarioRunning = true;
+  const btn = document.getElementById('btn-demo');
+  btn.disabled = true;
+  btn.classList.add('running');
+  btn.textContent = '\u23F3 Running...';
+  addEvent('Demo scenario started');
+
+  const slider = document.getElementById('speed-slider');
+  const speedDisplay = document.getElementById('speed-display');
+
+  // t=0s: Start forward at 20 Hz, current 1.5A — all green
+  demoScenarioState = {
+    runState: 'running', direction: 'forward',
+    commandHz: 20, actualHz: 20.0, motorCurrent: 1.5, commandCount: 42
+  };
+  slider.value = 20;
+  speedDisplay.textContent = '20 Hz';
+  updateStatusPanel(demoScenarioState);
+  updateCurrentGauge(1.5);
+  addEvent('Forward command issued @ 20 Hz');
+  addChatMessage('lm', 'Pre-start checklist: E-stop OK \u2705, Drive ready \u2705, Safety permissive \u2705. Safe to start.');
+
+  // t=5s: Ramp speed to 45 Hz, current 5A
+  setTimeout(() => {
+    demoScenarioState = {
+      runState: 'running', direction: 'forward',
+      commandHz: 45, actualHz: 45.0, motorCurrent: 5.0, commandCount: 43
+    };
+    slider.value = 45;
+    speedDisplay.textContent = '45 Hz';
+    updateStatusPanel(demoScenarioState);
+    updateCurrentGauge(5.0);
+    addEvent('Speed changed to 45 Hz \u2014 current 5.0A');
+  }, 5000);
+
+  // t=10s: Current climbs to 7.5A — yellow warning
+  setTimeout(() => {
+    demoScenarioState = {
+      runState: 'running', direction: 'forward',
+      commandHz: 45, actualHz: 44.2, motorCurrent: 7.5, commandCount: 43
+    };
+    updateStatusPanel(demoScenarioState);
+    updateCurrentGauge(7.5);
+    addEvent('\u26A0 Current elevated: 7.5A \u2014 yellow zone');
+  }, 10000);
+
+  // t=15s: Current hits 9.2A — FAULT triggered
+  setTimeout(() => {
+    demoScenarioState = {
+      runState: 'fault', direction: 'forward',
+      commandHz: 0, actualHz: 0, motorCurrent: 9.2,
+      faultText: 'Overcurrent', commandCount: 43
+    };
+    updateStatusPanel(demoScenarioState);
+    updateCurrentGauge(9.2);
+    addEvent('FAULT detected \u2014 Drive current 9.2A');
+  }, 15000);
+
+  // t=18s: LM chat auto-responds with diagnosis
+  setTimeout(() => {
+    addChatMessage('lm',
+      'Overcurrent detected at 9.2A. Belt jam suspected. ' +
+      'Recommend: Stop \u2192 Clear jam \u2192 Reset fault \u2192 Restart at reduced speed.');
+    addEvent('LM diagnosis: Belt jam suspected');
+
+    demoScenarioRunning = false;
+    demoScenarioState = null;
+    btn.disabled = false;
+    btn.classList.remove('running');
+    btn.textContent = '\u25B6 Run Demo';
+  }, 18000);
+}
+
+// ── Existing: Send Command ─────────────────────────────────
 async function sendCommand(action, value) {
   if (cooldown) return showToast('Wait a moment between commands');
 
   const body = { action };
   if (value !== undefined) body.value = Number(value);
 
-  // Disable buttons during cooldown
   cooldown = true;
   [btnFwd, btnStop, btnRev].forEach(b => b.disabled = true);
 
@@ -430,12 +963,11 @@ async function sendCommand(action, value) {
       body: JSON.stringify(body),
     });
     if (resp.status === 429) {
-      showToast('Rate limited — wait a few seconds');
+      showToast('Rate limited \u2014 wait a few seconds');
     } else if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
       showToast(err.detail || 'Command failed');
     }
-    // Immediately refresh status
     fetchStatus();
   } catch (e) {
     showToast('Network error');
@@ -447,18 +979,40 @@ async function sendCommand(action, value) {
   }, COOLDOWN_MS);
 }
 
+// ── Existing: Fetch Status (modified for DEMO_MODE) ────────
 async function fetchStatus() {
   try {
     const resp = await fetch(API + '/api/status');
     if (!resp.ok) throw new Error();
-    const s = resp.json ? await resp.json() : {};
-    updateStatusPanel(s);
+    const s = await resp.json();
+    updatePLCStatus(true);
+
+    if (demoScenarioRunning && demoScenarioState) {
+      updateStatusPanel(demoScenarioState);
+    } else {
+      updateStatusPanel(s);
+    }
   } catch {
-    document.getElementById('status-panel').innerHTML =
-      '<span class="indicator offline"></span> Relay offline';
+    updatePLCStatus(false);
+
+    if (demoScenarioRunning && demoScenarioState) {
+      updateStatusPanel(demoScenarioState);
+    } else if (DEMO_MODE) {
+      const hz = Number(document.getElementById('speed-slider').value);
+      const simCurrent = (hz / 60) * 4.5 + (Math.random() * 0.4);
+      updateStatusPanel({
+        runState: 'stopped', direction: '-',
+        commandHz: hz, actualHz: 0,
+        motorCurrent: simCurrent, commandCount: 0,
+      });
+    } else {
+      document.getElementById('status-panel').innerHTML =
+        '<span class="indicator offline"></span> Relay offline';
+    }
   }
 }
 
+// ── Existing: LED + Status Panel (with new integrations) ───
 function updateIOLeds(s) {
   const state = s.runState || 'offline';
   const dir = s.direction || '';
@@ -466,7 +1020,6 @@ function updateIOLeds(s) {
   const fault = state === 'fault';
   const cmdHz = s.commandHz != null ? Number(s.commandHz) : 0;
 
-  // Inputs
   setLed('led-di-running', running);
   setLed('led-di-forward', dir === 'forward');
   setLed('led-di-reverse', dir === 'reverse');
@@ -474,7 +1027,6 @@ function updateIOLeds(s) {
   setLed('led-di-exit', running);
   setLed('led-di-fault', fault);
 
-  // Outputs
   setLed('led-do-conveyor', running);
   setLed('led-do-fwd', running && dir === 'forward');
   setLed('led-do-rev', running && dir === 'reverse');
@@ -496,7 +1048,6 @@ function updateStatusPanel(s) {
   const current = s.motorCurrent != null ? Number(s.motorCurrent).toFixed(2) : '-';
   const cmds = s.commandCount != null ? s.commandCount : '-';
 
-  // Highlight active direction button
   btnFwd.className = '';
   btnRev.className = '';
   if (state === 'running' && dir === 'forward') btnFwd.className = 'active-fwd';
@@ -511,6 +1062,31 @@ function updateStatusPanel(s) {
     `${indicator} <strong>${label}</strong><br>` +
     `Command: ${cmdHz} Hz &middot; Motor: ${current} A &middot; ` +
     `Commands today: ${cmds}`;
+
+  // Feature 1: Update current gauge
+  const currentVal = s.motorCurrent != null ? Number(s.motorCurrent) : 0;
+  updateCurrentGauge(currentVal);
+
+  // Feature 4: Auto-log state changes
+  const curDir = s.direction || '';
+  const curState = s.runState || '';
+  const curHz = s.commandHz != null ? Number(s.commandHz) : 0;
+
+  if (lastDirection !== null && curDir !== lastDirection && curDir && curDir !== '-') {
+    addEvent(`Direction changed to ${curDir}`);
+  }
+  if (lastRunState !== null && curState !== lastRunState) {
+    if (curState === 'fault') addEvent(`FAULT detected \u2014 Drive current ${currentVal.toFixed(1)}A`);
+    else if (curState === 'running') addEvent(`Conveyor started ${curDir} @ ${curHz} Hz`);
+    else if (curState === 'stopped') addEvent('Conveyor stopped');
+  }
+  if (lastCommandHz !== null && curHz !== lastCommandHz && curHz > 0) {
+    addEvent(`Speed changed to ${curHz} Hz`);
+  }
+
+  lastDirection = curDir;
+  lastRunState = curState;
+  lastCommandHz = curHz;
 }
 
 function showToast(msg) {
