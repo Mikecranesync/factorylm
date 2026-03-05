@@ -1,0 +1,148 @@
+================================================================
+  CCW NEW VARIABLE DECLARATIONS
+  For: Micro820 2080-LC20-20QBB — Cosmos_Demo_v1 project
+================================================================
+
+HOW TO ADD THESE IN CCW:
+  1. Open Project Organizer (left panel)
+  2. Expand "Global Variables"
+  3. Double-click to open the variable table
+  4. For each variable below, click "Add" and fill in:
+     - Name (exact spelling, case-sensitive)
+     - Data Type
+     - Initial Value
+  5. Save when done
+
+================================================================
+VARIABLES THAT MAY ALREADY EXIST (verify, add if missing)
+================================================================
+
+These were in the original gist program but may not be in
+CCW Global Variables if the project was recreated:
+
+  Name              Type    Initial   Purpose
+  ────────────────  ──────  ────────  ────────────────────────────
+  RunCommand        BOOL    FALSE     Master run command (legacy)
+  Conveyor          BOOL    FALSE     Factory I/O conveyor output
+  Emitter           BOOL    FALSE     Factory I/O emitter output
+  SensorStart       BOOL    FALSE     Factory I/O entry sensor
+  SensorEnd         BOOL    FALSE     Factory I/O exit sensor
+  ItemCount         INT     0         Items counted at exit
+  SensorEnd_Prev    BOOL    FALSE     Rising edge detection
+
+CHECK: Open Global Variables, search for each name.
+If present → skip. If missing → add it.
+
+================================================================
+NEW VARIABLES TO ADD (required for v2.0 program)
+================================================================
+
+  Name              Type    Initial   Purpose
+  ────────────────  ──────  ────────  ────────────────────────────
+  conv_state        INT     0         State machine state
+                                      0=IDLE, 1=STARTING,
+                                      2=RUNNING, 3=STOPPING,
+                                      4=FAULT
+
+  system_ready      BOOL    FALSE     System healthy + running
+
+  heartbeat         BOOL    FALSE     Toggles every scan
+                                      (proves PLC is in RUN)
+
+  cycle_count       DINT    0         Total scan cycles since
+                                      last download
+
+  uptime_seconds    DINT    0         Seconds since last download
+
+  vfd_fault_code    INT     0         Last VFD Modbus error ID
+
+  item_count        INT     0         Items counted at exit sensor
+
+  auto_mode         BOOL    FALSE     Selector in AUTO position
+
+  manual_mode       BOOL    FALSE     Selector in MANUAL position
+
+  off_mode          BOOL    FALSE     Selector in OFF position
+
+  button_rising     BOOL    FALSE     Pushbutton rising edge
+
+  conveyor_speed_cmd INT    0         Speed setpoint (from AI_00)
+
+  *** NEW IN v2.0 (4 variables): ***
+
+  start_done        BOOL    FALSE     Pre-computed start_timer.Q
+  stop_done         BOOL    FALSE     Pre-computed stop_timer.Q
+  starting_state    BOOL    FALSE     TRUE when conv_state = 1
+  stopping_state    BOOL    FALSE     TRUE when conv_state = 3
+
+================================================================
+NEW TIMER INSTANCES TO ADD
+================================================================
+
+In CCW, timers are declared as Global Variables with type TON.
+
+  Name              Type    Initial   Purpose
+  ────────────────  ──────  ────────  ────────────────────────────
+  start_timer       TON     —         3s conveyor ramp-up delay
+  stop_timer        TON     —         2s coast-down delay
+  uptime_timer      TON     —         1s uptime counter
+  vfd_err_timer     TON     —         5s VFD error auto-clear
+
+HOW TO ADD TIMERS:
+  - Same as BOOLs/INTs: Add row, Name = "start_timer",
+    Data Type = "TON"
+  - No initial value needed for TON instances
+  - The PT (preset time) is set in the program code
+
+================================================================
+EXISTING VARIABLES (DO NOT MODIFY — already in PLC)
+================================================================
+
+These 48 tags already exist. Do NOT rename, delete, or change
+their types. The new program uses all of them.
+
+DIGITAL OUTPUTS (7):
+  _IO_EM_DO_00 through _IO_EM_DO_06
+
+DIGITAL INPUTS (12):
+  _IO_EM_DI_00 through _IO_EM_DI_11
+
+ANALOG INPUTS (4):
+  _IO_EM_AI_00 through _IO_EM_AI_03
+
+ANALOG OUTPUT (1):
+  _IO_EM_AO_00
+
+PROGRAM BOOLs:
+  motor_running, motor_stopped, conveyor_running,
+  fault_alarm, sensor_1_active, sensor_2_active,
+  e_stop_active, prev_button3, ALL_LEDS_ON
+
+VFD BOOLs:
+  vfd_comm_ok, vfd_comm_err, vfd_msg_done, vfd_write_trig
+
+PROGRAM INTs:
+  motor_speed, motor_current, temperature, pressure,
+  conveyor_speed, error_code, vfd_frequency, vfd_current,
+  vfd_dc_bus, vfd_voltage, vfd_cmd_word
+
+FB INSTANCES:
+  mb_read_status (MSG), mb_write_cmd (MSG),
+  vfd_poll_timer (TON)
+
+CONFIG STRUCTS:
+  read_local_cfg, read_target_cfg,
+  write_local_cfg, write_target_cfg
+
+DATA ARRAYS:
+  read_data[1..125], write_data[1..125]
+
+================================================================
+TOTAL TAG COUNT AFTER UPDATE
+================================================================
+
+  Existing:     48 tags
+  New:          16 tags (12 variables + 4 timers)
+  Grand total:  64 tags
+
+================================================================

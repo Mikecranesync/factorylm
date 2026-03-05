@@ -1,0 +1,551 @@
+================================================================
+  MICRO 820 PLC RECOVERY — COMPLETE WALKTHROUGH
+  PLC Model:  2080-LC20-20QBB
+  Serial:     D30C0034 (d096d30c)
+  MAC:        5C:88:16:D8:E4:D7
+  Target IP:  192.168.1.100
+================================================================
+
+Print this. You won't have internet.
+
+There are 3 parts + appendix:
+  PART A — CONNECT CCW (via APIPA address — no BOOTP needed)
+  PART B — PERMANENT CONFIG (static IP + Modbus)
+  PART C — VERIFY (confirm everything works)
+  APPENDIX — BOOTP fallback (only if Part A fails)
+
+
+================================================================
+PART A — CONNECT CCW VIA APIPA ADDRESS
+================================================================
+
+WHAT THIS DOES: The PLC currently has a self-assigned APIPA IP
+(169.254.47.96). CIP communication is already confirmed working
+at this address (48 tags, port 44818). CCW uses the same CIP
+protocol, so it can connect directly — no BOOTP needed.
+
+PREREQUISITES:
+  - Ethernet cable directly from laptop to PLC (already done)
+  - CCW installed (Connected Components Workbench)
+  - Laptop already has 169.254.100.1 alias on Ethernet adapter
+    (if not, see Step A1)
+
+STEP A1: Verify/Add Laptop IP Alias
+  Your laptop needs an IP in the 169.254.x.x range to talk to
+  the PLC's APIPA address. Check if it's already set:
+
+  Open Administrator terminal (Start → type "cmd" → right-click
+  → Run as administrator):
+
+    netsh interface ip show address "Ethernet"
+
+  Look for 169.254.100.1 in the output. If it's there, skip
+  to Step A2.
+
+  If NOT there, add it:
+
+    netsh interface ip add address "Ethernet" 169.254.100.1 255.255.0.0
+
+  NOTE: Your adapter might be called "Ethernet 2" or "Ethernet 3".
+  Find the right name with:
+
+    netsh interface show interface
+
+  Look for the one that says "Connected" with "Dedicated" type.
+
+STEP A2: Verify CIP Connection
+  Confirm the PLC is reachable at the APIPA address:
+
+    ping 169.254.47.96 -n 3
+
+  Expect: 3 replies with time <1ms.
+
+  If ping fails:
+    - Check Ethernet cable
+    - Check PLC power LED is solid green
+    - Wait 15 seconds after power-on for PLC to boot
+    - Verify laptop alias: ipconfig | findstr "169.254"
+
+STEP A3: Open CCW
+  - Double-click the CCW icon on your desktop
+    (or Start → search "Connected Components Workbench")
+  - Wait for it to fully load (can take 30-60 seconds)
+
+STEP A4: Open Your Project
+  - File → Open Project
+  - Navigate to your CCW project file (.ccwsln)
+    (wherever you saved it — likely Desktop or Documents)
+  - If you don't have a project yet:
+    File → New Project → select "Micro820" → Save it
+
+STEP A5: Connect to the PLC at APIPA Address
+  - In the left panel (Project Organizer), you should see
+    your Micro820 controller
+  - If not: right-click "Project" → Add → Micro800 →
+    select "2080-LC20-20QBB"
+  - Double-click the controller icon to open its settings
+
+  Set up the connection:
+  - Look for "Communications" or "Connection" at the top
+  - Click the dropdown or "Browse" button
+  - Select "Ethernet" driver
+
+  *** USE THIS IP: 169.254.47.96 ***
+  (NOT 192.168.1.100 — that's the target IP for later)
+
+  - Type: 169.254.47.96
+  - Click "Connect" or "Go Online"
+  - Wait for the green "Connected" indicator
+
+  IF BROWSE/DISCOVERY IS AVAILABLE:
+    Instead of typing the IP, you can try:
+    - Click "Browse" or "Discover"
+    - CCW should find the PLC on the local link
+    - It will show up as "2080-LC20-20QBB" at 169.254.47.96
+    - Select it and click "Connect"
+
+  IF IT FAILS TO CONNECT:
+    - Verify: ping 169.254.47.96 still works
+    - Try temporarily disabling Windows Firewall:
+        netsh advfirewall set allprofiles state off
+      Re-enable after:
+        netsh advfirewall set allprofiles state on
+    - If CCW absolutely can't connect at 169.254.47.96,
+      go to APPENDIX A (BOOTP fallback)
+
+SUCCESS CHECKPOINT:
+  [x] Laptop has 169.254.100.1 alias
+  [x] ping 169.254.47.96 works (3/3 replies)
+  [x] CCW connected to PLC (green indicator)
+
+>>> You are now connected. Proceed to Part B. <<<
+
+
+================================================================
+PART B — PERMANENT CONFIGURATION
+================================================================
+
+WHAT THIS DOES: Sets a permanent static IP (survives power
+cycles) and enables Modbus TCP on port 502 so Factory I/O and
+our data servers can talk to the PLC.
+
+STEP B1: Set the PLC to PROGRAM Mode
+  THIS IS CRITICAL — you cannot change IP settings in RUN mode.
+
+  - In CCW toolbar, look for the mode dropdown
+    It shows "RUN" (green) or "PROGRAM" (blue) or "REMOTE"
+  - If it says "RUN":
+    Click the dropdown → select "PROGRAM"
+    OR: go to Controller menu → Mode → Program
+  - Wait for the status to change to "PROGRAM" (blue)
+
+  NOTE: If the PLC is running a program that controls real
+  equipment, switching to PROGRAM mode will STOP all outputs.
+  This is expected and safe for our setup.
+
+STEP B2: Configure Static IP Address
+  - In the controller settings, click the "Ethernet" tab
+    (might be called "Network" or "EtherNet/IP" depending
+    on CCW version)
+
+  You will see an IP configuration section with these fields:
+
+  UNCHECK the box that says:
+    [ ] Obtain IP address automatically (BOOTP/DHCP)
+
+    This MUST be unchecked. If it's checked, the PLC will
+    keep using BOOTP and lose its IP on power cycle.
+
+  Fill in these EXACT values:
+
+    IP Address:     192.168.1.100
+    Subnet Mask:    255.255.255.0
+    Gateway:        192.168.1.1
+
+  Double-check each number. One wrong digit = no connection.
+
+STEP B3: Enable Modbus TCP Server
+  This is the key step that opens port 502.
+
+  OPTION A — If you see "Modbus" tab in Ethernet settings:
+    - Click the "Modbus" or "Modbus TCP" tab
+    - Check the box: [x] Enable Modbus TCP Server
+    - Leave the port as 502 (default)
+    - Leave "Max connections" as default (usually 3 or 6)
+
+  OPTION B — If you see it under "Protocol Configuration":
+    - Click "Protocol Configuration" or "Services"
+    - Find "Modbus TCP Server"
+    - Set it to "Enabled"
+    - Port: 502
+
+  OPTION C — If you can't find Modbus settings:
+    - It might be under: Controller → Ethernet → Advanced
+    - Or: Controller → Properties → Communications
+    - Look for anything mentioning "Modbus" or "TCP Server"
+    - The Micro820 2080-LC20-20QBB supports Modbus TCP
+      natively — the setting IS there somewhere
+
+STEP B4: Configure Modbus Register Mapping
+  This maps PLC tags to Modbus addresses so external clients
+  can read them. You need to map COILS and HOLDING REGISTERS.
+
+  In the Modbus configuration section, look for "Mapping" or
+  "Tag Mapping" or "Modbus Address Mapping".
+
+  MAP THESE COILS (Modbus function code 01 — read coils):
+
+    Coil 0  →  motor_running       (BOOL)
+    Coil 1  →  motor_stopped       (BOOL)
+    Coil 2  →  fault_alarm         (BOOL)
+    Coil 3  →  conveyor_running    (BOOL)
+    Coil 4  →  sensor_1_active     (BOOL)
+    Coil 5  →  sensor_2_active     (BOOL)
+    Coil 6  →  e_stop_active       (BOOL)
+
+  MAP THESE HOLDING REGISTERS (function code 03 — read registers):
+
+    Register 100  →  motor_speed      (INT, 0-100%)
+    Register 101  →  motor_current    (INT, raw ÷ 10 = Amps)
+    Register 102  →  temperature      (INT, raw ÷ 10 = °C)
+    Register 103  →  pressure         (INT, PSI)
+    Register 104  →  conveyor_speed   (INT, 0-100%)
+    Register 105  →  error_code       (INT, 0=OK 1=Overload 2=Overheat 3=Jam 4=Sensor 5=Comms)
+
+  HOW TO MAP (typical CCW flow):
+    - Find "Modbus Mapping" table
+    - Each row has: Modbus Address | Direction | PLC Tag
+    - Click "Add" or click in an empty row
+    - Type the Modbus address (e.g., 0 for coil 0)
+    - Select "Read" for direction
+    - Browse/type the PLC tag name (e.g., motor_running)
+    - Repeat for each entry above
+
+  IF MAPPING IS NOT AVAILABLE:
+    Some CCW versions auto-map by tag name convention.
+    The tags already exist in the PLC (we confirmed 48 tags
+    via CIP). As long as Modbus TCP Server is enabled, the
+    tags should be accessible. You can verify in Part C.
+
+STEP B5: Download Project to PLC
+  THIS WRITES YOUR CHANGES TO THE PLC PERMANENTLY.
+
+  - Click the "Download" button in the toolbar
+    (down arrow icon, or Controller → Download)
+  - CCW will ask: "Download will overwrite the current
+    project in the controller. Continue?"
+  - Click "Yes"
+  - Wait for the progress bar to complete
+  - You should see "Download successful" or similar
+
+  IF DOWNLOAD FAILS:
+    - Make sure PLC is in PROGRAM mode (Step B1)
+    - Make sure you're still connected (green indicator)
+    - If connection dropped, re-do Part A Step A5
+
+STEP B6: Switch PLC Back to RUN Mode
+  - Click the mode dropdown → select "RUN"
+  - OR: Controller menu → Mode → Run
+  - Wait for status to show "RUN" (green)
+
+STEP B7: Change Laptop IP to Target Subnet
+  Now that the PLC has 192.168.1.100, your laptop needs to
+  be on the same subnet.
+
+  In an Administrator terminal:
+
+    netsh interface ip set address "Ethernet" static 192.168.1.10 255.255.255.0 192.168.1.1
+
+  NOTE: Use the correct adapter name (see Step A1 for how
+  to find it).
+
+STEP B8: Power Cycle Test
+  This confirms the IP is truly permanent.
+
+  - Turn PLC OFF
+  - Wait 5 seconds
+  - Turn PLC ON
+  - Wait 15 seconds (PLC boot time)
+  - Type: ping 192.168.1.100 -n 5
+
+  If you get 5 replies → THE IP IS PERMANENT.
+
+  If it fails:
+    - The "Obtain IP automatically" box might still be checked
+    - Go back to Part A, re-connect at 169.254.47.96, check Step B2
+
+SUCCESS CHECKPOINT:
+  [x] "Obtain IP automatically" is UNCHECKED
+  [x] IP set to 192.168.1.100 / 255.255.255.0 / 192.168.1.1
+  [x] Modbus TCP Server is ENABLED on port 502
+  [x] Project downloaded successfully
+  [x] PLC is in RUN mode
+  [x] Laptop IP changed to 192.168.1.10
+  [x] Ping works AFTER power cycle
+
+
+================================================================
+PART C — VERIFICATION
+================================================================
+
+Run these commands in a normal terminal (not Admin needed).
+
+STEP C1: Verify IP
+
+    ping 192.168.1.100 -n 10
+
+  Expect: 10/10 replies, time <1ms
+
+STEP C2: Verify Port 44818 (CIP — should still work)
+
+    python -c "import socket; s=socket.socket(); s.settimeout(3); s.connect(('192.168.1.100',44818)); print('PORT 44818 OPEN'); s.close()"
+
+  Expect: PORT 44818 OPEN
+
+STEP C3: Verify Port 502 (Modbus — the new one)
+
+    python -c "import socket; s=socket.socket(); s.settimeout(3); s.connect(('192.168.1.100',502)); print('PORT 502 OPEN'); s.close()"
+
+  Expect: PORT 502 OPEN
+  If you see "Connection refused" → Modbus not enabled,
+  go back to Step B3.
+
+STEP C4: Test CIP Tag Reading
+
+    cd C:\Users\hharp\Desktop\factorylm-monorepo
+    python recovery/cip_data_server.py --host 192.168.1.100 --poll-ms 1000 --no-ws
+
+  Expect: "Connected!" + "48 tags" + "Poll #1: 48 tags read"
+  Press Ctrl+C to stop.
+
+STEP C5: Test Modbus Connection
+
+    python scripts/test_connection.py --host 192.168.1.100
+
+  Expect: Connected, reads coils and registers.
+  If this fails but C4 works, Modbus mapping may need
+  adjustment in CCW.
+
+STEP C6: Start Full Data Server
+
+    python recovery/plc_data_server.py --host 192.168.1.100
+
+  This tries Modbus first, falls back to CIP if Modbus fails.
+  Expect:
+    - "Modbus TCP connected" or "CIP connected"
+    - "REST API on http://0.0.0.0:8080"
+    - Polling messages every few seconds
+
+STEP C7: Test REST API
+  Open a browser or new terminal:
+
+    curl http://localhost:8080/api/data
+
+  Expect: JSON with "connected": true and tag values.
+
+  Or open in browser: http://localhost:8080/api/data
+
+STEP C8: Test from Another Device (optional)
+  From any device on the 192.168.1.x network:
+
+    curl http://192.168.1.10:8080/api/data
+
+  (Replace 192.168.1.10 with your laptop's actual IP)
+
+
+================================================================
+APPENDIX A — BOOTP FALLBACK
+================================================================
+
+Only use this if CCW cannot connect at 169.254.47.96. This
+assigns a temporary IP via BOOTP so CCW can reach the PLC on
+the 192.168.1.x subnet instead. The IP is temporary — it goes
+away on power cycle. Part B makes it permanent.
+
+PREREQUISITES:
+  - Administrator terminal
+  - Python installed (3.14.2)
+  - Windows Firewall rule for UDP 67 (the script checks this)
+  - Windows DHCP Client service may need to be stopped
+
+STEP X1: Run BOOTP Server
+  Open Administrator terminal:
+
+    cd C:\Users\hharp\Desktop\factorylm-monorepo
+    python scripts/bootp_server.py --mac 5C:88:16:D8:E4:D7
+
+  The script will:
+  - Check if Windows Firewall allows UDP 67 (adds rule if not)
+  - Warn if DHCP Client service is using port 67
+  - Show all network adapter IPs for diagnostics
+
+  You should see:
+    === BOOTP Server for Micro 820 PLC ===
+    Waiting for BOOTP requests...
+
+STEP X2: Power Cycle the PLC
+  - Turn PLC power switch OFF
+  - Wait 5 seconds
+  - Turn PLC power switch ON
+  - Watch the terminal — within 10 seconds you should see:
+    [BOOTP REQUEST] from MAC=5C:88:16:D8:E4:D7
+    -> REPLIED #1: assigned 192.168.1.100
+
+  If no request after 30 seconds, try:
+  - Power cycle again (PLC BOOTP window is short)
+  - Check the diagnostics output for firewall/port issues
+  - Try stopping DHCP Client: net stop dhcp
+    (re-enable after: net start dhcp)
+
+STEP X3: Stop BOOTP and Set Laptop IP
+  - Press Ctrl+C
+  - Set laptop IP:
+    netsh interface ip set address "Ethernet" static 192.168.1.10 255.255.255.0 192.168.1.1
+  - Verify: ping 192.168.1.100 -n 5
+
+  Then go back to Part B (use 192.168.1.100 instead of
+  169.254.47.96 when connecting in CCW).
+
+>>> DO NOT power cycle the PLC again until Part B is done! <<<
+>>> The BOOTP IP is temporary!                              <<<
+
+
+================================================================
+APPENDIX B — ROCKWELL BOOTP/DHCP TOOL (GUI)
+================================================================
+
+If the Python BOOTP script doesn't work, Rockwell's official
+BOOTP/DHCP tool is proven to work with Micro820.
+
+DOWNLOAD:
+  https://compatibility.rockwellautomation.com/Pages/MultiProductFindDownloads.aspx
+  Search for "BOOTP DHCP Server" → download and install.
+  Also bundled with RSLinx Classic if installed.
+
+USAGE:
+  1. Open "BOOTP-DHCP Server" from Start menu
+  2. Click "New" to add a device
+  3. Enter MAC: 5C:88:16:D8:E4:D7
+  4. Enter IP: 192.168.1.100
+  5. Enter Subnet: 255.255.255.0
+  6. Click OK
+  7. Power cycle the PLC
+  8. The tool will show the assignment when it happens
+  9. Then proceed to Part B
+
+
+================================================================
+APPENDIX C — SD CARD ConfigMeFirst.txt (LAST RESORT)
+================================================================
+
+Already created at recovery/ConfigMeFirst.txt.
+
+REQUIREMENTS:
+  - microSD card, 32GB or smaller, FAT32 formatted
+  - File must be named exactly "ConfigMeFirst.txt"
+  - Place at root of SD card
+
+STEPS:
+  1. Copy recovery/ConfigMeFirst.txt to SD card root
+  2. Insert SD card into PLC's microSD slot
+  3. Power cycle PLC
+  4. Wait 30 seconds — PLC reads config on boot
+  5. Remove SD card
+  6. Verify: ping 192.168.1.100
+
+
+================================================================
+FINAL STATE — WHAT SUCCESS LOOKS LIKE
+================================================================
+
+  PLC IP:          192.168.1.100 (permanent, static)
+  Subnet:          255.255.255.0
+  Gateway:         192.168.1.1
+  Port 44818:      OPEN (CIP/EtherNet/IP)
+  Port 502:        OPEN (Modbus TCP)
+  Tags:            48 readable via CIP
+  Coils 0-6:       Mapped to motor/conveyor/sensor BOOLs
+  Registers 100-105: Mapped to speed/current/temp INTs
+  Data server:     http://localhost:8080/api/data
+  WebSocket:       ws://localhost:8765
+
+  Laptop IP:       192.168.1.10
+  Laptop adapter:  Ethernet (static)
+
+
+================================================================
+TROUBLESHOOTING
+================================================================
+
+PROBLEM: CCW can't connect at 169.254.47.96
+  - Verify ping works: ping 169.254.47.96
+  - Verify laptop has 169.254.x.x address: ipconfig | findstr "169.254"
+  - Disable Windows Firewall temporarily
+  - Check CCW driver is set to "Ethernet" not "USB"
+  - Try CCW Browse/Discover instead of typing IP
+  - Fall back to APPENDIX A (BOOTP)
+
+PROBLEM: "ping 169.254.47.96" times out
+  - Check Ethernet cable is plugged in
+  - Check PLC power LED is solid green
+  - Wait 15 seconds after power-on for PLC boot
+  - Add laptop alias: netsh interface ip add address "Ethernet" 169.254.100.1 255.255.0.0
+
+PROBLEM: CCW says "Controller is in RUN mode"
+  - Switch to PROGRAM mode (Step B1)
+  - Some changes require PROGRAM mode
+
+PROBLEM: Download fails
+  - PLC must be in PROGRAM mode
+  - Close any other connections to the PLC
+  - Try disconnecting and reconnecting in CCW
+
+PROBLEM: Port 502 still closed after CCW download
+  - Go back to CCW, verify Modbus TCP is enabled
+  - Download again
+  - Power cycle PLC
+  - Some CCW versions need a separate "Modbus" add-on
+
+PROBLEM: Modbus reads return all zeros
+  - Tags exist but mapping may be wrong
+  - Use CIP instead:
+      python recovery/plc_data_server.py --host 192.168.1.100 --cip-only
+  - Fix mapping in CCW later
+
+PROBLEM: "ping 192.168.1.100" times out after Part B
+  - Wait 15 seconds for PLC to boot
+  - Check laptop IP is 192.168.1.10:
+      ipconfig | findstr "192.168"
+  - "Obtain IP automatically" might still be checked — redo Part B
+  - Fall back to APIPA: ping 169.254.47.96
+    If that works, re-connect CCW at 169.254.47.96 and redo Part B
+
+PROBLEM: Lost connection to PLC completely
+  - Check if PLC LED is solid green (running normally)
+  - Try: ping 169.254.47.96
+  - If that works, start from Part A
+  - If nothing works, check Ethernet cable and PLC power
+  - Last resort: SD card method (Appendix C)
+
+
+================================================================
+QUICK REFERENCE CARD (tear off and keep nearby)
+================================================================
+
+  PLC APIPA:  169.254.47.96    (always works over direct cable)
+  PLC Target: 192.168.1.100    (after Part B)
+  PLC MAC:    5C:88:16:D8:E4:D7
+  Laptop IP:  192.168.1.10     (after Part B)
+  CIP Port:   44818
+  Modbus Port: 502
+
+  CIP test: python recovery/cip_data_server.py --host 192.168.1.100
+  FULL:     python recovery/plc_data_server.py --host 192.168.1.100
+  REST:     curl http://localhost:8080/api/data
+
+  CCW key settings:
+    [ ] Obtain IP automatically  ← UNCHECK THIS
+    IP: 192.168.1.100 / 255.255.255.0 / 192.168.1.1
+    [x] Enable Modbus TCP Server ← CHECK THIS
+
+================================================================

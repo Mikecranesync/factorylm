@@ -1,0 +1,137 @@
+================================================================
+  CCW DEPLOY INSTRUCTIONS — Micro820 Program v2.0 (DROP-IN)
+  PLC: 2080-LC20-20QBB at 192.168.1.100
+  Project: Cosmos_Demo_v1.0
+================================================================
+
+THIS VERSION uses deploy_dropin.py to auto-copy files into
+your CCW project. Manual copy-paste is eliminated.
+
+================================================================
+STEP 1: RUN DROP-IN SCRIPT
+================================================================
+
+  cd C:\Users\hharp\Desktop\factorylm-monorepo
+  python recovery\deploy_dropin.py
+
+  This will:
+  - Backup your entire CCW project (timestamped)
+  - Copy Micro820_Complete_Program.st → Prog2.stf
+  - Copy MbSrvConf_v2.xml → MbSrvConf.xml
+
+================================================================
+STEP 2: OPEN PROJECT IN CCW
+================================================================
+
+  1. Launch CCW
+  2. File → Open Project → navigate to:
+     C:\Users\hharp\Documents\CCW\Cosmos_Demo_v1.0\
+  3. Open the .ccwsln file
+
+================================================================
+STEP 3: ADD NEW VARIABLES
+================================================================
+
+  Open: CCW_NEW_VARIABLES.txt
+
+  1. In Project Organizer → expand "Global Variables"
+  2. Double-click to open the variable table
+  3. Add each variable listed:
+
+     conv_state         INT     0
+     system_ready       BOOL    FALSE
+     heartbeat          BOOL    FALSE
+     cycle_count        DINT    0
+     uptime_seconds     DINT    0
+     vfd_fault_code     INT     0
+     item_count         INT     0
+     auto_mode          BOOL    FALSE
+     manual_mode        BOOL    FALSE
+     off_mode           BOOL    FALSE
+     button_rising      BOOL    FALSE
+     conveyor_speed_cmd INT     0
+
+  4. Add timer instances:
+
+     start_timer        TON
+     stop_timer         TON
+     uptime_timer       TON
+     vfd_err_timer      TON
+
+  5. Check if these exist (add if missing):
+
+     RunCommand         BOOL    FALSE
+     Conveyor           BOOL    FALSE
+     Emitter            BOOL    FALSE
+     SensorStart        BOOL    FALSE
+     SensorEnd          BOOL    FALSE
+     ItemCount          INT     0
+     SensorEnd_Prev     BOOL    FALSE
+
+  6. Save (Ctrl+S)
+
+  NOTE: This is the ONE manual step — variable declarations
+  are stored in PrjLibrary.accdb (binary, cannot automate).
+
+================================================================
+STEP 4: SET STATIC IP ADDRESS
+================================================================
+
+  1. In Project Organizer → click the controller
+  2. Click "Ethernet" tab
+  3. UNCHECK: [ ] Obtain IP address automatically
+  4. Set:
+       IP Address:   192.168.1.100
+       Subnet Mask:  255.255.255.0
+       Gateway:      192.168.1.1
+  5. Save (Ctrl+S)
+
+================================================================
+STEP 5: REBUILD + DOWNLOAD
+================================================================
+
+  1. Connect to PLC (Go Online)
+  2. Switch to PROGRAM mode
+  3. Click "Download" (or Controller → Download)
+  4. Confirm overwrite
+  5. Switch to RUN mode
+
+================================================================
+STEP 6: SET LAPTOP IP + VERIFY
+================================================================
+
+  Admin terminal:
+    netsh interface ip set address "Ethernet" static 192.168.1.10 255.255.255.0 192.168.1.1
+
+  Verify:
+    ping 192.168.1.100 -n 5
+
+  Run verification:
+    python recovery\verify_deploy.py --host 192.168.1.100
+
+  Expected: all PASS, 0 FAIL
+
+================================================================
+CHECKLIST
+================================================================
+
+  [ ] Step 1: deploy_dropin.py ran successfully
+  [ ] Step 2: Project opened in CCW
+  [ ] Step 3: 16 new variables added
+  [ ] Step 4: Static IP set (192.168.1.100)
+  [ ] Step 5: Rebuilt + Downloaded to PLC
+  [ ] Step 6: verify_deploy.py all PASS
+
+================================================================
+FILES IN THIS RECOVERY KIT
+================================================================
+
+  Micro820_Complete_Program.st  — Fixed PLC program (v2.0)
+  MbSrvConf_v2.xml             — Drop-in Modbus TCP config
+  deploy_dropin.py             — Automated file deployer
+  CCW_NEW_VARIABLES.txt        — Variable declarations
+  CCW_MODBUS_MAP.txt           — Modbus address map reference
+  verify_deploy.py             — Post-deploy verification
+  plc_data_server.py           — REST API data server
+
+================================================================

@@ -1,0 +1,16 @@
+[BEGIN FB INPUTS]
+I1=micro820.micro820.vfd_poll_timer.in,0x17A7,BOOL
+I2=micro820.micro820.vfd_poll_timer.pt,0x17EC,TIME
+I3=micro820.micro820.mb_read_status.in,0x460,BOOL
+I4=micro820.micro820.mb_read_status.localcfg,0xFFFFFFFF,MODBUSLOCPARA
+I5=micro820.micro820.mb_read_status.targetcfg,0xFFFFFFFF,MODBUSTARPARA
+I6=micro820.micro820.mb_read_status.localaddr,0xFFFFFFFF,MODBUSLOCADDR
+I7=micro820.micro820.mb_read_status.__adi_localaddr,0xFFFFFFFF,UINT
+I8=micro820.micro820.mb_read_status.cancel,0x17F0,BOOL
+I9=micro820.micro820.mb_write_cmd.in,0x17F0,BOOL
+I10=micro820.micro820.mb_write_cmd.cancel,0x17F0,BOOL
+I11=micro820.micro820.mb_write_cmd.localcfg,0xFFFFFFFF,MODBUSLOCPARA
+I12=micro820.micro820.mb_write_cmd.targetcfg,0xFFFFFFFF,MODBUSTARPARA
+I13=micro820.micro820.mb_write_cmd.localaddr,0xFFFFFFFF,MODBUSLOCADDR
+I14=micro820.micro820.mb_write_cmd.__adi_localaddr,0xFFFFFFFF,UINT
+[END]
