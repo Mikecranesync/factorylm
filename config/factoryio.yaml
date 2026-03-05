@@ -3,7 +3,8 @@
 
 factoryio:
   # Modbus TCP connection
-  host: "127.0.0.1"
+  # Factory I/O binds to Tailscale adapter — use machine IP, not localhost
+  host: "100.72.2.99"
   port: 502
 
   # Matrix API endpoint
@@ -18,37 +19,46 @@ factoryio:
 
   # Recommended Factory I/O scene: "Sorting by Height" or "From A to B"
   # These scenes have conveyors, photoeye sensors, and jams you can trigger.
-  scene: "Sorting by Height"
+  scene: "Sorting by Height (Basic)LLM"
 
-  # Tag map: Modbus addresses → FactoryLM tag names
-  # Adjust these to match your Factory I/O Modbus driver configuration.
+  # Tag map: Modbus addresses as mapped in the scene XML.
+  # Scene XML was patched to copy ModbusTCPClient mappings to ModbusTCPServer.
+  # Modbus Server uses discrete inputs (read) and coils (write).
   #
-  # Factory I/O Modbus setup:
-  #   1. Open Factory I/O → File → Drivers → Modbus TCP/IP Server
-  #   2. Click "Configuration" to map I/O points to Modbus addresses
-  #   3. Match the addresses below to your mapping
-  #
-  # Default addresses match the Allen-Bradley Micro 820 convention
-  # used throughout this repo (see services/plc-modbus/CLAUDE.md).
+  # NOTE: Factory I/O Modbus Server exposes sensors as DISCRETE INPUTS
+  # (function code 2, read_discrete_inputs) and actuators as COILS
+  # (function code 1/5/15, read_coils/write_single_coil/write_multiple_coils).
 
+  # Discrete Inputs (sensors — read-only)
+  discrete_inputs:
+    0: high_sensor          # Height detection sensor
+    1: low_sensor           # Low item sensor
+    2: pallet_sensor        # Pallet at position
+    3: loaded               # Item loaded on pallet
+    4: at_left_entry        # Left conveyor entry photoeye
+    5: at_left_exit         # Left conveyor exit photoeye
+    6: at_right_entry       # Right conveyor entry photoeye
+    7: at_right_exit        # Right conveyor exit photoeye
+    8: start_button         # Start pushbutton
+    9: reset_button         # Reset pushbutton
+    10: stop_button         # Stop pushbutton
+    11: e_stop              # Emergency stop
+    12: auto_mode           # Auto/manual selector
+    13: fio_running         # Factory I/O sim running state
+
+  # Coils (actuators — read/write)
   coils:
-    0: motor_running        # Main conveyor motor state
-    1: motor_stopped        # Motor stopped indicator
-    2: fault_alarm          # Any fault active
-    3: conveyor_running     # Conveyor belt running
-    4: sensor_1_active      # Entry photoeye (part detected)
-    5: sensor_2_active      # Exit photoeye (part detected)
-    6: e_stop_active        # Emergency stop engaged
+    0: conveyor_entry       # Entry conveyor motor
+    1: load                 # Loader actuator
+    2: unload               # Unloader actuator
+    3: transfer_left        # Left transfer
+    4: transfer_right       # Right transfer
+    5: conveyor_left        # Left branch conveyor
+    6: conveyor_right       # Right branch conveyor
+    7: start_light          # Start indicator lamp
+    8: reset_light          # Reset indicator lamp
+    9: stop_light           # Stop indicator lamp
 
+  # Holding Register (numeric output)
   registers:
-    100: motor_speed        # Motor speed 0-100%
-    101: motor_current      # Motor current (raw ÷ 10 = Amps)
-    102: temperature        # Temperature (raw ÷ 10 = °C)
-    103: pressure           # Pressure (PSI)
-    104: conveyor_speed     # Conveyor belt speed 0-100%
-    105: error_code         # 0=OK, 1=Overload, 2=Overheat, 3=Jam, 4=Sensor, 5=Comms
-
-  # Scale factors for registers (applied automatically by the bridge)
-  scale:
-    motor_current: 0.1     # raw * 0.1 = Amps
-    temperature: 0.1       # raw * 0.1 = °C
+    0: counter              # Item counter value

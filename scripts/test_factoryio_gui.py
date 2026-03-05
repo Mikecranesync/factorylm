@@ -278,24 +278,37 @@ def try_modbus(host="127.0.0.1", port=502):
     if client is None:
         return {"status": "FAIL", "reason": f"Cannot connect to any of {hosts_to_try}:{port}"}
 
-    result = {"status": "PASS", "host": connected_host, "coils": {}, "registers": {}}
+    result = {"status": "PASS", "host": connected_host,
+              "discrete_inputs": {}, "coils": {}, "registers": {}}
 
     try:
-        coils = client.read_coils(address=0, count=7)
+        # Discrete Inputs (sensors) — function code 2
+        di = client.read_discrete_inputs(address=0, count=14)
+        if not di.isError():
+            di_names = ["high_sensor", "low_sensor", "pallet_sensor", "loaded",
+                        "at_left_entry", "at_left_exit", "at_right_entry",
+                        "at_right_exit", "start_button", "reset_button",
+                        "stop_button", "e_stop", "auto_mode", "fio_running"]
+            for i, name in enumerate(di_names):
+                result["discrete_inputs"][name] = bool(di.bits[i])
+        else:
+            result["discrete_inputs"] = {"error": str(di)}
+
+        # Coils (actuators) — function code 1
+        coils = client.read_coils(address=0, count=10)
         if not coils.isError():
-            names = ["motor_running", "motor_stopped", "fault_alarm",
-                     "conveyor_running", "sensor_1", "sensor_2", "e_stop"]
-            for i, name in enumerate(names):
+            coil_names = ["conveyor_entry", "load", "unload", "transfer_left",
+                          "transfer_right", "conveyor_left", "conveyor_right",
+                          "start_light", "reset_light", "stop_light"]
+            for i, name in enumerate(coil_names):
                 result["coils"][name] = bool(coils.bits[i])
         else:
             result["coils"] = {"error": str(coils)}
 
-        regs = client.read_holding_registers(address=100, count=6)
+        # Holding Registers — function code 3
+        regs = client.read_holding_registers(address=0, count=1)
         if not regs.isError():
-            reg_names = ["motor_speed", "motor_current", "temperature",
-                         "pressure", "conveyor_speed", "error_code"]
-            for i, name in enumerate(reg_names):
-                result["registers"][name] = regs.registers[i]
+            result["registers"]["counter"] = regs.registers[0]
         else:
             result["registers"] = {"error": str(regs)}
 
@@ -383,7 +396,8 @@ def main():
     status = modbus["status"]
     if status == "PASS":
         print(f"[7] Modbus connect ...... PASS ({modbus.get('host', '?')}:{502})")
-        print(f"    Coils:     {modbus['coils']}")
+        print(f"    Sensors:   {modbus.get('discrete_inputs', {})}")
+        print(f"    Actuators: {modbus['coils']}")
         print(f"    Registers: {modbus['registers']}")
     elif status == "SKIP":
         print(f"[7] Modbus connect ...... SKIP ({modbus['reason']})")
