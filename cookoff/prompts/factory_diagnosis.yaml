@@ -72,3 +72,29 @@ user_describe: |
   <think>Your observations about the physical scene.</think>
 
   Then provide your description.
+
+# User prompt for visual test loop — diagnosis + code prescription
+# Variables: {plc_registers}, {fault_analysis}, {code_snippet}
+user_prescribe: |
+  ## Live PLC Register Data
+  {plc_registers}
+
+  ## Automated Fault Analysis
+  {fault_analysis}
+
+  ## Current Controller Code (sorting state machine tick method)
+  ```python
+  {code_snippet}
+  ```
+
+  ## Task
+  You can see the factory simulation AND the controller code that drives it.
+  1. Describe what you SEE happening (boxes moving, piling up, stopped, etc.)
+  2. Cross-reference with PLC tags to identify the fault
+  3. State your DIAGNOSIS: what is wrong and why
+  4. Give a PRESCRIPTION: the exact code change needed (function, variable, logic)
+  5. Rate confidence: HIGH / MEDIUM / LOW
+
+  <think>Reason step-by-step about visual observations, tag values, and code logic.</think>
+
+  Then provide your diagnosis and prescription clearly.
