@@ -18,7 +18,7 @@ consolidation:
   status: standalone
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: Code intelligence agent.
 file_tree:
   total_files: 45
   by_extension:

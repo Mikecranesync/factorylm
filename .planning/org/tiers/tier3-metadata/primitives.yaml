@@ -2,8 +2,8 @@ meta:
   repo: primitives
   org: Mikecranesync
   url: https://github.com/Mikecranesync/primitives
-  one_line: Radix Primitives is an open-source UI component library for building high-quality,
-    accessible design systems and web apps. Maintained by @workos.
+  one_line: Radix Primitives is an open-source UI component library for building high-quality, accessible design systems and
+    web apps. Maintained by @workos.
   primary_language: TypeScript
   is_fork: true
   is_archived: false
@@ -17,7 +17,7 @@ categories:
 - fork
 outcomes: []
 consolidation:
-  status: standalone
+  status: deletable
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: Pure fork, 0 custom commits.

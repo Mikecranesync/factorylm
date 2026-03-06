@@ -24,7 +24,7 @@ consolidation:
   overlaps_with:
   - pi-factory-cosmos
   - factorylm-cosmos-cookoff
-  notes: Computer vision inspection — different domain (ride inspection) but similar CV pipeline patterns.
+  notes: Bolt inspection CV, different domain.
 file_tree:
   total_files: 155
   by_extension:

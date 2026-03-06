@@ -22,7 +22,7 @@ consolidation:
   merged_into: null
   overlaps_with:
   - IndustrialSkillsHub
-  notes: Native mobile version — web version is the companion.
+  notes: Mobile companion to IndustrialSkillsHub.
 file_tree:
   total_files: 23
   by_extension:

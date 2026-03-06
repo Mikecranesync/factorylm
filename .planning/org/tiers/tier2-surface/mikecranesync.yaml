@@ -13,17 +13,16 @@ meta:
 categories:
 - uncategorized
 outcomes:
-- '> "Factory technicians spend 40% of their time diagnosing problems. What if they
-  could just text their factory and ask what''s wrong?"'
+- '> "Factory technicians spend 40% of their time diagnosing problems. What if they could just text their factory and ask
+  what''s wrong?"'
 - Phone → Telegram → OpenClaw → Live PLC Data → LLM Analysis → Diagnosis in <3 seconds
-- OpenClaw connects to **real Allen-Bradley Micro820 PLCs** via Modbus TCP, reads
-  live tag values, runs fault detection, and returns actionable diagnosis to the technician's
-  phone.
+- OpenClaw connects to **real Allen-Bradley Micro820 PLCs** via Modbus TCP, reads live tag values, runs fault detection, and
+  returns actionable diagnosis to the technician's phone.
 consolidation:
   status: standalone
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: GitHub profile README.
 file_tree:
   total_files: 3
   by_extension:

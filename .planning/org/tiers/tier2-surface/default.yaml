@@ -18,7 +18,7 @@ consolidation:
   status: standalone
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: Org-wide Ranger config.
 file_tree:
   total_files: 3
   by_extension:

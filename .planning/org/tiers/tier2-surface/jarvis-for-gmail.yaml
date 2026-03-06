@@ -21,7 +21,7 @@ consolidation:
   merged_into: null
   overlaps_with:
   - jarvis-unified
-  notes: Gmail-specific Jarvis — functionality consolidated into jarvis-unified.
+  notes: Email automation product.
 file_tree:
   total_files: 392
   by_extension:

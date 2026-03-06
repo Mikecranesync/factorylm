@@ -2,8 +2,7 @@ meta:
   repo: remoteme-jarvis-node
   org: Mikecranesync
   url: https://github.com/Mikecranesync/remoteme-jarvis-node
-  one_line: Jarvis Node - FastAPI MCP Server for remote laptop control via Tailscale.
-    Part of RemoteMe infrastructure.
+  one_line: Jarvis Node - FastAPI MCP Server for remote laptop control via Tailscale. Part of RemoteMe infrastructure.
   primary_language: Python
   is_fork: false
   is_archived: false
@@ -16,13 +15,12 @@ categories:
 - personal-ai
 - infra
 outcomes:
-- Jarvis Node - FastAPI MCP Server for remote laptop control via Tailscale. Part of
-  RemoteMe infrastructure.
+- Jarvis Node - FastAPI MCP Server for remote laptop control via Tailscale. Part of RemoteMe infrastructure.
 consolidation:
   status: standalone
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: MCP server for remote control.
 file_tree:
   total_files: 16
   by_extension:

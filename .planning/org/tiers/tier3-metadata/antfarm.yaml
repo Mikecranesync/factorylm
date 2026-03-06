@@ -16,7 +16,7 @@ categories:
 - fork
 outcomes: []
 consolidation:
-  status: standalone
+  status: deletable
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: Pure fork, 0 custom commits.

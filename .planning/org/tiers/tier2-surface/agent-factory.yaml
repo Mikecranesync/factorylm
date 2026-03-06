@@ -2,8 +2,7 @@ meta:
   repo: Agent-Factory
   org: Mikecranesync
   url: https://github.com/Mikecranesync/Agent-Factory
-  one_line: A scalable framework for creating specialized AI agents with dynamic tool
-    assignment
+  one_line: A scalable framework for creating specialized AI agents with dynamic tool assignment
   primary_language: Python
   is_fork: false
   is_archived: false
@@ -14,15 +13,14 @@ meta:
 categories:
 - ai
 outcomes:
-- 'Agent Factory is not just a framework—it''s the **orchestration engine** powering
-  two ambitious platforms:'
+- 'Agent Factory is not just a framework—it''s the **orchestration engine** powering two ambitious platforms:'
 - '**MachineState**: State caching with change detection'
 - Added get_state_manager() dependency for routes
 consolidation:
   status: standalone
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: Agent framework.
 file_tree:
   total_files: 1339
   by_extension:

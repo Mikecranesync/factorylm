@@ -18,7 +18,7 @@ consolidation:
   status: standalone
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: Claude Code config.
 file_tree:
   total_files: 13
   by_extension:

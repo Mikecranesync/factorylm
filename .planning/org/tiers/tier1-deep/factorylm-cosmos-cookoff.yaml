@@ -27,14 +27,13 @@ outcomes:
 - Live dashboard with speed fusion bars, fault injection, Cosmos R2 reasoning panel, and MJPEG belt stream
 - 'Video highlight reel pipeline: ingest raw clips, Cosmos-score them, select top N, concatenate with overlays'
 consolidation:
-  status: standalone
+  status: candidate
   merged_into: null
   overlaps_with:
   - factorylm
   - pi-factory-cosmos
   - openclaw
-  notes: 'Internal duplication: diagnosis/conveyor_faults.py mirrors net/diagnosis/conveyor_faults.py. Shares fault classifier,
-    frame_capture, belt tachometer with pi-factory-cosmos. Edge gateway overlaps monolith services. Partial merge candidate.'
+  notes: 'Partial merge: modbus_tag_source, vfd_conflicts into monolith. Repo stays as cookoff submission archive.'
 file_tree:
   total_files: 175
   total_lines: 28680

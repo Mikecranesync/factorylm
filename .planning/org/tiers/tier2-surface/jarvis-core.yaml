@@ -16,14 +16,14 @@ categories:
 outcomes:
 - 'The central application that provides:'
 consolidation:
-  status: standalone
+  status: deprecated
   merged_into: null
   overlaps_with:
   - openclaw
   - clawdbot
   - jarvis-unified
   - JarvisTLaptop
-  notes: Core Jarvis assistant — overlaps with openclaw routing and other Jarvis variants.
+  notes: Superseded by jarvis-unified.
 file_tree:
   total_files: 117
   by_extension:

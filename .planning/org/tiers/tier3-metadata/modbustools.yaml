@@ -17,10 +17,10 @@ categories:
 - fork
 outcomes: []
 consolidation:
-  status: standalone
+  status: deletable
   merged_into: null
   overlaps_with:
   - factorylm
   - pi-factory-cosmos
   - modbus-simulator
-  notes: Standalone Modbus utilities. Monolith has services/plc-modbus/ (21 files). Pi-factory-cosmos has VFDReader.
+  notes: Pure fork, 0 custom commits.

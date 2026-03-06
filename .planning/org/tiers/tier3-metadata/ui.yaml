@@ -2,8 +2,8 @@ meta:
   repo: ui
   org: Mikecranesync
   url: https://github.com/Mikecranesync/ui
-  one_line: A set of beautifully-designed, accessible components and a code distribution
-    platform. Works with your favorite frameworks. Open Source. Open Code.
+  one_line: A set of beautifully-designed, accessible components and a code distribution platform. Works with your favorite
+    frameworks. Open Source. Open Code.
   primary_language: TypeScript
   is_fork: true
   is_archived: false
@@ -16,7 +16,7 @@ categories:
 - fork
 outcomes: []
 consolidation:
-  status: standalone
+  status: deletable
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: Pure fork, 0 custom commits.

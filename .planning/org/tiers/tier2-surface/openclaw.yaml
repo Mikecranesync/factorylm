@@ -26,8 +26,7 @@ consolidation:
   - factorylm
   - clawdbot
   - jarvis-core
-  notes: Exists as both standalone repo AND embedded in monolith (openclaw/ dir). Monolith also has services/llm-router/ with
-    similar routing.
+  notes: Deployed on VPS (100.68.120.99), separate lifecycle.
 file_tree:
   total_files: 84
   by_extension:

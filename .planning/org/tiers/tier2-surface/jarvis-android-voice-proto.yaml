@@ -2,8 +2,7 @@ meta:
   repo: jarvis-android-voice-proto
   org: Mikecranesync
   url: https://github.com/Mikecranesync/jarvis-android-voice-proto
-  one_line: Voice-controlled email assistant for Android with React Native - Hands-free
-    email management while driving
+  one_line: Voice-controlled email assistant for Android with React Native - Hands-free email management while driving
   primary_language: PowerShell
   is_fork: false
   is_archived: false
@@ -15,13 +14,12 @@ categories:
 - ai
 - personal-ai
 outcomes:
-- Voice-controlled email assistant for Android with React Native - Hands-free email
-  management while driving
+- Voice-controlled email assistant for Android with React Native - Hands-free email management while driving
 consolidation:
-  status: standalone
+  status: deprecated
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: PowerShell prototype, no active development.
 file_tree:
   total_files: 120
   by_extension:

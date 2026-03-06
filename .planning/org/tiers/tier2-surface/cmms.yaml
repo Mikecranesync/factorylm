@@ -21,7 +21,7 @@ consolidation:
   merged_into: null
   overlaps_with:
   - factorylm
-  notes: Upstream fork (1,831 files). Embedded in monolith at apps/cmms/. The monolith copy is the active one.
+  notes: Upstream fork, embedded in monolith at apps/cmms/.
 file_tree:
   total_files: 1831
   by_extension:

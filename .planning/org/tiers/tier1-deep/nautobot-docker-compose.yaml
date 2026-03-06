@@ -24,7 +24,7 @@ consolidation:
   status: standalone
   merged_into: null
   overlaps_with: []
-  notes: Standalone network infrastructure. Health monitor writes to cluster memory. No code overlap with other repos.
+  notes: Infrastructure tool, cluster health monitor.
 file_tree:
   total_files: 43
   total_lines: 3428

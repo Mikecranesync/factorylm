@@ -21,7 +21,7 @@ consolidation:
   merged_into: null
   overlaps_with:
   - ralph
-  notes: Fork/variant of ralph agent framework.
+  notes: Agent auto-loop.
 file_tree:
   total_files: 101
   by_extension:

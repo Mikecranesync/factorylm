@@ -25,7 +25,7 @@ outcomes:
 - Pushes fault alerts to technicians via Telegram bot
 - Runs hands-free demo cycles (normal -> warning -> fault -> recovery)
 consolidation:
-  status: standalone
+  status: candidate
   merged_into: null
   overlaps_with:
   - factorylm
@@ -33,8 +33,8 @@ consolidation:
   - openclaw
   - JarvisTLaptop
   - voltron
-  notes: '3 overlap areas: fault_classifier rules (13 rules duplicate monolith), VFDReader (independent Modbus client), BeltTachometer
-    + frame_capture (near-identical to cookoff). Partial merge candidate — unify fault rules and VFD reader into monolith.'
+  notes: 'Partial merge: fault_classifier, vfd_reader, belt_tachometer, frame_capture into monolith. Repo stays standalone
+    as edge appliance.'
 file_tree:
   total_files: 35
   total_lines: 5770

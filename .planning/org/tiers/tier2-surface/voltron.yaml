@@ -2,8 +2,7 @@ meta:
   repo: voltron
   org: Mikecranesync
   url: https://github.com/Mikecranesync/voltron
-  one_line: Distributed industrial AI system — edge gateways, central Matrix controller,
-    LLM routing
+  one_line: Distributed industrial AI system — edge gateways, central Matrix controller, LLM routing
   primary_language: Python
   is_fork: false
   is_archived: false
@@ -18,10 +17,10 @@ categories:
 outcomes:
 - Read-only enforced   Offline-first      /health /metrics    UNIQUE constraints
 consolidation:
-  status: standalone
+  status: deprecated
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: Superseded by factorylm-cosmos-cookoff. Archive candidate.
 file_tree:
   total_files: 157
   by_extension:

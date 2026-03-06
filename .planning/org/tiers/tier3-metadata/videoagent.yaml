@@ -2,8 +2,7 @@ meta:
   repo: VideoAgent
   org: Mikecranesync
   url: https://github.com/Mikecranesync/VideoAgent
-  one_line: '"VideoAgent: All-in-One Agentic Framework for Video Understanding, Editing,
-    and Remaking"'
+  one_line: '"VideoAgent: All-in-One Agentic Framework for Video Understanding, Editing, and Remaking"'
   primary_language: Python
   is_fork: true
   is_archived: false
@@ -19,4 +18,4 @@ consolidation:
   status: standalone
   merged_into: null
   overlaps_with: []
-  notes: ''
+  notes: Fork with 1 custom commit — keep.

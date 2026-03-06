@@ -15,9 +15,9 @@ categories:
 - fork
 outcomes: []
 consolidation:
-  status: standalone
+  status: deletable
   merged_into: null
   overlaps_with:
   - factorylm
   - ModbusTools
-  notes: Modbus device simulator. Monolith has simulation/ dir with motulator.
+  notes: Pure fork, 0 custom commits.
