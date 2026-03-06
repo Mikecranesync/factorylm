@@ -1,0 +1,52 @@
+meta:
+  repo: pai-config-windows
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/pai-config-windows
+  one_line: Personal AI Infrastructure (PAI) configuration for Windows PowerShell
+    with Claude Code. Includes hooks, skills, and cost-optimized research workflow.
+  primary_language: JavaScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:15Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- personal-ai
+- infra
+outcomes:
+- Personal AI Infrastructure (PAI) configuration for Windows PowerShell with Claude
+  Code. Includes hooks, skills, and cost-optimized research workflow.
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 1902
+  by_extension:
+    md: 839
+    go: 302
+    ts: 188
+    sh: 141
+    svelte: 126
+    json: 84
+    (no ext): 32
+    py: 28
+    vue: 28
+    js: 22
+    yaml: 18
+    yml: 16
+    css: 10
+    nix: 10
+    txt: 8
+  key_dirs:
+  - .claude/
+  - skills/
+  - shell-snapshots/
+  - hooks/
+  - voice-server/
+  - documentation/
+  - agents/
+  - .github/

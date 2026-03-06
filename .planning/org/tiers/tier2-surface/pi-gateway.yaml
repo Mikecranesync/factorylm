@@ -1,0 +1,37 @@
+meta:
+  repo: pi-gateway
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/pi-gateway
+  one_line: ⚠️ ARCHIVED - Merged into factorylm monolith (gateway/)
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:29Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- messaging
+outcomes:
+- ⚠️ ARCHIVED - Merged into factorylm monolith (gateway/)
+consolidation:
+  status: merged
+  merged_into: factorylm
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 14
+  by_extension:
+    md: 6
+    py: 3
+    example: 1
+    yml: 1
+    (no ext): 1
+    toml: 1
+    txt: 1
+  key_dirs:
+  - .ralph/
+  - tests/
+  - .github/
+  - src/

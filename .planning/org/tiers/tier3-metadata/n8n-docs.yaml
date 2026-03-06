@@ -1,0 +1,24 @@
+meta:
+  repo: n8n-docs
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/n8n-docs
+  one_line: Documentation for n8n, a fair-code licensed automation tool with a free
+    community edition and powerful enterprise options. Build AI functionality into
+    your workflows.
+  primary_language: HTML
+  is_fork: true
+  is_archived: false
+  last_pushed: '2026-01-06T00:32:45Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- frontend
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

@@ -1,0 +1,22 @@
+meta:
+  repo: factorylm
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/factorylm
+  one_line: FactoryLM - Industrial AI Platform (Digital Twin Architecture)
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-06T00:33:35Z'
+  tier: 1
+  mapped_at: '2026-03-06'
+  local_path: /Users/charlienode/factorylm
+categories:
+- industrial
+- ai
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+parts: []

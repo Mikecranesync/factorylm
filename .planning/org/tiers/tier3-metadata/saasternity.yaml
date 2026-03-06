@@ -1,0 +1,22 @@
+meta:
+  repo: saasternity
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/saasternity
+  one_line: Open source SaaS boilerplate, built with Next.js and Aceternity UI, deployed
+    on Vercel.
+  primary_language: TypeScript
+  is_fork: true
+  is_archived: false
+  last_pushed: '2024-08-24T06:45:02Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- frontend
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

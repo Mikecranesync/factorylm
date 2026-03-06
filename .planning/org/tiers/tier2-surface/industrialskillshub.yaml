@@ -1,0 +1,50 @@
+meta:
+  repo: IndustrialSkillsHub
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/IndustrialSkillsHub
+  one_line: Duolingo-style gamified training for industrial maintenance technicians
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:22Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- ai
+- maintenance
+outcomes:
+- '**Duolingo-style gamified training for industrial maintenance technicians**'
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 278
+  by_extension:
+    tsx: 81
+    png: 45
+    ts: 34
+    svg: 25
+    xml: 16
+    json: 14
+    md: 8
+    (no ext): 8
+    mp3: 7
+    gradle: 6
+    yml: 3
+    java: 3
+    swift: 3
+    mjs: 3
+    js: 2
+  key_dirs:
+  - app/
+  - android/
+  - public/
+  - components/
+  - ios/
+  - .github/
+  - screenshots/
+  - scripts/

@@ -1,0 +1,21 @@
+meta:
+  repo: modbus-simulator
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/modbus-simulator
+  one_line: Modbus simulator based on modbus-tk and kivy
+  primary_language: Python
+  is_fork: true
+  is_archived: false
+  last_pushed: '2021-12-24T02:06:56Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

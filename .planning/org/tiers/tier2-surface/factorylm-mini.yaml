@@ -1,0 +1,32 @@
+meta:
+  repo: factorylm-mini
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/factorylm-mini
+  one_line: ⚠️ ARCHIVED - Merged into factorylm monolith
+  primary_language: C++
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:29Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+outcomes:
+- 'FactoryLM Mini is an open-source platform for industrial machine monitoring and
+  AI-powered diagnostics. It consists of:'
+consolidation:
+  status: merged
+  merged_into: factorylm
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 4
+  by_extension:
+    yml: 1
+    md: 1
+    ini: 1
+    cpp: 1
+  key_dirs:
+  - firmware/
+  - .github/

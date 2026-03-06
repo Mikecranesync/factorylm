@@ -1,0 +1,39 @@
+meta:
+  repo: IndustrialSkillsHub-native
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/IndustrialSkillsHub-native
+  one_line: Native React Native mobile app for Industrial Skills Hub - Duolingo-style
+    training for industrial maintenance technicians
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:21Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- ai
+- maintenance
+outcomes:
+- Native React Native mobile app for Industrial Skills Hub - Duolingo-style training
+  for industrial maintenance technicians
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 23
+  by_extension:
+    tsx: 5
+    json: 5
+    png: 4
+    ts: 4
+    yml: 2
+    js: 2
+    (no ext): 1
+  key_dirs:
+  - src/
+  - assets/
+  - .github/

@@ -1,0 +1,44 @@
+meta:
+  repo: ralph
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/ralph
+  one_line: 'Ralph is an autonomous AI agent loop that runs repeatedly until all PRD
+    items are complete. '
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:19Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+outcomes:
+- This enables automatic handoff when context fills up, allowing Ralph to handle large
+  stories that exceed a single context window.
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 29
+  by_extension:
+    md: 6
+    json: 5
+    yml: 3
+    (no ext): 2
+    svg: 2
+    css: 2
+    tsx: 2
+    js: 1
+    html: 1
+    ts: 1
+    example: 1
+    png: 1
+    sh: 1
+    webp: 1
+  key_dirs:
+  - flowchart/
+  - .github/
+  - skills/

@@ -1,0 +1,21 @@
+meta:
+  repo: Nexus-backend
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/Nexus-backend
+  one_line: Ai empowered meter app
+  primary_language: null
+  is_fork: false
+  is_archived: true
+  last_pushed: '2025-08-10T20:56:01Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- archived
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

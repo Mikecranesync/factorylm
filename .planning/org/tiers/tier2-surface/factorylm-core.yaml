@@ -1,0 +1,44 @@
+meta:
+  repo: factorylm-core
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/factorylm-core
+  one_line: ⚠️ ARCHIVED - Merged into factorylm monolith
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:05Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+outcomes:
+- FactoryLM Core provides a unified interface for interacting with multiple LLM providers
+  (GROQ, DeepSeek, Claude) for industrial machine diagnostics and automation.
+- '**Industrial Focus**: Specialized `analyze_machine_state()` method for PLC/sensor
+  data analysis'
+consolidation:
+  status: merged
+  merged_into: factorylm
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 63
+  by_extension:
+    py: 38
+    md: 14
+    yml: 3
+    sh: 2
+    example: 1
+    (no ext): 1
+    st: 1
+    ini: 1
+    txt: 1
+    service: 1
+  key_dirs:
+  - tests/
+  - src/
+  - docs/
+  - services/
+  - .github/
+  - plc_programs/

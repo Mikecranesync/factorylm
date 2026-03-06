@@ -1,0 +1,22 @@
+meta:
+  repo: nautobot-docker-compose
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/nautobot-docker-compose
+  one_line: Docker Compose for Nautobot
+  primary_language: Python
+  is_fork: true
+  is_archived: false
+  last_pushed: '2026-03-03T17:46:24Z'
+  tier: 1
+  mapped_at: '2026-03-06'
+  local_path: /Users/charlienode/nautobot-docker-compose
+categories:
+- messaging
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+parts: []

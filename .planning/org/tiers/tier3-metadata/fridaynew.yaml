@@ -1,0 +1,21 @@
+meta:
+  repo: FRIDAYNEW
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/FRIDAYNEW
+  one_line: ai studio friday
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: true
+  last_pushed: '2025-12-01T13:58:50Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- archived
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

@@ -1,0 +1,23 @@
+meta:
+  repo: ModbusTools
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/ModbusTools
+  one_line: ModbusTools are cross-platform (Windows, Linux) Modbus simulator tools
+    (client and server) with GUI to work with Modbus protocol (TCP,RTU,ASCII)
+  primary_language: C++
+  is_fork: true
+  is_archived: false
+  last_pushed: '2026-01-19T23:13:50Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- frontend
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

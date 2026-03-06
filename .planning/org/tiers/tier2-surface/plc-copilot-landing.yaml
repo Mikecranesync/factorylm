@@ -1,0 +1,38 @@
+meta:
+  repo: plc-copilot-landing
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/plc-copilot-landing
+  one_line: (no description — needs manual review)
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:15Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- uncategorized
+outcomes:
+- (no description — needs manual review)
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 28
+  by_extension:
+    tsx: 15
+    json: 3
+    yml: 2
+    ts: 2
+    mjs: 2
+    (no ext): 1
+    md: 1
+    css: 1
+    txt: 1
+  key_dirs:
+  - components/
+  - app/
+  - .github/
+  - public/

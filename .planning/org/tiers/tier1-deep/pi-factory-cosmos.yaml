@@ -1,0 +1,23 @@
+meta:
+  repo: pi-factory-cosmos
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/pi-factory-cosmos
+  one_line: 'Pi-Factory: Industrial AI Diagnostics with NVIDIA Cosmos Reason 2 — Raspberry
+    Pi + HMS Anybus CompactCom appliance'
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T08:47:23Z'
+  tier: 1
+  mapped_at: '2026-03-06'
+  local_path: /Users/charlienode/pi-factory-cosmos
+categories:
+- industrial
+- ai
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+parts: []

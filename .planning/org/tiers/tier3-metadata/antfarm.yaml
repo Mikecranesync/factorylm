@@ -1,0 +1,22 @@
+meta:
+  repo: antfarm
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/antfarm
+  one_line: Build your agent team in OpenClaw with one command.
+  primary_language: TypeScript
+  is_fork: true
+  is_archived: false
+  last_pushed: '2026-02-26T17:39:07Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- frontend
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

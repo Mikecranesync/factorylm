@@ -1,0 +1,20 @@
+meta:
+  repo: motulator
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/motulator
+  one_line: Motor Drive and Grid Converter Simulator in Python
+  primary_language: Python
+  is_fork: true
+  is_archived: false
+  last_pushed: '2026-01-13T10:04:26Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

@@ -1,0 +1,46 @@
+meta:
+  repo: frame_realtime_gemini_voicevision
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/frame_realtime_gemini_voicevision
+  one_line: Realtime Voice and Vision wtih Brilliant Labs Frame and Gemini
+  primary_language: Dart
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:13Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+outcomes:
+- Realtime Voice and Vision wtih Brilliant Labs Frame and Gemini
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 77
+  by_extension:
+    png: 25
+    xml: 7
+    dart: 5
+    (no ext): 4
+    plist: 4
+    md: 3
+    gradle: 3
+    yml: 2
+    yaml: 2
+    properties: 2
+    lua: 2
+    xcconfig: 2
+    xcworkspacedata: 2
+    xcsettings: 2
+    swift: 2
+  key_dirs:
+  - ios/
+  - android/
+  - lib/
+  - .github/
+  - assets/
+  - docs/

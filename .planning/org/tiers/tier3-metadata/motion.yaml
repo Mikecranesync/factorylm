@@ -1,0 +1,20 @@
+meta:
+  repo: motion
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/motion
+  one_line: A modern animation library for React and JavaScript
+  primary_language: TypeScript
+  is_fork: true
+  is_archived: false
+  last_pushed: '2026-02-05T13:15:43Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

@@ -1,0 +1,22 @@
+meta:
+  repo: spectrum-ui
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/spectrum-ui
+  one_line: Spectrum UI ⭐ is a collection of re-usable components built using Aceternity
+    UI Magic UI and ShadCN UI that you can copy and paste into your apps.
+  primary_language: TypeScript
+  is_fork: true
+  is_archived: false
+  last_pushed: '2025-12-31T15:15:51Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- frontend
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

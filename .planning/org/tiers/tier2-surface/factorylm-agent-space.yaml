@@ -1,0 +1,38 @@
+meta:
+  repo: factorylm-agent-space
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/factorylm-agent-space
+  one_line: FactoryLM Obsidian Agent Space - Persistent Memory Layer for Industrial
+    AI Empire
+  primary_language: null
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:07Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- ai
+outcomes:
+- FactoryLM Obsidian Agent Space - Persistent Memory Layer for Industrial AI Empire
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 3410
+  by_extension:
+    md: 3408
+    yml: 1
+    json: 1
+  key_dirs:
+  - Product-Agents/
+  - Factory-Ops/
+  - Agent-Outputs/
+  - Incidents-Response/
+  - Personal-Thinking/
+  - Market-Investor/
+  - .github/
+  - INTAKE/

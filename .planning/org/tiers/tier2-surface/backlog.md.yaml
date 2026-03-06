@@ -1,0 +1,49 @@
+meta:
+  repo: Backlog.md
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/Backlog.md
+  one_line: Backlog.md - A tool for managing project collaboration between humans
+    and AI Agents in a git ecosystem
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:19Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+outcomes:
+- Backlog.md - A tool for managing project collaboration between humans and AI Agents
+  in a git ecosystem
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 693
+  by_extension:
+    md: 411
+    ts: 206
+    tsx: 32
+    (no ext): 8
+    png: 8
+    yml: 6
+    json: 3
+    cjs: 3
+    jpeg: 2
+    lock: 2
+    nix: 2
+    css: 2
+    gif: 1
+    jpg: 1
+    mp4: 1
+  key_dirs:
+  - backlog/
+  - src/
+  - .github/
+  - completions/
+  - scripts/
+  - .claude/
+  - .husky/

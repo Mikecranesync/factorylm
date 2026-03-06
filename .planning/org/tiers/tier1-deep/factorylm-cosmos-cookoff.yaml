@@ -1,0 +1,23 @@
+meta:
+  repo: factorylm-cosmos-cookoff
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/factorylm-cosmos-cookoff
+  one_line: 'FactoryLM Vision: Multimodal AI Diagnostics for Industrial Automation
+    - NVIDIA Cosmos Cookoff 2026'
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-05T09:22:54Z'
+  tier: 1
+  mapped_at: '2026-03-06'
+  local_path: /Users/charlienode/factorylm-cosmos-cookoff
+categories:
+- industrial
+- ai
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+parts: []

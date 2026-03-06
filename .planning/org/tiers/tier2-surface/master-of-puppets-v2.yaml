@@ -1,0 +1,37 @@
+meta:
+  repo: master-of-puppets-v2
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/master-of-puppets-v2
+  one_line: 'MoP2: Recursive self-improving code intelligence'
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:08Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- uncategorized
+outcomes:
+- 'MoP2: Recursive self-improving code intelligence'
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 45
+  by_extension:
+    py: 38
+    yml: 3
+    (no ext): 2
+    md: 1
+    toml: 1
+  key_dirs:
+  - catalog/
+  - tests/
+  - agents/
+  - pipelines/
+  - integrations/
+  - .github/
+  - governor/

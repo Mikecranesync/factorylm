@@ -1,0 +1,23 @@
+meta:
+  repo: svelte-animations
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/svelte-animations
+  one_line: Svelte Magic UI, Svelte Aceternity UI, Svelte Components build using Tailwind
+    CSS & Framer Motion
+  primary_language: Svelte
+  is_fork: true
+  is_archived: false
+  last_pushed: '2025-06-21T21:21:48Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- frontend
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

@@ -1,0 +1,48 @@
+meta:
+  repo: Rivet-PRO
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/Rivet-PRO
+  one_line: V 2.0
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:10Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- uncategorized
+outcomes:
+- Enables AI-powered code assistance in PRs and issues.
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 1145
+  by_extension:
+    py: 503
+    md: 337
+    json: 63
+    sql: 56
+    java: 38
+    svg: 28
+    txt: 24
+    sh: 21
+    (no ext): 19
+    yml: 16
+    bat: 6
+    ps1: 6
+    example: 5
+    service: 3
+    xml: 3
+  key_dirs:
+  - rivet_pro/
+  - scripts/
+  - backlog/
+  - rivet/
+  - ycb/
+  - docs/
+  - tests/
+  - rivet-java/

@@ -1,0 +1,47 @@
+meta:
+  repo: Blog-writer-multi-agent
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/Blog-writer-multi-agent
+  one_line: Blog Write multi agent AI is a custom multi-agent system designed to autonomously
+    create high-quality, research-driven blogs. Using LangChain, Gemini 2.0-Flash-EXP,
+    and Serper Web Search Tool, it automates planning, writing, and editing to deliver
+    human-like blogs with up-to-date references.
+  primary_language: Jupyter Notebook
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:17Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+outcomes:
+- '**FastAPI Backend**: Handles blog generation requests.'
+- '**Next.js Frontend**: Provides a sleek user interface for input and blog display.'
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 41
+  by_extension:
+    tsx: 9
+    json: 5
+    ts: 4
+    md: 3
+    yml: 2
+    (no ext): 2
+    png: 2
+    woff: 2
+    mjs: 2
+    py: 2
+    mp4: 1
+    ico: 1
+    css: 1
+    ipynb: 1
+    txt: 1
+  key_dirs:
+  - client/
+  - server/
+  - .github/

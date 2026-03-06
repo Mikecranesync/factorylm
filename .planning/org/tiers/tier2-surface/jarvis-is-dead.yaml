@@ -1,0 +1,37 @@
+meta:
+  repo: JARVIS-IS-DEAD
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/JARVIS-IS-DEAD
+  one_line: Frozen digital twin of Jarvis (OpenClaw). PR-gated resurrection kit. If
+    Jarvis dies, this repo brings him back.
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:28:07Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- personal-ai
+outcomes:
+- '| **Skills** | diagnose, status, photo, work_order, admin, search, chat |'
+- '| **Providers** | Groq (primary), Anthropic (diagnose), Gemini (vision) |'
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''
+file_tree:
+  total_files: 66
+  by_extension:
+    py: 53
+    md: 8
+    yaml: 2
+    toml: 1
+    txt: 1
+    service: 1
+  key_dirs:
+  - code/
+  - baseline/
+  - config/
+  - workflows/
