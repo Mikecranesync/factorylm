@@ -1,7 +1,7 @@
 # OUTCOMES.md — Mikecranesync Repos by What They DO
 
-> Generated: 2026-03-06
-> Total repos: 86
+> Generated: 2026-03-06 | Enriched with tier-1 deep maps
+> Total repos: 86 (4 tier-1, 44 tier-2, 38 tier-3)
 
 This groups every repo by **outcome** — what it actually does for Mike,
 not what it's named or where it lives. Repos appear in multiple groups
@@ -13,197 +13,243 @@ if they serve multiple outcomes.
 
 _Software that helps identify, analyze, or fix problems with industrial equipment_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [factorylm](https://github.com/Mikecranesync/factorylm) | 1 | TypeScript | FactoryLM - Industrial AI Platform (Digital Twin Architecture) |
-| [openclaw](https://github.com/Mikecranesync/openclaw) | 2 | Python | Industrial AI gateway — intent-aware LLM routing for factory floor diagnostics. Groq, Claude, Gemini |
-| [pi-factory-cosmos](https://github.com/Mikecranesync/pi-factory-cosmos) | 1 | Python | Pi-Factory: Industrial AI Diagnostics with NVIDIA Cosmos Reason 2 — Raspberry Pi + HMS Anybus Compac |
-| [JarvisTLaptop](https://github.com/Mikecranesync/JarvisTLaptop) | 2 | Python | Jarvis Telegram Bot - Factory troubleshooting via Telegram with Groq/Claude AI, photo diagnosis, voi |
-| [factorylm-plc-client](https://github.com/Mikecranesync/factorylm-plc-client) [MERGED] | 2 | Python | ⚠️ ARCHIVED - Merged into factorylm monolith |
-| [factorylm-conveyor-demo](https://github.com/Mikecranesync/factorylm-conveyor-demo) | 2 | D2 | VFD conveyor assembly — mechanical drawings, electrical schematics, BOM. Allen-Bradley Micro820 + Fa |
-| [voltron](https://github.com/Mikecranesync/voltron) | 2 | Python | Distributed industrial AI system — edge gateways, central Matrix controller, LLM routing |
-| [JARVIS-IS-DEAD](https://github.com/Mikecranesync/JARVIS-IS-DEAD) | 2 | Python | Frozen digital twin of Jarvis (OpenClaw). PR-gated resurrection kit. If Jarvis dies, this repo bring |
+**Key overlap:** `factorylm`, `pi-factory-cosmos`, and `factorylm-cosmos-cookoff` all contain independent `fault_classifier` / `conveyor_faults` modules with similar rule sets (E-stop, overcurrent, overtemp, jam, sensor failure). These should be unified into one canonical fault engine in the monolith.
+
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [factorylm](https://github.com/Mikecranesync/factorylm) | 1 | TS/Python | Industrial AI monolith — 23 services, 39 workers, diagnosis engine | **THE monolith** |
+| [pi-factory-cosmos](https://github.com/Mikecranesync/pi-factory-cosmos) | 1 | Python | Pi appliance — 13 fault rules, Cosmos R2, VFD Modbus, belt tachometer | Partial merge candidate |
+| [factorylm-cosmos-cookoff](https://github.com/Mikecranesync/factorylm-cosmos-cookoff) | 1 | Python | Cookoff entry — edge gateway, 30+ endpoints, matrix dashboard, speed fusion | Partial merge candidate |
+| [openclaw](https://github.com/Mikecranesync/openclaw) | 2 | Python | Intent-aware LLM routing for factory diagnostics | Embedded copy in monolith |
+| [JarvisTLaptop](https://github.com/Mikecranesync/JarvisTLaptop) | 2 | Python | Telegram bot — photo diagnosis, voice transcription | Overlaps monolith telegram service |
+| [factorylm-plc-client](https://github.com/Mikecranesync/factorylm-plc-client) [MERGED] | 2 | Python | Merged into monolith `plc-client/` | Done |
+| [factorylm-conveyor-demo](https://github.com/Mikecranesync/factorylm-conveyor-demo) | 2 | D2 | Mechanical drawings, schematics, BOM for conveyor | Standalone (docs) |
+| [voltron](https://github.com/Mikecranesync/voltron) | 2 | Python | Distributed edge gateways + Matrix controller | Superseded by cookoff |
+| [JARVIS-IS-DEAD](https://github.com/Mikecranesync/JARVIS-IS-DEAD) | 2 | Python | Frozen OpenClaw backup — resurrection kit | Standalone (insurance) |
 
 ## Route Messages to AI
 
 _Gateways and bots that accept human input and route it to the right AI model_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [openclaw](https://github.com/Mikecranesync/openclaw) | 2 | Python | Industrial AI gateway — intent-aware LLM routing for factory floor diagnostics. Groq, Claude, Gemini |
-| [clawdbot](https://github.com/Mikecranesync/clawdbot) | 2 | TypeScript | Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞  |
-| [jarvis-core](https://github.com/Mikecranesync/jarvis-core) | 2 | TypeScript | JARVIS - Your AI Operating System. Central hub for orchestrating 10+ AI-powered personal assistant a |
-| [jarvis-unified](https://github.com/Mikecranesync/jarvis-unified) | 2 | TypeScript | JARVIS Unified - PAI-Powered Personal AI Operating System / Email, Calendar, Tasks automation with 7 |
+**Key overlap:** `openclaw` exists as both a standalone repo and embedded in the monolith (`openclaw/`). The monolith also has `services/llm-router/` which does similar routing. `clawdbot`, `jarvis-core`, `jarvis-unified` are all personal AI assistants with message routing.
+
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [openclaw](https://github.com/Mikecranesync/openclaw) | 2 | Python | Industrial LLM gateway — Groq, Claude, Gemini. Telegram, WhatsApp, HTTP | VPS deployment (standalone) |
+| [clawdbot](https://github.com/Mikecranesync/clawdbot) | 2 | TypeScript | Personal AI assistant — 4,433 files | Standalone |
+| [jarvis-core](https://github.com/Mikecranesync/jarvis-core) | 2 | TypeScript | JARVIS OS — orchestrates 10+ AI apps | Superseded by jarvis-unified? |
+| [jarvis-unified](https://github.com/Mikecranesync/jarvis-unified) | 2 | TypeScript | JARVIS Unified — Email, Calendar, Tasks with 70% test coverage | Latest Jarvis iteration |
 
 ## Manage Maintenance (CMMS)
 
 _Track work orders, assets, maintenance schedules_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [cmms](https://github.com/Mikecranesync/cmms) | 2 | TypeScript | #1 Self hosted CMMS web & mobile application that allows you to manage enterprise maintenance for fr |
-| [factorylm-cmms](https://github.com/Mikecranesync/factorylm-cmms) | 2 | — | ISO 55000 compliant CMMS — GitHub-native maintenance management for industrial teams |
-| [nexus-cmms-recovery-point-2](https://github.com/Mikecranesync/nexus-cmms-recovery-point-2) [ARCHIVED] | 3 | TypeScript | (no description — needs manual review) |
-| [ProjectNexus](https://github.com/Mikecranesync/ProjectNexus) [ARCHIVED] | 3 | TypeScript | (no description — needs manual review) |
-| [Nexus](https://github.com/Mikecranesync/Nexus) [ARCHIVED] | 3 | Dart | (no description — needs manual review) |
-| [Nexus1](https://github.com/Mikecranesync/Nexus1) [ARCHIVED] | 3 | — | (no description — needs manual review) |
-| [Nexus-backend](https://github.com/Mikecranesync/Nexus-backend) [ARCHIVED] | 3 | — | Ai empowered meter app |
+**Key overlap:** `cmms` is an upstream fork (1,831 files), `factorylm-cmms` is a GitHub-native Issues-based approach, and 5 archived Nexus repos are all abandoned predecessors. The monolith embeds the cmms fork at `apps/cmms/`.
+
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [cmms](https://github.com/Mikecranesync/cmms) | 2 | TypeScript | Upstream CMMS fork — 1,831 files, full web+mobile | Embedded in monolith |
+| [factorylm-cmms](https://github.com/Mikecranesync/factorylm-cmms) | 2 | — | ISO 55000 GitHub-native CMMS using Issues | Standalone (different approach) |
+| [nexus-cmms-recovery-point-2](https://github.com/Mikecranesync/nexus-cmms-recovery-point-2) [ARCHIVED] | 3 | TypeScript | Abandoned Nexus recovery | Deprecated |
+| [ProjectNexus](https://github.com/Mikecranesync/ProjectNexus) [ARCHIVED] | 3 | TypeScript | Abandoned Nexus web | Deprecated |
+| [Nexus](https://github.com/Mikecranesync/Nexus) [ARCHIVED] | 3 | Dart | Abandoned Nexus mobile | Deprecated |
+| [Nexus1](https://github.com/Mikecranesync/Nexus1) [ARCHIVED] | 3 | — | Abandoned | Deprecated |
+| [Nexus-backend](https://github.com/Mikecranesync/Nexus-backend) [ARCHIVED] | 3 | — | Abandoned meter app | Deprecated |
 
 ## Train Technicians
 
 _Gamified learning for industrial maintenance skills_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [IndustrialSkillsHub](https://github.com/Mikecranesync/IndustrialSkillsHub) | 2 | TypeScript | Duolingo-style gamified training for industrial maintenance technicians |
-| [IndustrialSkillsHub-native](https://github.com/Mikecranesync/IndustrialSkillsHub-native) | 2 | TypeScript | Native React Native mobile app for Industrial Skills Hub - Duolingo-style training for industrial ma |
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [IndustrialSkillsHub](https://github.com/Mikecranesync/IndustrialSkillsHub) | 2 | TypeScript | Duolingo-style web app for maintenance training | Standalone |
+| [IndustrialSkillsHub-native](https://github.com/Mikecranesync/IndustrialSkillsHub-native) | 2 | TypeScript | React Native mobile app for same | Standalone |
 
 ## Automate Email / Calendar
 
 _AI-powered email triage, drafting, and calendar management_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [jarvis-for-gmail](https://github.com/Mikecranesync/jarvis-for-gmail) | 2 | TypeScript | Autonomous agentic email assistant - handles 70% of emails automatically with AI |
-| [jarvis-unified](https://github.com/Mikecranesync/jarvis-unified) | 2 | TypeScript | JARVIS Unified - PAI-Powered Personal AI Operating System / Email, Calendar, Tasks automation with 7 |
-| [jarvis-android-voice-proto](https://github.com/Mikecranesync/jarvis-android-voice-proto) | 2 | PowerShell | Voice-controlled email assistant for Android with React Native - Hands-free email management while d |
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [jarvis-for-gmail](https://github.com/Mikecranesync/jarvis-for-gmail) | 2 | TypeScript | Autonomous email assistant — handles 70% automatically | Standalone |
+| [jarvis-unified](https://github.com/Mikecranesync/jarvis-unified) | 2 | TypeScript | PAI OS — Email + Calendar + Tasks automation | Standalone |
+| [jarvis-android-voice-proto](https://github.com/Mikecranesync/jarvis-android-voice-proto) | 2 | PowerShell | Voice-controlled email for Android | Prototype |
 
 ## Control PLC Hardware
 
 _Direct communication with Micro820, Modbus devices, VFDs_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [factorylm](https://github.com/Mikecranesync/factorylm) | 1 | TypeScript | FactoryLM - Industrial AI Platform (Digital Twin Architecture) |
-| [factorylm-plc-client](https://github.com/Mikecranesync/factorylm-plc-client) [MERGED] | 2 | Python | ⚠️ ARCHIVED - Merged into factorylm monolith |
-| [factorylm-mini](https://github.com/Mikecranesync/factorylm-mini) [MERGED] | 2 | C++ | ⚠️ ARCHIVED - Merged into factorylm monolith |
-| [pi-gateway](https://github.com/Mikecranesync/pi-gateway) [MERGED] | 2 | Python | ⚠️ ARCHIVED - Merged into factorylm monolith (gateway/) |
-| [ModbusTools](https://github.com/Mikecranesync/ModbusTools) [FORK] | 3 | C++ | ModbusTools are cross-platform (Windows, Linux) Modbus simulator tools (client and server) with GUI  |
-| [modbus-simulator](https://github.com/Mikecranesync/modbus-simulator) [FORK] | 3 | Python | Modbus simulator based on modbus-tk and kivy |
-| [motulator](https://github.com/Mikecranesync/motulator) [FORK] | 3 | Python | Motor Drive and Grid Converter Simulator in Python |
+**Key overlap:** The monolith has `services/plc-modbus/` (21 files). `pi-factory-cosmos` has its own `VFDReader` class. `factorylm-cosmos-cookoff` has `net/micro820.py` (deprecated) + async scanner. Three independent Modbus implementations.
+
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [factorylm](https://github.com/Mikecranesync/factorylm) | 1 | TS/Python | Monolith `services/plc-modbus/` — canonical PLC client | **THE source** |
+| [pi-factory-cosmos](https://github.com/Mikecranesync/pi-factory-cosmos) | 1 | Python | VFDReader + PLCSimulator (standalone, edge) | Edge-specific |
+| [factorylm-cosmos-cookoff](https://github.com/Mikecranesync/factorylm-cosmos-cookoff) | 1 | Python | Edge gateway with async subnet scanner | Superset of pi-factory |
+| [factorylm-plc-client](https://github.com/Mikecranesync/factorylm-plc-client) [MERGED] | 2 | Python | Merged into monolith | Done |
+| [factorylm-mini](https://github.com/Mikecranesync/factorylm-mini) [MERGED] | 2 | C++ | Merged into monolith | Done |
+| [pi-gateway](https://github.com/Mikecranesync/pi-gateway) [MERGED] | 2 | Python | Merged into monolith | Done |
+| [ModbusTools](https://github.com/Mikecranesync/ModbusTools) [FORK] | 3 | C++ | Modbus simulator GUI | Reference fork |
+| [modbus-simulator](https://github.com/Mikecranesync/modbus-simulator) [FORK] | 3 | Python | Modbus simulator + kivy GUI | Reference fork |
+| [motulator](https://github.com/Mikecranesync/motulator) [FORK] | 3 | Python | Motor drive simulator | Embedded in monolith `simulation/` |
 
 ## Collect & Analyze Sensor Data
 
 _Time-series collection, drift detection, anomaly analysis_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [factorylm](https://github.com/Mikecranesync/factorylm) | 1 | TypeScript | FactoryLM - Industrial AI Platform (Digital Twin Architecture) |
-| [pi-factory-cosmos](https://github.com/Mikecranesync/pi-factory-cosmos) | 1 | Python | Pi-Factory: Industrial AI Diagnostics with NVIDIA Cosmos Reason 2 — Raspberry Pi + HMS Anybus Compac |
-| [factorylm-cosmos-cookoff](https://github.com/Mikecranesync/factorylm-cosmos-cookoff) | 1 | Python | FactoryLM Vision: Multimodal AI Diagnostics for Industrial Automation - NVIDIA Cosmos Cookoff 2026 |
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [factorylm](https://github.com/Mikecranesync/factorylm) | 1 | TS/Python | Monolith `analytics/` + `collectors/` — baseline, drift, embedding | **THE source** |
+| [pi-factory-cosmos](https://github.com/Mikecranesync/pi-factory-cosmos) | 1 | Python | Belt tachometer — vision-based RPM from orange tape tracking | Edge-specific |
+| [factorylm-cosmos-cookoff](https://github.com/Mikecranesync/factorylm-cosmos-cookoff) | 1 | Python | 5Hz poller with SQLite history, speed fusion detection | Edge-specific |
+
+## Manage Network Infrastructure
+
+_Cluster topology, device health, IPAM_
+
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [nautobot-docker-compose](https://github.com/Mikecranesync/nautobot-docker-compose) | 1 | Python | Nautobot fork + 6 custom tools — topology seeder, health monitor, endpoint scanner | Standalone |
 
 ## AI Agent Orchestration
 
 _Autonomous dev loops, agent frameworks, task management_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [ralph](https://github.com/Mikecranesync/ralph) | 2 | TypeScript | Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items are complete.  |
-| [My-Ralph](https://github.com/Mikecranesync/My-Ralph) | 2 | Shell | Autonomous AI development loop for Claude Code with intelligent exit detection |
-| [CodeBang](https://github.com/Mikecranesync/CodeBang) | 2 | Python | DevCTO Agent: Self-improving AI DevOps system that learns best practices, maintains codebases, and g |
-| [Archon](https://github.com/Mikecranesync/Archon) | 2 | Python | Beta release of Archon OS - the knowledge and task management backbone for AI coding assistants. |
-| [Agent-Factory](https://github.com/Mikecranesync/Agent-Factory) | 2 | Python | A scalable framework for creating specialized AI agents with dynamic tool assignment |
-| [master-of-puppets-v2](https://github.com/Mikecranesync/master-of-puppets-v2) | 2 | Python | MoP2: Recursive self-improving code intelligence |
-| [Backlog.md](https://github.com/Mikecranesync/Backlog.md) | 2 | TypeScript | Backlog.md - A tool for managing project collaboration between humans and AI Agents in a git ecosyst |
-| [antfarm](https://github.com/Mikecranesync/antfarm) [FORK] | 3 | TypeScript | Build your agent team in OpenClaw with one command. |
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [ralph](https://github.com/Mikecranesync/ralph) | 2 | TypeScript | Autonomous PRD completion loop | Standalone |
+| [My-Ralph](https://github.com/Mikecranesync/My-Ralph) | 2 | Shell | Claude Code auto-loop with exit detection | Standalone |
+| [CodeBang](https://github.com/Mikecranesync/CodeBang) | 2 | Python | Self-improving DevCTO agent | Standalone |
+| [Archon](https://github.com/Mikecranesync/Archon) | 2 | Python | Knowledge + task management for AI agents | Standalone |
+| [Agent-Factory](https://github.com/Mikecranesync/Agent-Factory) | 2 | Python | Specialized agent framework with dynamic tools | Standalone |
+| [master-of-puppets-v2](https://github.com/Mikecranesync/master-of-puppets-v2) | 2 | Python | Recursive self-improving code intelligence | Standalone |
+| [Backlog.md](https://github.com/Mikecranesync/Backlog.md) | 2 | TypeScript | Git-native backlog for human+AI collaboration | Standalone |
+| [antfarm](https://github.com/Mikecranesync/antfarm) [FORK] | 3 | TypeScript | Multi-agent workflows for OpenClaw | Reference fork |
 
 ## Personal AI Infrastructure
 
 _PAI config, workspace setup, cross-device AI assistants_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [jarvis-workspace](https://github.com/Mikecranesync/jarvis-workspace) | 2 | Python | AI workspace configuration — Clawdbot personal AI assistant infrastructure |
-| [pai-config-windows](https://github.com/Mikecranesync/pai-config-windows) | 2 | JavaScript | Personal AI Infrastructure (PAI) configuration for Windows PowerShell with Claude Code. Includes hoo |
-| [Thefuture](https://github.com/Mikecranesync/Thefuture) | 2 | TypeScript | Personal AI Infrastructure for upgrading humans. |
-| [remoteme-jarvis-node](https://github.com/Mikecranesync/remoteme-jarvis-node) | 2 | Python | Jarvis Node - FastAPI MCP Server for remote laptop control via Tailscale. Part of RemoteMe infrastru |
-| [clawd](https://github.com/Mikecranesync/clawd) | 2 | Shell | (no description — needs manual review) |
-| [claudegen-coach](https://github.com/Mikecranesync/claudegen-coach) | 2 | TypeScript | (no description — needs manual review) |
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [jarvis-workspace](https://github.com/Mikecranesync/jarvis-workspace) | 2 | Python | Clawdbot workspace config — 5,664 files | Standalone |
+| [pai-config-windows](https://github.com/Mikecranesync/pai-config-windows) | 2 | JavaScript | Windows PowerShell PAI config with hooks/skills | Standalone |
+| [Thefuture](https://github.com/Mikecranesync/Thefuture) | 2 | TypeScript | PAI for upgrading humans — 605 files | Standalone |
+| [remoteme-jarvis-node](https://github.com/Mikecranesync/remoteme-jarvis-node) | 2 | Python | FastAPI MCP server for remote laptop control | Standalone |
+| [clawd](https://github.com/Mikecranesync/clawd) | 2 | Shell | Claude Code agent config/scripts | Standalone |
+| [claudegen-coach](https://github.com/Mikecranesync/claudegen-coach) | 2 | TypeScript | AI coaching/generation tool | Standalone |
 
 ## Vision / Inspection
 
 _Computer vision for industrial inspection and diagnostics_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [RideView](https://github.com/Mikecranesync/RideView) | 2 | Python | Torque stripe verification system using computer vision - detect broken/compromised torque stripes o |
-| [pi-factory-cosmos](https://github.com/Mikecranesync/pi-factory-cosmos) | 1 | Python | Pi-Factory: Industrial AI Diagnostics with NVIDIA Cosmos Reason 2 — Raspberry Pi + HMS Anybus Compac |
-| [factorylm-cosmos-cookoff](https://github.com/Mikecranesync/factorylm-cosmos-cookoff) | 1 | Python | FactoryLM Vision: Multimodal AI Diagnostics for Industrial Automation - NVIDIA Cosmos Cookoff 2026 |
-| [frame_realtime_gemini_voicevision](https://github.com/Mikecranesync/frame_realtime_gemini_voicevision) | 2 | Dart | Realtime Voice and Vision wtih Brilliant Labs Frame and Gemini |
+**Key overlap:** `pi-factory-cosmos` has `BeltTachometer` (297 lines, HSV orange mask). `factorylm-cosmos-cookoff` has the same tachometer plus `cosmos_analyzer.py` for video reasoning. Both repos contain near-identical `frame_capture.py`.
+
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [pi-factory-cosmos](https://github.com/Mikecranesync/pi-factory-cosmos) | 1 | Python | Belt tachometer + Cosmos R2 video diagnosis | Edge-specific |
+| [factorylm-cosmos-cookoff](https://github.com/Mikecranesync/factorylm-cosmos-cookoff) | 1 | Python | Same + speed fusion, incident watcher, 6 demo subcommands | Superset |
+| [RideView](https://github.com/Mikecranesync/RideView) | 2 | Python | Torque stripe verification — bolt inspection CV | Standalone |
+| [frame_realtime_gemini_voicevision](https://github.com/Mikecranesync/frame_realtime_gemini_voicevision) | 2 | Dart | Brilliant Labs Frame + Gemini realtime | Standalone |
 
 ## Knowledge Base / Memory
 
 _Obsidian vaults, vector stores, persistent agent memory_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [FactoryLM_OS](https://github.com/Mikecranesync/FactoryLM_OS) | 2 | — | FactoryLM operating brain — Obsidian vault for industrial IoT platform development |
-| [factorylm-agent-space](https://github.com/Mikecranesync/factorylm-agent-space) | 2 | — | FactoryLM Obsidian Agent Space - Persistent Memory Layer for Industrial AI Empire |
-| [mikes-brain](https://github.com/Mikecranesync/mikes-brain) [MERGED] | 2 | Python | ⚠️ ARCHIVED - Merged into factorylm monolith (brain/) |
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [FactoryLM_OS](https://github.com/Mikecranesync/FactoryLM_OS) | 2 | — | Obsidian vault — 435 files, operating brain | Standalone |
+| [factorylm-agent-space](https://github.com/Mikecranesync/factorylm-agent-space) | 2 | — | Obsidian agent space — 3,410 files | Standalone |
+| [mikes-brain](https://github.com/Mikecranesync/mikes-brain) [MERGED] | 2 | Python | Merged into monolith `brain/` | Done |
 
 ## Frontend / Landing Pages
 
 _Marketing sites, UI libraries, component forks_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [factorylm-landing](https://github.com/Mikecranesync/factorylm-landing) | 2 | HTML | FactoryLM - AI-powered industrial automation platform. Landing page for factorylm.com |
-| [plc-copilot-landing](https://github.com/Mikecranesync/plc-copilot-landing) | 2 | TypeScript | (no description — needs manual review) |
-| [tailwindcss](https://github.com/Mikecranesync/tailwindcss) [FORK] | 3 | TypeScript | A utility-first CSS framework for rapid UI development. |
-| [ui](https://github.com/Mikecranesync/ui) [FORK] | 3 | TypeScript | A set of beautifully-designed, accessible components and a code distribution platform. Works with yo |
-| [magicui](https://github.com/Mikecranesync/magicui) [FORK] | 3 | MDX | UI Library for Design Engineers. Animated components and effects you can copy and paste into your ap |
-| [daisyui](https://github.com/Mikecranesync/daisyui) [FORK] | 3 | Svelte | 🌼 🌼 🌼 🌼 🌼  The most popular, free and open-source Tailwind CSS component library |
-| [motion](https://github.com/Mikecranesync/motion) [FORK] | 3 | TypeScript | A modern animation library for React and JavaScript |
-| [primitives](https://github.com/Mikecranesync/primitives) [FORK] | 3 | TypeScript | Radix Primitives is an open-source UI component library for building high-quality, accessible design |
-| [spectrum-ui](https://github.com/Mikecranesync/spectrum-ui) [FORK] | 3 | TypeScript | Spectrum UI ⭐ is a collection of re-usable components built using Aceternity UI Magic UI and ShadCN  |
-| [svelte-animations](https://github.com/Mikecranesync/svelte-animations) [FORK] | 3 | Svelte | Svelte Magic UI, Svelte Aceternity UI, Svelte Components build using Tailwind CSS & Framer Motion |
-| [galaxy](https://github.com/Mikecranesync/galaxy) [FORK] | 3 | HTML | The largest Open-Source UI Library! Community-made and free to use. Made with either CSS or Tailwind |
-| [saasternity](https://github.com/Mikecranesync/saasternity) [FORK] | 3 | TypeScript | Open source SaaS boilerplate, built with Next.js and Aceternity UI, deployed on Vercel. |
-| [tailwind-landing-page-template](https://github.com/Mikecranesync/tailwind-landing-page-template) [FORK] | 3 | TypeScript | Simple Light is a free landing page template built on top of TailwindCSS and fully coded in React /  |
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [factorylm-landing](https://github.com/Mikecranesync/factorylm-landing) | 2 | HTML | factorylm.com landing page | Standalone |
+| [plc-copilot-landing](https://github.com/Mikecranesync/plc-copilot-landing) | 2 | TypeScript | PLC Copilot landing page | Standalone |
+| [tailwindcss](https://github.com/Mikecranesync/tailwindcss) [FORK] | 3 | TypeScript | CSS framework | Reference |
+| [ui](https://github.com/Mikecranesync/ui) [FORK] | 3 | TypeScript | shadcn/ui components | Reference |
+| [magicui](https://github.com/Mikecranesync/magicui) [FORK] | 3 | MDX | Animated components | Reference |
+| [daisyui](https://github.com/Mikecranesync/daisyui) [FORK] | 3 | Svelte | Tailwind component library | Reference |
+| [motion](https://github.com/Mikecranesync/motion) [FORK] | 3 | TypeScript | Framer Motion | Reference |
+| [primitives](https://github.com/Mikecranesync/primitives) [FORK] | 3 | TypeScript | Radix primitives | Reference |
+| [spectrum-ui](https://github.com/Mikecranesync/spectrum-ui) [FORK] | 3 | TypeScript | Spectrum UI components | Reference |
+| [svelte-animations](https://github.com/Mikecranesync/svelte-animations) [FORK] | 3 | Svelte | Svelte animation components | Reference |
+| [galaxy](https://github.com/Mikecranesync/galaxy) [FORK] | 3 | HTML | Open-source UI library | Reference |
+| [saasternity](https://github.com/Mikecranesync/saasternity) [FORK] | 3 | TypeScript | SaaS boilerplate | Reference |
+| [tailwind-landing-page-template](https://github.com/Mikecranesync/tailwind-landing-page-template) [FORK] | 3 | TypeScript | Landing page template | Reference |
 
 ## Blogging / Content
 
 _AI-powered content generation_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [Blog-writer-multi-agent](https://github.com/Mikecranesync/Blog-writer-multi-agent) | 2 | Jupyter Notebook | Blog Write multi agent AI is a custom multi-agent system designed to autonomously create high-qualit |
+| Repo | Tier | Language | One-liner | Consolidation |
+|------|------|----------|-----------|---------------|
+| [Blog-writer-multi-agent](https://github.com/Mikecranesync/Blog-writer-multi-agent) | 2 | Jupyter Notebook | Multi-agent blog writer with LangChain + Gemini | Standalone |
 
 ## Abandoned / Archived Experiments
 
-_Past experiments, superseded projects_
+_Past experiments, superseded projects — no action needed_
 
 | Repo | Tier | Language | One-liner |
 |------|------|----------|-----------|
 | [Chucky](https://github.com/Mikecranesync/Chucky) [ARCHIVED] | 3 | HTML | AI App |
-| [chucky_project](https://github.com/Mikecranesync/chucky_project) [ARCHIVED] | 3 | PLpgSQL | (no description — needs manual review) |
-| [Friday](https://github.com/Mikecranesync/Friday) [ARCHIVED] | 3 | TypeScript | My stuff |
-| [Friday-2](https://github.com/Mikecranesync/Friday-2) [ARCHIVED] | 3 | TypeScript | ai studio friday |
-| [FRIDAYNEW](https://github.com/Mikecranesync/FRIDAYNEW) [ARCHIVED] | 3 | TypeScript | ai studio friday |
+| [chucky_project](https://github.com/Mikecranesync/chucky_project) [ARCHIVED] | 3 | PLpgSQL | Database-backed project |
+| [Friday](https://github.com/Mikecranesync/Friday) [ARCHIVED] | 3 | TypeScript | Personal project |
+| [Friday-2](https://github.com/Mikecranesync/Friday-2) [ARCHIVED] | 3 | TypeScript | AI studio friday v2 |
+| [FRIDAYNEW](https://github.com/Mikecranesync/FRIDAYNEW) [ARCHIVED] | 3 | TypeScript | AI studio friday v3 |
 | [Einstein](https://github.com/Mikecranesync/Einstein) [ARCHIVED] | 3 | — | App |
-| [your-assistant-app](https://github.com/Mikecranesync/your-assistant-app) [ARCHIVED] | 3 | — | (no description — needs manual review) |
-| [questify-kid-learn](https://github.com/Mikecranesync/questify-kid-learn) [ARCHIVED] | 3 | TypeScript | (no description — needs manual review) |
-| [VibeBuddy](https://github.com/Mikecranesync/VibeBuddy) [ARCHIVED] | 3 | — | (no description — needs manual review) |
-| [TechMeterAI](https://github.com/Mikecranesync/TechMeterAI) [ARCHIVED] | 3 | — | (no description — needs manual review) |
-| [ScoutPathApp](https://github.com/Mikecranesync/ScoutPathApp) [ARCHIVED] | 3 | HTML | (no description — needs manual review) |
-| [AISmartMeterApp](https://github.com/Mikecranesync/AISmartMeterApp) [ARCHIVED] | 3 | — | AI App |
-| [langchain-crash-course](https://github.com/Mikecranesync/langchain-crash-course) [ARCHIVED] | 3 | Python | (no description — needs manual review) |
+| [your-assistant-app](https://github.com/Mikecranesync/your-assistant-app) [ARCHIVED] | 3 | — | Assistant app |
+| [questify-kid-learn](https://github.com/Mikecranesync/questify-kid-learn) [ARCHIVED] | 3 | TypeScript | Kids learning app |
+| [VibeBuddy](https://github.com/Mikecranesync/VibeBuddy) [ARCHIVED] | 3 | — | Vibe app |
+| [TechMeterAI](https://github.com/Mikecranesync/TechMeterAI) [ARCHIVED] | 3 | — | Meter app |
+| [ScoutPathApp](https://github.com/Mikecranesync/ScoutPathApp) [ARCHIVED] | 3 | HTML | Scout path app |
+| [AISmartMeterApp](https://github.com/Mikecranesync/AISmartMeterApp) [ARCHIVED] | 3 | — | Smart meter app |
+| [langchain-crash-course](https://github.com/Mikecranesync/langchain-crash-course) [ARCHIVED] | 3 | Python | LangChain tutorial |
 
 ## Uncategorized
 
-_Repos not yet assigned to an outcome group_
+_Repos not fitting cleanly into an outcome group_
 
-| Repo | Tier | Language | One-liner |
-|------|------|----------|-----------|
-| [nautobot-docker-compose](https://github.com/Mikecranesync/nautobot-docker-compose) | 1 | Python | Docker Compose for Nautobot |
-| [default](https://github.com/Mikecranesync/default) | 2 | — | Shared Ranger config for all Mikecranesync repos |
-| [factorylm-core](https://github.com/Mikecranesync/factorylm-core) | 2 | Python | ⚠️ ARCHIVED - Merged into factorylm monolith |
-| [mikecranesync](https://github.com/Mikecranesync/mikecranesync) | 2 | — | GitHub Profile |
-| [openclaw-workspace](https://github.com/Mikecranesync/openclaw-workspace) | 2 | Python | (no description — needs manual review) |
-| [resurrected-tools](https://github.com/Mikecranesync/resurrected-tools) | 2 | TypeScript | Resurrected tools from abandoned repos — brought back to life by Jesus H Christ agent |
-| [Rivet-PRO](https://github.com/Mikecranesync/Rivet-PRO) | 2 | Python | V 2.0 |
-| [cal.com](https://github.com/Mikecranesync/cal.com) | 3 | TypeScript | Scheduling infrastructure for absolutely everyone. |
-| [exo](https://github.com/Mikecranesync/exo) | 3 | Python | Run frontier AI locally. |
-| [n8n-docs](https://github.com/Mikecranesync/n8n-docs) | 3 | HTML | Documentation for n8n, a fair-code licensed automation tool with a free community edition and powerf |
-| [RealtimeSTT](https://github.com/Mikecranesync/RealtimeSTT) | 3 | Python | A robust, efficient, low-latency speech-to-text library with advanced voice activity detection, wake |
-| [VideoAgent](https://github.com/Mikecranesync/VideoAgent) | 3 | Python | "VideoAgent: All-in-One Agentic Framework for Video Understanding, Editing, and Remaking" |
+| Repo | Tier | Language | One-liner | Notes |
+|------|------|----------|-----------|-------|
+| [default](https://github.com/Mikecranesync/default) | 2 | — | Shared Ranger config | Org config |
+| [factorylm-core](https://github.com/Mikecranesync/factorylm-core) [MERGED] | 2 | Python | Merged into monolith `core/` | Done |
+| [mikecranesync](https://github.com/Mikecranesync/mikecranesync) | 2 | — | GitHub profile README | Profile |
+| [openclaw-workspace](https://github.com/Mikecranesync/openclaw-workspace) | 2 | Python | OpenClaw dev workspace config | Config |
+| [resurrected-tools](https://github.com/Mikecranesync/resurrected-tools) | 2 | TypeScript | Revived tools from abandoned repos | Utility |
+| [Rivet-PRO](https://github.com/Mikecranesync/Rivet-PRO) | 2 | Python | V2.0 — unclear purpose, 1,145 files | Needs review |
+| [cal.com](https://github.com/Mikecranesync/cal.com) [FORK] | 3 | TypeScript | Scheduling infrastructure | Reference |
+| [exo](https://github.com/Mikecranesync/exo) [FORK] | 3 | Python | Run frontier AI locally | Reference |
+| [n8n-docs](https://github.com/Mikecranesync/n8n-docs) [FORK] | 3 | HTML | n8n automation docs | Reference |
+| [RealtimeSTT](https://github.com/Mikecranesync/RealtimeSTT) [FORK] | 3 | Python | Speech-to-text library | Reference |
+| [VideoAgent](https://github.com/Mikecranesync/VideoAgent) [FORK] | 3 | Python | Video understanding framework | Reference |
+
+---
+
+## Consolidation Summary
+
+### High-Priority Merges
+
+| What | From | Into | Why |
+|------|------|------|-----|
+| Fault classifier rules | pi-factory-cosmos, cookoff | factorylm `diagnosis/` | 3 independent copies of same fault rules |
+| VFD reader | pi-factory-cosmos | factorylm `services/plc-modbus/` | Duplicate Modbus client |
+| Belt tachometer | pi-factory-cosmos, cookoff | factorylm `cosmos/` | Vision tachometer exists in 2 repos |
+| Frame capture | pi-factory-cosmos, cookoff | factorylm `cosmos/` | Near-identical OpenCV module |
+
+### Already Merged (5 repos)
+
+`factorylm-core` -> `core/`, `factorylm-plc-client` -> `plc-client/`, `factorylm-mini` -> `gateway/`, `mikes-brain` -> `brain/`, `pi-gateway` -> `gateway/`
+
+### Keep Standalone
+
+- **openclaw** — deployed on VPS, separate lifecycle
+- **IndustrialSkillsHub** (web + native) — separate product
+- **nautobot-docker-compose** — infrastructure tool
+- **Jarvis repos** (unified, for-gmail, core) — personal AI, different domain
+- **Agent orchestration repos** — experimental, different audiences
+- **Obsidian vaults** (FactoryLM_OS, agent-space) — knowledge, not code
