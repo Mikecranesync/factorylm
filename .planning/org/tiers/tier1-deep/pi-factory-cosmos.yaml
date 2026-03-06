@@ -2,22 +2,282 @@ meta:
   repo: pi-factory-cosmos
   org: Mikecranesync
   url: https://github.com/Mikecranesync/pi-factory-cosmos
-  one_line: 'Pi-Factory: Industrial AI Diagnostics with NVIDIA Cosmos Reason 2 — Raspberry
-    Pi + HMS Anybus CompactCom appliance'
+  one_line: "Raspberry Pi industrial diagnostics appliance — PLC tags, VFD Modbus, belt vision, Cosmos R2 AI, Telegram alerts"
   primary_language: Python
   is_fork: false
   is_archived: false
-  last_pushed: '2026-03-03T08:47:23Z'
+  last_pushed: "2026-03-03T08:47:23Z"
   tier: 1
-  mapped_at: '2026-03-06'
+  mapped_at: "2026-03-06"
   local_path: /Users/charlienode/pi-factory-cosmos
+
 categories:
-- industrial
-- ai
-outcomes: []
+  - industrial
+  - ai
+  - vision
+  - messaging
+  - edge-device
+
+outcomes:
+  - "Serves live PLC tag snapshots over REST API (real hardware or simulator)"
+  - "Detects conveyor faults from tag patterns and classifies severity"
+  - "Diagnoses equipment issues using NVIDIA Cosmos Reason 2 (video + PLC data)"
+  - "Reads VFD registers over Modbus TCP with graceful degradation"
+  - "Tracks conveyor belt RPM via computer vision (orange tape tachometer)"
+  - "Pushes fault alerts to technicians via Telegram bot"
+  - "Runs hands-free demo cycles (normal -> warning -> fault -> recovery)"
+
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
-parts: []
+  overlaps_with:
+    - factorylm
+    - openclaw
+    - JarvisTLaptop
+    - voltron
+  notes: "NVIDIA Cosmos Cookoff submission. Self-contained Pi appliance. Overlaps with monolith PLC/fault code but uses different stack (FastAPI+httpx vs Celery). Candidate for partial merge — fault_classifier rules should unify with monolith."
+
+file_tree:
+  total_files: 35
+  total_lines: 5770
+  by_extension:
+    py: 22
+    md: 6
+    json: 3
+    sh: 1
+    yml: 1
+    txt: 1
+  key_dirs:
+    - pifactory/backend/
+    - pifactory/cosmos/
+    - pifactory/hardware/
+    - pifactory/hmi/
+    - pifactory/simulator/
+    - pifactory/telegram/
+    - pifactory/setup/
+    - tests/
+    - docs/
+    - demo/
+
+parts:
+  - name: "Backend — Tag Server & Config"
+    outcome: "FastAPI REST API serving PLC tags, faults, AI diagnosis, camera, belt, and VFD endpoints"
+    chapters:
+      - name: "Config"
+        outcome: "Central config dataclass loaded from env vars — NIM key, Telegram, VFD, video source"
+        files:
+          - path: pifactory/backend/__init__.py
+            kind: init
+            outcome: "Package init"
+            lines: 0
+          - path: pifactory/backend/config.py
+            kind: core-lib
+            outcome: "Config dataclass with from_env() — NVIDIA, Telegram, VFD, hardware flags"
+            lines: 84
+      - name: "Tag Server"
+        outcome: "FastAPI app factory with 12 REST endpoints — tags, faults, diagnose, combined, health, camera, belt, VFD"
+        files:
+          - path: pifactory/backend/tag_server.py
+            kind: core-lib
+            outcome: "create_app() factory — mounts all endpoints, wires simulator/hardware/AI/VFD/tachometer"
+            lines: 525
+
+  - name: "Cosmos AI — Reasoner, Prompts, Vision"
+    outcome: "NVIDIA Cosmos Reason 2 integration — async API client, prompt templates, video diagnosis, frame capture"
+    chapters:
+      - name: "Reasoner"
+        outcome: "Async httpx client for NIM API — text + video diagnosis with fallback model and stub responses"
+        files:
+          - path: pifactory/cosmos/__init__.py
+            kind: init
+            outcome: "Package init"
+            lines: 0
+          - path: pifactory/cosmos/reasoner.py
+            kind: core-lib
+            outcome: "CosmosReasoner — analyze() for text, diagnose_belt_video() for video, parse_think_blocks(), fallback stubs"
+            lines: 492
+      - name: "Prompts"
+        outcome: "Industrial prompt templates — system prompt, diagnosis, multimodal, belt vision, status summary"
+        files:
+          - path: pifactory/cosmos/prompts.py
+            kind: core-lib
+            outcome: "SYSTEM_PROMPT + 5 builder functions for structured LLM prompts with PLC tag context"
+            lines: 208
+      - name: "Frame Capture"
+        outcome: "OpenCV frame capture with USB/RTSP/file fallback chain + MJPEG streaming generator"
+        files:
+          - path: pifactory/cosmos/frame_capture.py
+            kind: core-lib
+            outcome: "capture_frame() single shot, capture_stream() continuous MJPEG, frame_to_data_url() helper"
+            lines: 120
+      - name: "Belt Tachometer"
+        outcome: "Vision-based conveyor belt RPM tracker — HSV orange mask, centerline crossing, SLOW/MISTRACK/STOPPED detection"
+        files:
+          - path: pifactory/cosmos/belt_tachometer.py
+            kind: core-lib
+            outcome: "BeltTachometer class — process_frame(), RPM from crossing intervals, clip buffer for video diagnosis"
+            lines: 297
+
+  - name: "Hardware — VFD Modbus Reader"
+    outcome: "Async Modbus TCP client for VFD drives — register reading, fault lookup, graceful degradation"
+    chapters:
+      - name: "VFD Reader"
+        outcome: "Read VFD holding registers and coils over Modbus TCP, apply scale factors, derive fault descriptions"
+        files:
+          - path: pifactory/hardware/__init__.py
+            kind: init
+            outcome: "Package init"
+            lines: 1
+          - path: pifactory/hardware/vfd_reader.py
+            kind: core-lib
+            outcome: "VFDReader — batch register read, coil read, fault code table, register map override, last-known-good cache"
+            lines: 229
+
+  - name: "Simulator — PLC + Demo Cycler"
+    outcome: "In-memory PLC simulator with fault injection and auto-cycling demo mode"
+    chapters:
+      - name: "PLC Simulator"
+        outcome: "Simulates Micro820 tags — motor, conveyor, sensors, temperature with realistic dynamics"
+        files:
+          - path: pifactory/simulator/__init__.py
+            kind: init
+            outcome: "Package init"
+            lines: 0
+          - path: pifactory/simulator/plc_sim.py
+            kind: core-lib
+            outcome: "PLCSimulator + DemoCycler — tick(), inject_fault(), 60s phase cycle (normal/warning/fault/recovery)"
+            lines: 240
+      - name: "Fault Classifier"
+        outcome: "Rule-based fault detection — maps PLC+VFD tags to severity-ordered FaultDiagnosis objects"
+        files:
+          - path: pifactory/simulator/fault_classifier.py
+            kind: core-lib
+            outcome: "detect_faults() — 13 fault rules (E001-V006), FaultDiagnosis dataclass, technician-friendly format"
+            lines: 448
+
+  - name: "HMI — Dashboard & Camera Pages"
+    outcome: "Embedded HTML dashboards for demo — NVIDIA-branded dark theme, live tag grid, fault panel, AI diagnosis"
+    chapters:
+      - name: "Dashboard"
+        outcome: "Main fallback HMI — live I/O grid, VFD panel, fault list, Cosmos R2 diagnosis with thinking panel"
+        files:
+          - path: pifactory/hmi/__init__.py
+            kind: init
+            outcome: "Package init"
+            lines: 0
+          - path: pifactory/hmi/dashboard.py
+            kind: ui
+            outcome: "render_dashboard() — full HTML with live tag polling, VFD grid, fault badges, diagnosis input"
+            lines: 490
+      - name: "Camera Page"
+        outcome: "Live webcam feed page — MJPEG stream + tag sidebar + diagnose button"
+        files:
+          - path: pifactory/hmi/camera_page.py
+            kind: ui
+            outcome: "render_camera_page() — MJPEG stream viewer with live I/O sidebar"
+            lines: 316
+
+  - name: "Telegram Bot"
+    outcome: "python-telegram-bot async handlers — /status, /see, /alarms, /conflicts + auto fault push"
+    chapters:
+      - name: "Bot"
+        outcome: "PiFactoryBot — 5 commands, auth filter, background fault monitor with severity transition alerts"
+        files:
+          - path: pifactory/telegram/__init__.py
+            kind: init
+            outcome: "Package init"
+            lines: 0
+          - path: pifactory/telegram/bot.py
+            kind: core-lib
+            outcome: "PiFactoryBot class — cmd_status/see/alarms/conflicts, check_and_push(), build_app()"
+            lines: 272
+          - path: pifactory/telegram/alarms.json
+            kind: config
+            outcome: "Alarm code descriptions for Telegram display"
+            lines: 28
+          - path: pifactory/telegram/tag_map.json
+            kind: config
+            outcome: "Tag display metadata — labels, units, types for Telegram /status formatting"
+            lines: 24
+
+  - name: "Entry Point & Setup"
+    outcome: "One-command simulator runner + Raspberry Pi first-run deployment script"
+    chapters:
+      - name: "Simulator Runner"
+        outcome: "CLI entry point — starts PLCSimulator + FastAPI + optional Telegram in background threads"
+        files:
+          - path: simulate.py
+            kind: entrypoint
+            outcome: "main() — argparse, creates sim+cycler+tachometer+VFD, starts uvicorn+telegram threads, tick loop"
+            lines: 233
+      - name: "Pi Setup"
+        outcome: "First-run bash script — installs deps, creates venv, configures systemd, installs FUXA HMI"
+        files:
+          - path: pifactory/setup/firstrun.sh
+            kind: devops
+            outcome: "sudo firstrun.sh — apt install, venv, pip, FUXA npm, config.env prompts, systemd enable"
+            lines: 119
+
+  - name: "Tests"
+    outcome: "Pytest suites for belt tachometer and VFD reader — synthetic frames, mocked Modbus"
+    chapters:
+      - name: "Belt Tachometer Tests"
+        outcome: "Tests for orange detection, crossing, RPM calc, status, clip buffer, env overrides"
+        files:
+          - path: tests/test_belt_tachometer.py
+            kind: test
+            outcome: "6 test classes covering frame processing, crossing detection, RPM, status, clip buffer, env vars"
+            lines: 241
+      - name: "VFD Reader Tests"
+        outcome: "Tests for register scaling, fault lookup, derived tags, connection failure, register map override"
+        files:
+          - path: tests/test_vfd_reader.py
+            kind: test
+            outcome: "8 test classes covering registers, faults, calculated tags, graceful degradation, slave ID, zeroed tags"
+            lines: 440
+
+  - name: "Docs & Config"
+    outcome: "Architecture docs, quickstart, technician guide, cookoff submission, CI workflow"
+    chapters:
+      - name: "Documentation"
+        outcome: "Project docs — architecture overview, quickstart, technician guide, lesson log"
+        files:
+          - path: README.md
+            kind: docs
+            outcome: "Project overview — what it is, how to run, API reference, architecture diagram"
+            lines: 207
+          - path: docs/architecture.md
+            kind: docs
+            outcome: "System architecture — component diagram, data flow, hardware integration"
+            lines: 139
+          - path: docs/quickstart.md
+            kind: docs
+            outcome: "Getting started — install, configure, run"
+            lines: 93
+          - path: docs/technician_guide.md
+            kind: docs
+            outcome: "End-user guide for factory technicians — Telegram commands, dashboard usage"
+            lines: 335
+          - path: docs/cookoff_submission.md
+            kind: docs
+            outcome: "NVIDIA Cosmos Cookoff submission notes"
+            lines: 31
+          - path: docs/LESSON-2026-03-03-V2-VERIFICATION.md
+            kind: docs
+            outcome: "Session lesson log — V2 verification results"
+            lines: 94
+      - name: "Config Files"
+        outcome: "Dependencies, CI, demo data"
+        files:
+          - path: requirements.txt
+            kind: config
+            outcome: "Python deps — fastapi, uvicorn, httpx, telegram-bot, opencv, pymodbus"
+            lines: 9
+          - path: .github/workflows/brain-feed.yml
+            kind: ci
+            outcome: "GitHub Actions workflow for brain feed"
+            lines: 38
+          - path: demo/sample_tags.json
+            kind: config
+            outcome: "Sample PLC tag snapshot for testing"
+            lines: 17
