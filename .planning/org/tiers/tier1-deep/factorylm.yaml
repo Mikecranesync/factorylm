@@ -2,21 +2,261 @@ meta:
   repo: factorylm
   org: Mikecranesync
   url: https://github.com/Mikecranesync/factorylm
-  one_line: FactoryLM - Industrial AI Platform (Digital Twin Architecture)
+  one_line: "Industrial AI monolith — PLC data, AI diagnosis, Telegram/WhatsApp bots, CMMS, conveyor lab, workers, gateway"
   primary_language: TypeScript
   is_fork: false
   is_archived: false
-  last_pushed: '2026-03-06T00:33:35Z'
+  last_pushed: "2026-03-06T00:33:35Z"
   tier: 1
-  mapped_at: '2026-03-06'
+  mapped_at: "2026-03-06"
   local_path: /Users/charlienode/factorylm
+
 categories:
-- industrial
-- ai
-outcomes: []
+  - core
+  - monolith
+  - industrial
+  - ai
+  - messaging
+  - maintenance
+
+outcomes:
+  - "Collects PLC data from Allen-Bradley, Siemens, and Modbus devices"
+  - "Routes technician messages to AI models (Claude, Groq, Gemini, DeepSeek)"
+  - "Diagnoses equipment faults using LLM + rule-based analysis"
+  - "Manages maintenance work orders via CMMS web app"
+  - "Orchestrates async workers for PLC sync, demos, quality gates"
+  - "Serves interactive conveyor lab dashboard for Factory IO"
+  - "Integrates Telegram and WhatsApp for field technician access"
+  - "Records and retrieves industrial knowledge via vector KB"
+  - "Simulates motor drives and conveyor systems for testing"
+
 consolidation:
   status: standalone
   merged_into: null
   overlaps_with: []
-  notes: ''
-parts: []
+  notes: "This IS the monolith. 5 repos already merged in (factorylm-core, factorylm-plc-client, factorylm-mini, mikes-brain, pi-gateway). Contains copies of openclaw, simulation/motulator. Largest repo — 2,097 source files."
+
+file_tree:
+  total_files: 2097
+  total_lines: 554090
+  by_extension:
+    ts: ~800
+    tsx: ~300
+    py: ~600
+    js: ~300
+    jsx: ~50
+  key_dirs:
+    - services/
+    - apps/
+    - workers/
+    - openclaw/
+    - core/
+    - tools/
+    - cosmos/
+    - collectors/
+    - simulation/
+    - brain/
+    - analytics/
+    - diagnosis/
+    - tests/
+
+parts:
+  - name: "Services (23 microservices)"
+    outcome: "Backend microservices — PLC Modbus, Telegram bot, diagnosis, LLM router, brain, MCP, media, skills, video"
+    chapters:
+      - name: "plc-modbus"
+        outcome: "Modbus TCP/RTU client for Allen-Bradley Micro820 and VFDs — real-time register polling"
+        file_count: 21
+        lines: ~3500
+      - name: "telegram"
+        outcome: "Telegram bot service — photo diagnosis, voice transcription, fault alerts"
+        file_count: ~15
+        lines: ~2000
+      - name: "diagnosis"
+        outcome: "Equipment fault diagnosis engine — LLM + rule-based analysis with photo support"
+        file_count: ~10
+        lines: ~2000
+      - name: "llm-router"
+        outcome: "Intent-aware LLM routing — sends queries to Claude, Groq, Gemini, or DeepSeek"
+        file_count: ~8
+        lines: ~1500
+      - name: "brain"
+        outcome: "AI brain service — knowledge recording, quality judging (Hammurabi)"
+        file_count: ~10
+        lines: ~1500
+      - name: "troubleshoot"
+        outcome: "Structured troubleshooting flows with step-by-step technician guidance"
+        file_count: ~8
+        lines: ~1500
+      - name: "capabilities"
+        outcome: "Dynamic capability registration for agent skills"
+        file_count: 8
+        lines: ~1200
+      - name: "matrix"
+        outcome: "Central orchestration controller — dispatches tasks across services"
+        file_count: ~5
+        lines: ~1000
+      - name: "mcp"
+        outcome: "Model Context Protocol server for external agent integration"
+        file_count: ~5
+        lines: ~800
+      - name: "skills"
+        outcome: "Pluggable skill modules — diagnosis, PLC read, maintenance, etc."
+        file_count: ~8
+        lines: ~1200
+      - name: "conveyor-relay"
+        outcome: "WebSocket relay bridging Factory IO to the dashboard"
+        file_count: ~5
+        lines: ~500
+      - name: "other services"
+        outcome: "api, assistant, content, media, opportunities, phone-controller, plc_monitor, plc-copilot, tony-macaroni, video"
+        file_count: ~1100
+        lines: ~380000
+
+  - name: "Apps (8 frontends)"
+    outcome: "Web applications — CMMS, conveyor lab, dashboard, mission control, portal"
+    chapters:
+      - name: "cmms"
+        outcome: "Full CMMS web app — work orders, assets, preventive maintenance, analytics"
+        file_count: ~350
+        lines: ~70000
+      - name: "conveyor-lab"
+        outcome: "Interactive conveyor control dashboard — Factory IO integration with live PLC data"
+        file_count: ~30
+        lines: ~5000
+      - name: "dashboard"
+        outcome: "Main FactoryLM dashboard — system overview, PLC status, fault history"
+        file_count: ~20
+        lines: ~3000
+      - name: "mission-control"
+        outcome: "Cluster operations dashboard — node status, task queue, agent monitoring"
+        file_count: ~20
+        lines: ~3000
+      - name: "other apps"
+        outcome: "github-scraper, plc-reader, portal, web (marketing)"
+        file_count: ~80
+        lines: ~19000
+
+  - name: "Workers (Celery)"
+    outcome: "39 Celery task workers — PLC sync, demo orchestration, quality gates, OBS control, content polish"
+    chapters:
+      - name: "Core Workers"
+        outcome: "celery_app, base_worker, conductor_tasks, quality_gate decorator"
+        file_count: 5
+        lines: ~1500
+      - name: "PLC Workers"
+        outcome: "plc_sync_tasks, collector integration, data pipeline"
+        file_count: 5
+        lines: ~1500
+      - name: "Demo Workers"
+        outcome: "demo_director_tasks, obs_controller_tasks — YC demo automation"
+        file_count: 5
+        lines: ~1500
+      - name: "Content Workers"
+        outcome: "polish_tasks, story pipeline, video generation workers"
+        file_count: ~24
+        lines: ~7000
+
+  - name: "OpenClaw (embedded)"
+    outcome: "Intent-aware LLM gateway — message routing, troubleshooting, wiring KB, diagram generation"
+    chapters:
+      - name: "Wiring"
+        outcome: "Industrial wiring KB — models, store, enrichment, tag management"
+        file_count: 8
+        lines: ~1500
+      - name: "Troubleshoot"
+        outcome: "Troubleshooting engine — skill, models, store, seed data, integration"
+        file_count: 7
+        lines: ~2000
+      - name: "Diagram"
+        outcome: "Electrical diagram renderer — schema, symbols, layout, styling"
+        file_count: 6
+        lines: ~1500
+      - name: "Connectors & Messages"
+        outcome: "Knowledge connectors, intent classification, gist polling"
+        file_count: 5
+        lines: ~800
+
+  - name: "Core Library"
+    outcome: "Shared Python package — LLM clients (Claude, Groq, DeepSeek), config, observability, validators"
+    chapters:
+      - name: "LLM Clients"
+        outcome: "Multi-provider LLM interface — base class + Claude, Groq, DeepSeek, FLM clients"
+        file_count: 6
+        lines: ~1500
+      - name: "Utils & Config"
+        outcome: "Config management, logging, validators, observability"
+        file_count: 5
+        lines: ~800
+      - name: "Tests"
+        outcome: "Unit + integration tests for LLM clients, config, validators"
+        file_count: 10
+        lines: ~1800
+
+  - name: "Tools"
+    outcome: "CLI utilities — fault injector, story pipeline, video pipeline, Telegram tools, KB query, PLC monitor"
+    chapters:
+      - name: "Fault Injector"
+        outcome: "Remote fault injection for Factory IO — Modbus control, scenario runner, watcher"
+        file_count: 7
+        lines: ~2000
+      - name: "Pipeline Tools"
+        outcome: "story_pipeline, video_pipeline, brain_backfill, telegram tools, git forensics"
+        file_count: 11
+        lines: ~3500
+
+  - name: "Cosmos AI"
+    outcome: "NVIDIA Cosmos integration — video analysis, multimodal diagnosis prompts"
+    chapters:
+      - name: "Cosmos Modules"
+        outcome: "cosmos_reasoner, frame analysis, prompt templates for video + PLC data"
+        file_count: 8
+        lines: 1342
+
+  - name: "Collectors"
+    outcome: "PLC data collection adapters — Allen-Bradley, Siemens S7, Modbus TCP/RTU"
+    chapters:
+      - name: "Collector Adapters"
+        outcome: "collector_manager + protocol-specific tasks (AB, S7, Modbus)"
+        file_count: 6
+        lines: 905
+
+  - name: "Simulation"
+    outcome: "Motor drive and grid converter simulator (motulator fork) + conveyor sim"
+    chapters:
+      - name: "Motulator"
+        outcome: "Full motor/drive simulation — control, machines, grid, analysis"
+        file_count: 94
+        lines: 15770
+
+  - name: "Brain"
+    outcome: "AI intelligence layer — Hammurabi quality judge, Herodotus knowledge recorder"
+    chapters:
+      - name: "Brain Modules"
+        outcome: "hammurabi.py (LLM-as-judge), herodotus.py (recorder), schemas"
+        file_count: 3
+        lines: 469
+
+  - name: "Analytics"
+    outcome: "Time-series analysis — baseline building, drift detection, pattern embedding"
+    chapters:
+      - name: "Analytics Modules"
+        outcome: "baseline_builder, drift_detector, pattern_embedder"
+        file_count: 4
+        lines: 1039
+
+  - name: "Diagnosis"
+    outcome: "Standalone diagnosis modules — fault classification, cause analysis"
+    chapters:
+      - name: "Diagnosis Modules"
+        outcome: "diagnosis engine, photo-based analysis, fault correlation"
+        file_count: 3
+        lines: 509
+
+  - name: "Tests"
+    outcome: "Integration and end-to-end tests for the monolith"
+    chapters:
+      - name: "Test Suite"
+        outcome: "pytest tests for PLC, diagnosis, workers, brain, API"
+        file_count: 11
+        lines: 2736
