@@ -2,8 +2,7 @@ meta:
   repo: FactoryLM_OS
   org: Mikecranesync
   url: https://github.com/Mikecranesync/FactoryLM_OS
-  one_line: FactoryLM operating brain — Obsidian vault for industrial IoT platform
-    development
+  one_line: FactoryLM operating brain — Obsidian vault for industrial IoT platform development
   primary_language: null
   is_fork: false
   is_archived: false
@@ -19,8 +18,9 @@ outcomes:
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - factorylm-agent-space
+  notes: Obsidian vault — overlaps with agent-space knowledge store.
 file_tree:
   total_files: 435
   by_extension:

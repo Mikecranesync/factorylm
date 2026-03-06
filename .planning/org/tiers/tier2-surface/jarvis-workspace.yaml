@@ -20,8 +20,9 @@ outcomes:
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - pai-config-windows
+  notes: Workspace config — overlaps with PAI config for cross-device setup.
 file_tree:
   total_files: 5664
   by_extension:

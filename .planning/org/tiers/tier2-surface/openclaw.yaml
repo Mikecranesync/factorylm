@@ -2,8 +2,8 @@ meta:
   repo: openclaw
   org: Mikecranesync
   url: https://github.com/Mikecranesync/openclaw
-  one_line: Industrial AI gateway — intent-aware LLM routing for factory floor diagnostics.
-    Groq, Claude, Gemini. Telegram, WhatsApp, HTTP.
+  one_line: Industrial AI gateway — intent-aware LLM routing for factory floor diagnostics. Groq, Claude, Gemini. Telegram,
+    WhatsApp, HTTP.
   primary_language: Python
   is_fork: false
   is_archived: false
@@ -22,8 +22,12 @@ outcomes:
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - factorylm
+  - clawdbot
+  - jarvis-core
+  notes: Exists as both standalone repo AND embedded in monolith (openclaw/ dir). Monolith also has services/llm-router/ with
+    similar routing.
 file_tree:
   total_files: 84
   by_extension:

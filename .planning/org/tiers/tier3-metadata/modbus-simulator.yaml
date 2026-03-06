@@ -17,5 +17,7 @@ outcomes: []
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - factorylm
+  - ModbusTools
+  notes: Modbus device simulator. Monolith has simulation/ dir with motulator.

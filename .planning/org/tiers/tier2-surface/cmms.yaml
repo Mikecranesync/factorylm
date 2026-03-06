@@ -2,8 +2,8 @@ meta:
   repo: cmms
   org: Mikecranesync
   url: https://github.com/Mikecranesync/cmms
-  one_line: '#1 Self hosted CMMS web & mobile application that allows you to manage
-    enterprise maintenance for free - Computerized Maintenance Management System'
+  one_line: '#1 Self hosted CMMS web & mobile application that allows you to manage enterprise maintenance for free - Computerized
+    Maintenance Management System'
   primary_language: TypeScript
   is_fork: false
   is_archived: false
@@ -15,13 +15,13 @@ categories:
 - ai
 - maintenance
 outcomes:
-- web and mobile platforms using Docker. It simplifies and automates the management
-  of maintenance activities, making it
+- web and mobile platforms using Docker. It simplifies and automates the management of maintenance activities, making it
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - factorylm
+  notes: Upstream fork (1,831 files). Embedded in monolith at apps/cmms/. The monolith copy is the active one.
 file_tree:
   total_files: 1831
   by_extension:

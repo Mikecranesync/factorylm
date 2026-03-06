@@ -2,8 +2,8 @@ meta:
   repo: RideView
   org: Mikecranesync
   url: https://github.com/Mikecranesync/RideView
-  one_line: Torque stripe verification system using computer vision - detect broken/compromised
-    torque stripes on industrial bolts
+  one_line: Torque stripe verification system using computer vision - detect broken/compromised torque stripes on industrial
+    bolts
   primary_language: Python
   is_fork: false
   is_archived: false
@@ -15,14 +15,16 @@ categories:
 - industrial
 - ai
 outcomes:
-- Real-time torque stripe detection system for industrial bolt verification. Provides
-  PASS/WARNING/FAIL classification through live video analysis.
+- Real-time torque stripe detection system for industrial bolt verification. Provides PASS/WARNING/FAIL classification through
+  live video analysis.
 - Run with auto-detected camera
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - pi-factory-cosmos
+  - factorylm-cosmos-cookoff
+  notes: Computer vision inspection — different domain (ride inspection) but similar CV pipeline patterns.
 file_tree:
   total_files: 155
   by_extension:

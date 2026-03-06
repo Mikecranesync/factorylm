@@ -2,8 +2,7 @@ meta:
   repo: clawdbot
   org: Mikecranesync
   url: https://github.com/Mikecranesync/clawdbot
-  one_line: 'Your own personal AI assistant. Any OS. Any Platform. The lobster way.
-    🦞 '
+  one_line: 'Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞 '
   primary_language: TypeScript
   is_fork: false
   is_archived: false
@@ -19,8 +18,11 @@ outcomes:
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - openclaw
+  - jarvis-core
+  - jarvis-unified
+  notes: Personal AI bot — overlaps with openclaw message routing and jarvis assistants.
 file_tree:
   total_files: 4433
   by_extension:

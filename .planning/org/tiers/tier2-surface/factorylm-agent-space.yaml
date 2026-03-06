@@ -2,8 +2,7 @@ meta:
   repo: factorylm-agent-space
   org: Mikecranesync
   url: https://github.com/Mikecranesync/factorylm-agent-space
-  one_line: FactoryLM Obsidian Agent Space - Persistent Memory Layer for Industrial
-    AI Empire
+  one_line: FactoryLM Obsidian Agent Space - Persistent Memory Layer for Industrial AI Empire
   primary_language: null
   is_fork: false
   is_archived: false
@@ -19,8 +18,9 @@ outcomes:
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - FactoryLM_OS
+  notes: Agent workspace — overlaps with OS vault for knowledge storage.
 file_tree:
   total_files: 3410
   by_extension:

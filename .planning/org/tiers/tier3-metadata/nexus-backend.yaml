@@ -15,7 +15,9 @@ categories:
 - archived
 outcomes: []
 consolidation:
-  status: standalone
+  status: deprecated
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - cmms
+  - factorylm
+  notes: Abandoned CMMS predecessor.

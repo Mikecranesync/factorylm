@@ -17,7 +17,8 @@ outcomes:
 consolidation:
   status: merged
   merged_into: factorylm
-  overlaps_with: []
+  overlaps_with:
+  - factorylm
   notes: ''
 file_tree:
   total_files: 83

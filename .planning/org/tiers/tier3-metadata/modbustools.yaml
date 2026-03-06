@@ -2,8 +2,8 @@ meta:
   repo: ModbusTools
   org: Mikecranesync
   url: https://github.com/Mikecranesync/ModbusTools
-  one_line: ModbusTools are cross-platform (Windows, Linux) Modbus simulator tools
-    (client and server) with GUI to work with Modbus protocol (TCP,RTU,ASCII)
+  one_line: ModbusTools are cross-platform (Windows, Linux) Modbus simulator tools (client and server) with GUI to work with
+    Modbus protocol (TCP,RTU,ASCII)
   primary_language: C++
   is_fork: true
   is_archived: false
@@ -19,5 +19,8 @@ outcomes: []
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - factorylm
+  - pi-factory-cosmos
+  - modbus-simulator
+  notes: Standalone Modbus utilities. Monolith has services/plc-modbus/ (21 files). Pi-factory-cosmos has VFDReader.

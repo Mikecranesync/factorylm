@@ -2,8 +2,7 @@ meta:
   repo: jarvis-unified
   org: Mikecranesync
   url: https://github.com/Mikecranesync/jarvis-unified
-  one_line: JARVIS Unified - PAI-Powered Personal AI Operating System | Email, Calendar,
-    Tasks automation with 70% test coverage
+  one_line: JARVIS Unified - PAI-Powered Personal AI Operating System | Email, Calendar, Tasks automation with 70% test coverage
   primary_language: TypeScript
   is_fork: false
   is_archived: false
@@ -19,8 +18,11 @@ outcomes:
 consolidation:
   status: standalone
   merged_into: null
-  overlaps_with: []
-  notes: ''
+  overlaps_with:
+  - jarvis-core
+  - clawdbot
+  - jarvis-for-gmail
+  notes: Unified Jarvis — consolidation of jarvis-core + gmail + calendar.
 file_tree:
   total_files: 404
   by_extension:

@@ -13,14 +13,14 @@ meta:
 categories:
 - industrial
 outcomes:
-- FactoryLM Core provides a unified interface for interacting with multiple LLM providers
-  (GROQ, DeepSeek, Claude) for industrial machine diagnostics and automation.
-- '**Industrial Focus**: Specialized `analyze_machine_state()` method for PLC/sensor
-  data analysis'
+- FactoryLM Core provides a unified interface for interacting with multiple LLM providers (GROQ, DeepSeek, Claude) for industrial
+  machine diagnostics and automation.
+- '**Industrial Focus**: Specialized `analyze_machine_state()` method for PLC/sensor data analysis'
 consolidation:
   status: merged
   merged_into: factorylm
-  overlaps_with: []
+  overlaps_with:
+  - factorylm
   notes: ''
 file_tree:
   total_files: 63
