@@ -1,0 +1,37 @@
+meta:
+  repo: factorylm-conveyor-demo
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/factorylm-conveyor-demo
+  one_line: VFD conveyor assembly — mechanical drawings, electrical schematics, BOM. Allen-Bradley Micro820 + Factory I/O.
+  primary_language: D2
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:22Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+outcomes:
+- '*Built for YC W26 Demo - FactoryLM*'
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: Hardware docs (schematics, BOM).
+file_tree:
+  total_files: 39
+  by_extension:
+    md: 11
+    d2: 11
+    png: 7
+    yml: 2
+    dxf: 2
+    pdf: 2
+    svg: 2
+    json: 1
+    py: 1
+  key_dirs:
+  - drawings/
+  - .github/
+  - datasheets/

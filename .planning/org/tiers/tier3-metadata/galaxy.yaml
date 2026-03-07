@@ -1,0 +1,22 @@
+meta:
+  repo: galaxy
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/galaxy
+  one_line: The largest Open-Source UI Library! Community-made and free to use. Made with either CSS or Tailwind.
+  primary_language: HTML
+  is_fork: true
+  is_archived: false
+  last_pushed: '2024-09-02T14:32:05Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- frontend
+- fork
+outcomes: []
+consolidation:
+  status: deletable
+  merged_into: null
+  overlaps_with: []
+  notes: Pure fork, 0 custom commits.

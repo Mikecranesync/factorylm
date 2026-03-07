@@ -1,0 +1,49 @@
+meta:
+  repo: jarvis-for-gmail
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/jarvis-for-gmail
+  one_line: Autonomous agentic email assistant - handles 70% of emails automatically with AI
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:25Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- personal-ai
+outcomes:
+- '**Vision:** Fully autonomous email agent that handles 70% of emails automatically, drafts responses in your exact voice,
+  proactively manages action items, and operates hands-free via voice control.'
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with:
+  - jarvis-unified
+  notes: Email automation product.
+file_tree:
+  total_files: 392
+  by_extension:
+    ts: 125
+    md: 53
+    png: 52
+    tsx: 32
+    json: 30
+    rs: 12
+    (no ext): 11
+    yml: 9
+    js: 9
+    svg: 8
+    lock: 6
+    xml: 5
+    sh: 4
+    html: 3
+    sql: 3
+  key_dirs:
+  - tauri-app/
+  - jarvis-desktop/
+  - vehicle-app/
+  - .github/
+  - mobile-app/
+  - shared/

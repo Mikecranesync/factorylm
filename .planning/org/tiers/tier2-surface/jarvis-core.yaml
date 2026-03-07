@@ -1,0 +1,49 @@
+meta:
+  repo: jarvis-core
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/jarvis-core
+  one_line: JARVIS - Your AI Operating System. Central hub for orchestrating 10+ AI-powered personal assistant applications.
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:25Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- personal-ai
+outcomes:
+- 'The central application that provides:'
+consolidation:
+  status: deprecated
+  merged_into: null
+  overlaps_with:
+  - openclaw
+  - clawdbot
+  - jarvis-unified
+  - JarvisTLaptop
+  notes: Superseded by jarvis-unified.
+file_tree:
+  total_files: 117
+  by_extension:
+    md: 29
+    ts: 29
+    json: 16
+    png: 14
+    (no ext): 6
+    tsx: 6
+    yml: 3
+    svg: 3
+    rs: 3
+    js: 2
+    html: 1
+    toml: 1
+    icns: 1
+    ico: 1
+    css: 1
+  key_dirs:
+  - packages/
+  - .github/
+  - docs/
+  - examples/

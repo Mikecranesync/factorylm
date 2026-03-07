@@ -1,0 +1,49 @@
+meta:
+  repo: Archon
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/Archon
+  one_line: Beta release of Archon OS - the knowledge and task management backbone for AI coding assistants.
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:20Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- personal-ai
+outcomes:
+- Beta release of Archon OS - the knowledge and task management backbone for AI coding assistants.
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: Agent knowledge/task management.
+file_tree:
+  total_files: 610
+  by_extension:
+    py: 224
+    tsx: 100
+    ts: 41
+    json: 39
+    mdx: 33
+    (no ext): 32
+    md: 30
+    svg: 24
+    png: 15
+    txt: 14
+    yml: 11
+    sql: 11
+    example: 8
+    css: 8
+    js: 7
+  key_dirs:
+  - original_archon/
+  - archon-ui-main/
+  - python/
+  - docs/
+  - .claude/
+  - .github/
+  - migration/
+  - PRPs/

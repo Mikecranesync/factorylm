@@ -1,0 +1,35 @@
+meta:
+  repo: factorylm-landing
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/factorylm-landing
+  one_line: FactoryLM - AI-powered industrial automation platform. Landing page for factorylm.com
+  primary_language: HTML
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:06Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- ai
+- frontend
+outcomes:
+- FactoryLM - AI-powered industrial automation platform. Landing page for factorylm.com
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: Marketing site.
+file_tree:
+  total_files: 26
+  by_extension:
+    html: 15
+    css: 4
+    js: 4
+    yml: 2
+    md: 1
+  key_dirs:
+  - blog/
+  - edge/
+  - .github/

@@ -1,0 +1,52 @@
+meta:
+  repo: jarvis-workspace
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/jarvis-workspace
+  one_line: AI workspace configuration — Clawdbot personal AI assistant infrastructure
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:24Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- personal-ai
+- messaging
+- infra
+outcomes:
+- AI workspace configuration — Clawdbot personal AI assistant infrastructure
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with:
+  - pai-config-windows
+  notes: Clawdbot workspace config.
+file_tree:
+  total_files: 5664
+  by_extension:
+    js: 1620
+    py: 1231
+    ts: 625
+    md: 612
+    (no ext): 486
+    json: 420
+    map: 208
+    yml: 88
+    yaml: 49
+    txt: 46
+    png: 26
+    mjs: 24
+    typed: 19
+    cjs: 18
+    d2: 14
+  key_dirs:
+  - projects/
+  - plc-env/
+  - second-brain/
+  - brain/
+  - jobs/
+  - backups/
+  - agents/
+  - docs/

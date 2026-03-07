@@ -1,0 +1,41 @@
+meta:
+  repo: openclaw-workspace
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/openclaw-workspace
+  one_line: (no description — needs manual review)
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:07Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- uncategorized
+outcomes:
+- (no description — needs manual review)
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: OpenClaw dev workspace.
+file_tree:
+  total_files: 189
+  by_extension:
+    md: 97
+    json: 57
+    py: 14
+    (no ext): 9
+    sh: 8
+    yml: 2
+    example: 1
+    pyc: 1
+  key_dirs:
+  - skills/
+  - life/
+  - workspace/
+  - .github/
+  - .clawdhub/
+  - .clawhub/
+  - __pycache__/
+  - crons/

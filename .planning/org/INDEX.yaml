@@ -1,0 +1,638 @@
+generated_at: '2026-03-06'
+total_repos: 86
+by_tier:
+  tier1: 4
+  tier2: 44
+  tier3: 38
+repos:
+- name: FactoryLM_OS
+  tier: 2
+  one_line: FactoryLM operating brain — Obsidian vault for industrial IoT platform
+    development
+  categories:
+  - industrial
+  - ai
+  file: tiers/tier2-surface/factorylm_os.yaml
+- name: mikecranesync
+  tier: 2
+  one_line: GitHub Profile
+  categories:
+  - uncategorized
+  file: tiers/tier2-surface/mikecranesync.yaml
+- name: factorylm
+  tier: 1
+  one_line: FactoryLM - Industrial AI Platform (Digital Twin Architecture)
+  categories:
+  - industrial
+  - ai
+  file: tiers/tier1-deep/factorylm.yaml
+- name: factorylm-cosmos-cookoff
+  tier: 1
+  one_line: 'FactoryLM Vision: Multimodal AI Diagnostics for Industrial Automation
+    - NVIDIA Cosmos Cookoff 2026'
+  categories:
+  - industrial
+  - ai
+  file: tiers/tier1-deep/factorylm-cosmos-cookoff.yaml
+- name: nautobot-docker-compose
+  tier: 1
+  one_line: Docker Compose for Nautobot
+  categories:
+  - messaging
+  - fork
+  file: tiers/tier1-deep/nautobot-docker-compose.yaml
+- name: pi-factory-cosmos
+  tier: 1
+  one_line: 'Pi-Factory: Industrial AI Diagnostics with NVIDIA Cosmos Reason 2 — Raspberry
+    Pi + HMS Anybus CompactCom appliance'
+  categories:
+  - industrial
+  - ai
+  file: tiers/tier1-deep/pi-factory-cosmos.yaml
+- name: JARVIS-IS-DEAD
+  tier: 2
+  one_line: Frozen digital twin of Jarvis (OpenClaw). PR-gated resurrection kit. If
+    Jarvis dies, this repo brings him back.
+  categories:
+  - personal-ai
+  file: tiers/tier2-surface/jarvis-is-dead.yaml
+- name: openclaw
+  tier: 2
+  one_line: Industrial AI gateway — intent-aware LLM routing for factory floor diagnostics.
+    Groq, Claude, Gemini. Telegram, WhatsApp, HTTP.
+  categories:
+  - industrial
+  - ai
+  - messaging
+  file: tiers/tier2-surface/openclaw.yaml
+- name: factorylm-plc-client
+  tier: 2
+  one_line: ⚠️ ARCHIVED - Merged into factorylm monolith
+  categories:
+  - industrial
+  file: tiers/tier2-surface/factorylm-plc-client.yaml
+- name: cmms
+  tier: 2
+  one_line: '#1 Self hosted CMMS web & mobile application that allows you to manage
+    enterprise maintenance for free - Computerized Maintenance Management System'
+  categories:
+  - ai
+  - maintenance
+  file: tiers/tier2-surface/cmms.yaml
+- name: factorylm-mini
+  tier: 2
+  one_line: ⚠️ ARCHIVED - Merged into factorylm monolith
+  categories:
+  - industrial
+  file: tiers/tier2-surface/factorylm-mini.yaml
+- name: pi-gateway
+  tier: 2
+  one_line: ⚠️ ARCHIVED - Merged into factorylm monolith (gateway/)
+  categories:
+  - industrial
+  - messaging
+  file: tiers/tier2-surface/pi-gateway.yaml
+- name: default
+  tier: 2
+  one_line: Shared Ranger config for all Mikecranesync repos
+  categories:
+  - infra
+  file: tiers/tier2-surface/default.yaml
+- name: mikes-brain
+  tier: 2
+  one_line: ⚠️ ARCHIVED - Merged into factorylm monolith (brain/)
+  categories:
+  - industrial
+  - ai
+  file: tiers/tier2-surface/mikes-brain.yaml
+- name: clawdbot
+  tier: 2
+  one_line: 'Your own personal AI assistant. Any OS. Any Platform. The lobster way.
+    🦞 '
+  categories:
+  - ai
+  - personal-ai
+  file: tiers/tier2-surface/clawdbot.yaml
+- name: jarvis-unified
+  tier: 2
+  one_line: JARVIS Unified - PAI-Powered Personal AI Operating System | Email, Calendar,
+    Tasks automation with 70% test coverage
+  categories:
+  - ai
+  - personal-ai
+  file: tiers/tier2-surface/jarvis-unified.yaml
+- name: jarvis-core
+  tier: 2
+  one_line: JARVIS - Your AI Operating System. Central hub for orchestrating 10+ AI-powered
+    personal assistant applications.
+  categories:
+  - ai
+  - personal-ai
+  file: tiers/tier2-surface/jarvis-core.yaml
+- name: jarvis-for-gmail
+  tier: 2
+  one_line: Autonomous agentic email assistant - handles 70% of emails automatically
+    with AI
+  categories:
+  - ai
+  - personal-ai
+  file: tiers/tier2-surface/jarvis-for-gmail.yaml
+- name: jarvis-workspace
+  tier: 2
+  one_line: AI workspace configuration — Clawdbot personal AI assistant infrastructure
+  categories:
+  - ai
+  - personal-ai
+  - messaging
+  - infra
+  file: tiers/tier2-surface/jarvis-workspace.yaml
+- name: My-Ralph
+  tier: 2
+  one_line: Autonomous AI development loop for Claude Code with intelligent exit detection
+  categories:
+  - ai
+  file: tiers/tier2-surface/my-ralph.yaml
+- name: factorylm-cmms
+  tier: 2
+  one_line: ISO 55000 compliant CMMS — GitHub-native maintenance management for industrial
+    teams
+  categories:
+  - industrial
+  - ai
+  - maintenance
+  file: tiers/tier2-surface/factorylm-cmms.yaml
+- name: factorylm-conveyor-demo
+  tier: 2
+  one_line: VFD conveyor assembly — mechanical drawings, electrical schematics, BOM.
+    Allen-Bradley Micro820 + Factory I/O.
+  categories:
+  - industrial
+  file: tiers/tier2-surface/factorylm-conveyor-demo.yaml
+- name: IndustrialSkillsHub
+  tier: 2
+  one_line: Duolingo-style gamified training for industrial maintenance technicians
+  categories:
+  - industrial
+  - ai
+  - maintenance
+  file: tiers/tier2-surface/industrialskillshub.yaml
+- name: IndustrialSkillsHub-native
+  tier: 2
+  one_line: Native React Native mobile app for Industrial Skills Hub - Duolingo-style
+    training for industrial maintenance technicians
+  categories:
+  - industrial
+  - ai
+  - maintenance
+  file: tiers/tier2-surface/industrialskillshub-native.yaml
+- name: CodeBang
+  tier: 2
+  one_line: 'DevCTO Agent: Self-improving AI DevOps system that learns best practices,
+    maintains codebases, and generates applications from specifications using a digest
+    → analyze → act → learn loop.'
+  categories:
+  - ai
+  file: tiers/tier2-surface/codebang.yaml
+- name: Archon
+  tier: 2
+  one_line: Beta release of Archon OS - the knowledge and task management backbone
+    for AI coding assistants.
+  categories:
+  - ai
+  - personal-ai
+  file: tiers/tier2-surface/archon.yaml
+- name: ralph
+  tier: 2
+  one_line: 'Ralph is an autonomous AI agent loop that runs repeatedly until all PRD
+    items are complete. '
+  categories:
+  - ai
+  file: tiers/tier2-surface/ralph.yaml
+- name: Backlog.md
+  tier: 2
+  one_line: Backlog.md - A tool for managing project collaboration between humans
+    and AI Agents in a git ecosystem
+  categories:
+  - ai
+  file: tiers/tier2-surface/backlog.md.yaml
+- name: RideView
+  tier: 2
+  one_line: Torque stripe verification system using computer vision - detect broken/compromised
+    torque stripes on industrial bolts
+  categories:
+  - industrial
+  - ai
+  file: tiers/tier2-surface/rideview.yaml
+- name: Blog-writer-multi-agent
+  tier: 2
+  one_line: Blog Write multi agent AI is a custom multi-agent system designed to autonomously
+    create high-quality, research-driven blogs. Using LangChain, Gemini 2.0-Flash-EXP,
+    and Serper Web Search Tool, it automates planning, writing, and editing to deliver
+    human-like blogs with up-to-date references.
+  categories:
+  - ai
+  file: tiers/tier2-surface/blog-writer-multi-agent.yaml
+- name: Thefuture
+  tier: 2
+  one_line: Personal AI Infrastructure for upgrading humans.
+  categories:
+  - ai
+  - personal-ai
+  - infra
+  file: tiers/tier2-surface/thefuture.yaml
+- name: claudegen-coach
+  tier: 2
+  one_line: (no description — needs manual review)
+  categories:
+  - uncategorized
+  file: tiers/tier2-surface/claudegen-coach.yaml
+- name: plc-copilot-landing
+  tier: 2
+  one_line: (no description — needs manual review)
+  categories:
+  - uncategorized
+  file: tiers/tier2-surface/plc-copilot-landing.yaml
+- name: pai-config-windows
+  tier: 2
+  one_line: Personal AI Infrastructure (PAI) configuration for Windows PowerShell
+    with Claude Code. Includes hooks, skills, and cost-optimized research workflow.
+  categories:
+  - ai
+  - personal-ai
+  - infra
+  file: tiers/tier2-surface/pai-config-windows.yaml
+- name: remoteme-jarvis-node
+  tier: 2
+  one_line: Jarvis Node - FastAPI MCP Server for remote laptop control via Tailscale.
+    Part of RemoteMe infrastructure.
+  categories:
+  - ai
+  - personal-ai
+  - infra
+  file: tiers/tier2-surface/remoteme-jarvis-node.yaml
+- name: frame_realtime_gemini_voicevision
+  tier: 2
+  one_line: Realtime Voice and Vision wtih Brilliant Labs Frame and Gemini
+  categories:
+  - ai
+  file: tiers/tier2-surface/frame_realtime_gemini_voicevision.yaml
+- name: jarvis-android-voice-proto
+  tier: 2
+  one_line: Voice-controlled email assistant for Android with React Native - Hands-free
+    email management while driving
+  categories:
+  - ai
+  - personal-ai
+  file: tiers/tier2-surface/jarvis-android-voice-proto.yaml
+- name: resurrected-tools
+  tier: 2
+  one_line: Resurrected tools from abandoned repos — brought back to life by Jesus
+    H Christ agent
+  categories:
+  - ai
+  file: tiers/tier2-surface/resurrected-tools.yaml
+- name: voltron
+  tier: 2
+  one_line: Distributed industrial AI system — edge gateways, central Matrix controller,
+    LLM routing
+  categories:
+  - industrial
+  - ai
+  - messaging
+  file: tiers/tier2-surface/voltron.yaml
+- name: Rivet-PRO
+  tier: 2
+  one_line: V 2.0
+  categories:
+  - uncategorized
+  file: tiers/tier2-surface/rivet-pro.yaml
+- name: Agent-Factory
+  tier: 2
+  one_line: A scalable framework for creating specialized AI agents with dynamic tool
+    assignment
+  categories:
+  - ai
+  file: tiers/tier2-surface/agent-factory.yaml
+- name: JarvisTLaptop
+  tier: 2
+  one_line: Jarvis Telegram Bot - Factory troubleshooting via Telegram with Groq/Claude
+    AI, photo diagnosis, voice transcription
+  categories:
+  - industrial
+  - ai
+  - personal-ai
+  - messaging
+  file: tiers/tier2-surface/jarvistlaptop.yaml
+- name: master-of-puppets-v2
+  tier: 2
+  one_line: 'MoP2: Recursive self-improving code intelligence'
+  categories:
+  - uncategorized
+  file: tiers/tier2-surface/master-of-puppets-v2.yaml
+- name: factorylm-agent-space
+  tier: 2
+  one_line: FactoryLM Obsidian Agent Space - Persistent Memory Layer for Industrial
+    AI Empire
+  categories:
+  - industrial
+  - ai
+  file: tiers/tier2-surface/factorylm-agent-space.yaml
+- name: openclaw-workspace
+  tier: 2
+  one_line: (no description — needs manual review)
+  categories:
+  - uncategorized
+  file: tiers/tier2-surface/openclaw-workspace.yaml
+- name: clawd
+  tier: 2
+  one_line: (no description — needs manual review)
+  categories:
+  - uncategorized
+  file: tiers/tier2-surface/clawd.yaml
+- name: factorylm-landing
+  tier: 2
+  one_line: FactoryLM - AI-powered industrial automation platform. Landing page for
+    factorylm.com
+  categories:
+  - industrial
+  - ai
+  - frontend
+  file: tiers/tier2-surface/factorylm-landing.yaml
+- name: factorylm-core
+  tier: 2
+  one_line: ⚠️ ARCHIVED - Merged into factorylm monolith
+  categories:
+  - industrial
+  file: tiers/tier2-surface/factorylm-core.yaml
+- name: antfarm
+  tier: 3
+  one_line: Build your agent team in OpenClaw with one command.
+  categories:
+  - ai
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/antfarm.yaml
+- name: RealtimeSTT
+  tier: 3
+  one_line: A robust, efficient, low-latency speech-to-text library with advanced
+    voice activity detection, wake word activation and instant transcription.
+  categories:
+  - fork
+  file: tiers/tier3-metadata/realtimestt.yaml
+- name: VideoAgent
+  tier: 3
+  one_line: '"VideoAgent: All-in-One Agentic Framework for Video Understanding, Editing,
+    and Remaking"'
+  categories:
+  - ai
+  - fork
+  file: tiers/tier3-metadata/videoagent.yaml
+- name: exo
+  tier: 3
+  one_line: Run frontier AI locally.
+  categories:
+  - ai
+  - fork
+  file: tiers/tier3-metadata/exo.yaml
+- name: motion
+  tier: 3
+  one_line: A modern animation library for React and JavaScript
+  categories:
+  - fork
+  file: tiers/tier3-metadata/motion.yaml
+- name: tailwindcss
+  tier: 3
+  one_line: A utility-first CSS framework for rapid UI development.
+  categories:
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/tailwindcss.yaml
+- name: ui
+  tier: 3
+  one_line: A set of beautifully-designed, accessible components and a code distribution
+    platform. Works with your favorite frameworks. Open Source. Open Code.
+  categories:
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/ui.yaml
+- name: magicui
+  tier: 3
+  one_line: UI Library for Design Engineers. Animated components and effects you can
+    copy and paste into your apps. Free. Open Source.
+  categories:
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/magicui.yaml
+- name: daisyui
+  tier: 3
+  one_line: 🌼 🌼 🌼 🌼 🌼  The most popular, free and open-source Tailwind CSS component
+    library
+  categories:
+  - ai
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/daisyui.yaml
+- name: cal.com
+  tier: 3
+  one_line: Scheduling infrastructure for absolutely everyone.
+  categories:
+  - infra
+  - fork
+  file: tiers/tier3-metadata/cal.com.yaml
+- name: ModbusTools
+  tier: 3
+  one_line: ModbusTools are cross-platform (Windows, Linux) Modbus simulator tools
+    (client and server) with GUI to work with Modbus protocol (TCP,RTU,ASCII)
+  categories:
+  - industrial
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/modbustools.yaml
+- name: motulator
+  tier: 3
+  one_line: Motor Drive and Grid Converter Simulator in Python
+  categories:
+  - fork
+  file: tiers/tier3-metadata/motulator.yaml
+- name: n8n-docs
+  tier: 3
+  one_line: Documentation for n8n, a fair-code licensed automation tool with a free
+    community edition and powerful enterprise options. Build AI functionality into
+    your workflows.
+  categories:
+  - ai
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/n8n-docs.yaml
+- name: spectrum-ui
+  tier: 3
+  one_line: Spectrum UI ⭐ is a collection of re-usable components built using Aceternity
+    UI Magic UI and ShadCN UI that you can copy and paste into your apps.
+  categories:
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/spectrum-ui.yaml
+- name: Chucky
+  tier: 3
+  one_line: AI App
+  categories:
+  - ai
+  - archived
+  file: tiers/tier3-metadata/chucky.yaml
+- name: primitives
+  tier: 3
+  one_line: Radix Primitives is an open-source UI component library for building high-quality,
+    accessible design systems and web apps. Maintained by @workos.
+  categories:
+  - ai
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/primitives.yaml
+- name: tailwind-landing-page-template
+  tier: 3
+  one_line: 'Simple Light is a free landing page template built on top of TailwindCSS
+    and fully coded in React / Next.js. Made by '
+  categories:
+  - ai
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/tailwind-landing-page-template.yaml
+- name: FRIDAYNEW
+  tier: 3
+  one_line: ai studio friday
+  categories:
+  - ai
+  - archived
+  file: tiers/tier3-metadata/fridaynew.yaml
+- name: Friday
+  tier: 3
+  one_line: My stuff
+  categories:
+  - archived
+  file: tiers/tier3-metadata/friday.yaml
+- name: Friday-2
+  tier: 3
+  one_line: ai studio friday
+  categories:
+  - ai
+  - archived
+  file: tiers/tier3-metadata/friday-2.yaml
+- name: chucky_project
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/chucky_project.yaml
+- name: your-assistant-app
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/your-assistant-app.yaml
+- name: questify-kid-learn
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/questify-kid-learn.yaml
+- name: Einstein
+  tier: 3
+  one_line: App
+  categories:
+  - archived
+  file: tiers/tier3-metadata/einstein.yaml
+- name: nexus-cmms-recovery-point-2
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/nexus-cmms-recovery-point-2.yaml
+- name: Nexus1
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/nexus1.yaml
+- name: VibeBuddy
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/vibebuddy.yaml
+- name: ProjectNexus
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/projectnexus.yaml
+- name: Nexus
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/nexus.yaml
+- name: Nexus-backend
+  tier: 3
+  one_line: Ai empowered meter app
+  categories:
+  - ai
+  - archived
+  file: tiers/tier3-metadata/nexus-backend.yaml
+- name: TechMeterAI
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/techmeterai.yaml
+- name: ScoutPathApp
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/scoutpathapp.yaml
+- name: AISmartMeterApp
+  tier: 3
+  one_line: AI App
+  categories:
+  - ai
+  - archived
+  file: tiers/tier3-metadata/aismartmeterapp.yaml
+- name: svelte-animations
+  tier: 3
+  one_line: Svelte Magic UI, Svelte Aceternity UI, Svelte Components build using Tailwind
+    CSS & Framer Motion
+  categories:
+  - ai
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/svelte-animations.yaml
+- name: galaxy
+  tier: 3
+  one_line: The largest Open-Source UI Library! Community-made and free to use. Made
+    with either CSS or Tailwind.
+  categories:
+  - ai
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/galaxy.yaml
+- name: saasternity
+  tier: 3
+  one_line: Open source SaaS boilerplate, built with Next.js and Aceternity UI, deployed
+    on Vercel.
+  categories:
+  - frontend
+  - fork
+  file: tiers/tier3-metadata/saasternity.yaml
+- name: langchain-crash-course
+  tier: 3
+  one_line: (no description — needs manual review)
+  categories:
+  - archived
+  file: tiers/tier3-metadata/langchain-crash-course.yaml
+- name: modbus-simulator
+  tier: 3
+  one_line: Modbus simulator based on modbus-tk and kivy
+  categories:
+  - industrial
+  - fork
+  file: tiers/tier3-metadata/modbus-simulator.yaml

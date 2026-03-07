@@ -1,0 +1,909 @@
+meta:
+  repo: factorylm-cosmos-cookoff
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/factorylm-cosmos-cookoff
+  one_line: Multimodal AI diagnostics for industrial conveyors — fuses PLC telemetry, VFD registers, camera vision, and Factory
+    I/O simulation through NVIDIA Cosmos Reason 2
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-05T09:22:54Z'
+  tier: 1
+  mapped_at: '2026-03-06'
+  local_path: /Users/charlienode/factorylm-cosmos-cookoff
+categories:
+- industrial
+- ai
+- edge-gateway
+- plc-connectivity
+- computer-vision
+- nvidia-cosmos
+outcomes:
+- Detect conveyor jams, belt slip, motor overload, E-stop, sensor failures, and overheat from live PLC/VFD registers
+- Send video + PLC telemetry to NVIDIA Cosmos Reason 2 for chain-of-thought root-cause analysis
+- Vision-based belt tachometer measures RPM, speed, and lateral tracking via orange tape marker
+- Auto-discover PLCs on subnet via Modbus TCP, EtherNet/IP, and OPC UA waterfall scan
+- Pi Factory edge gateway with setup wizard, WiFi provisioning, and CompactCom Modbus server
+- Live dashboard with speed fusion bars, fault injection, Cosmos R2 reasoning panel, and MJPEG belt stream
+- 'Video highlight reel pipeline: ingest raw clips, Cosmos-score them, select top N, concatenate with overlays'
+consolidation:
+  status: candidate
+  merged_into: null
+  overlaps_with:
+  - factorylm
+  - pi-factory-cosmos
+  - openclaw
+  notes: 'Partial merge: modbus_tag_source, vfd_conflicts into monolith. Repo stays as cookoff submission archive.'
+file_tree:
+  total_files: 175
+  total_lines: 28680
+  by_extension:
+    py: 84
+    md: 27
+    sh: 11
+    service: 6
+    json: 5
+    yml: 4
+    yaml: 4
+    conf: 4
+    html: 2
+    txt: 2
+    spec: 1
+    other: 25
+  key_dirs:
+  - cosmos/
+  - demo/
+  - diagnosis/
+  - net/
+  - net/api/
+  - net/drivers/
+  - net/services/
+  - net/diagnosis/
+  - net/platform/
+  - net/portal/
+  - services/matrix/
+  - sim/
+  - video/
+  - tools/
+  - tests/
+  - pi-factory/
+  - config/
+  - factorylm-image/
+  - .github/workflows/
+parts:
+- name: Cosmos AI Engine
+  outcome: NVIDIA Cosmos Reason 2 integration — incident analysis, video reasoning, belt diagnosis, and incident watching
+  chapters:
+  - name: Cosmos Core
+    outcome: Data models, API client with real/stub modes, and Llama fallback for fault analysis
+    files:
+    - path: cosmos/__init__.py
+      kind: init
+      outcome: Exports CosmosInsight dataclass
+      lines: 5
+    - path: cosmos/models.py
+      kind: core-lib
+      outcome: Defines CosmosInsight dataclass — structured result of a Cosmos R2 analysis
+      lines: 21
+    - path: cosmos/client.py
+      kind: core-lib
+      outcome: HTTP client for NVIDIA Cosmos R2 API with analyze_incident() and analyze_video(); falls back to fault-type-specific
+        stubs when no API key
+      lines: 515
+  - name: Cosmos Agent & Watcher
+    outcome: Event-driven incident analysis with tag history context and continuous Matrix API polling
+    files:
+    - path: cosmos/agent.py
+      kind: core-lib
+      outcome: CosmosAgent bridges incidents to Cosmos R2 — fetches tag history from Matrix API, stores insights in SQLite
+      lines: 238
+    - path: cosmos/watcher.py
+      kind: entrypoint
+      outcome: Polls Matrix API for open incidents, analyzes via CosmosAgent, posts insights back — runs as standalone daemon
+      lines: 128
+  - name: Belt Vision AI
+    outcome: Vision-based belt tachometer and Cosmos R2 video reasoner for conveyor monitoring
+    files:
+    - path: cosmos/belt_tachometer.py
+      kind: core-lib
+      outcome: OpenCV vision tachometer — detects orange tape marker crossing virtual centerline, calculates RPM, speed %,
+        lateral drift, and belt status
+      lines: 355
+    - path: cosmos/reasoner.py
+      kind: core-lib
+      outcome: BeltVideoReasoner sends 5-second video clips + PLC context to Cosmos R2 for multimodal diagnosis; returns structured
+        JSON with observations and actions
+      lines: 240
+  - name: Cosmos Tests
+    outcome: Integration tests for Cosmos client stub and live API modes
+    files:
+    - path: cosmos/test_client.py
+      kind: test
+      outcome: Tests stub and real API modes of CosmosClient
+      lines: 91
+    - path: cosmos/live_test.py
+      kind: test
+      outcome: Quick test that fetches live PLC tags from Matrix API and sends to Cosmos/Llama
+      lines: 107
+- name: Rule-Based Fault Diagnosis
+  outcome: Deterministic fault detection from PLC tags and LLM prompt templates for technician-facing explanations
+  chapters:
+  - name: Diagnosis Core (demo-facing)
+    outcome: 8 fault rules mapping PLC tags to structured FaultDiagnosis objects with severity, causes, and checks
+    files:
+    - path: diagnosis/__init__.py
+      kind: init
+      outcome: Exports detect_faults, FaultDiagnosis, FaultSeverity, format_diagnosis_for_technician
+      lines: 2
+    - path: diagnosis/conveyor_faults.py
+      kind: core-lib
+      outcome: 'Rule engine: E-stop, overcurrent, overtemp, jam, unexpected stop, low pressure, speed mismatch, PLC fault
+        alarm — returns sorted FaultDiagnosis list'
+      lines: 388
+    - path: diagnosis/prompts.py
+      kind: core-lib
+      outcome: 'LLM prompt templates: build_diagnosis_prompt, build_belt_video_prompt for Cosmos R2 with PLC context injection'
+      lines: 208
+  - name: Diagnosis Core (net-facing)
+    outcome: Parallel fault detection for the edge gateway API with VFD cross-referencing
+    files:
+    - path: net/diagnosis/__init__.py
+      kind: init
+      outcome: Empty init for net.diagnosis package
+      lines: 0
+    - path: net/diagnosis/conveyor_faults.py
+      kind: core-lib
+      outcome: Mirror of diagnosis/conveyor_faults.py for the net gateway context
+      lines: 388
+    - path: net/diagnosis/fault_engine.py
+      kind: core-lib
+      outcome: Tag snapshot analyzer with severity tracking and fault history for the edge gateway diagnostic system
+      lines: 261
+    - path: net/diagnosis/vfd_conflicts.py
+      kind: core-lib
+      outcome: Six VFD conflict detectors (V001-V006) cross-referencing PLC tags, VFD drive status, and vision-measured belt
+        behavior
+      lines: 153
+- name: Demo CLI & Diagnosis Engine
+  outcome: Three-mode CLI (diagnose/dashboard/video-reel) with Cosmos R2 multimodal chain-of-thought, simulated PLC scenarios,
+    and live webcam support
+  chapters:
+  - name: Demo Entrypoint
+    outcome: python -m demo CLI dispatching to diagnose, dashboard, video-reel, test, capture, and watch subcommands
+    files:
+    - path: demo/__init__.py
+      kind: init
+      outcome: Package marker for demo module
+      lines: 1
+    - path: demo/__main__.py
+      kind: entrypoint
+      outcome: CLI entrypoint — dispatches to diagnosis_engine, dashboard, video-reel, test_session, capture_fio, and cosmos.watcher
+      lines: 292
+    - path: demo/_paths.py
+      kind: core-lib
+      outcome: PyInstaller-safe path resolution for BASE_PATH, CLIPS_DIR, CONFIG_DIR, PROMPTS_PATH
+      lines: 17
+  - name: Diagnosis Engine
+    outcome: Orchestrates image/video + PLC registers through Cosmos R2 prompt templates and parses chain-of-thought responses
+    files:
+    - path: demo/diagnosis_engine.py
+      kind: core-lib
+      outcome: 'Core diagnosis pipeline: encode media, format PLC registers, build prompts from YAML, call vLLM, parse <think>
+        blocks; includes 6 simulated PLC scenarios and read_live_plc() via Modbus TCP'
+      lines: 440
+  - name: Live Demo & Capture
+    outcome: Webcam capture with fault injection via SCADA API and Factory I/O screen recording
+    files:
+    - path: demo/demo_live.py
+      kind: entrypoint
+      outcome: 'Live webcam + PLC fault injection demo: capture frame, inject fault via MockPLC API, send to Cosmos R2, print
+        chain-of-thought diagnosis'
+      lines: 190
+    - path: demo/capture_fio.py
+      kind: core-lib
+      outcome: 'Factory I/O screen capture: screenshots and MP4 recording at 4 FPS using mss + ffmpeg'
+      lines: 170
+  - name: Speed Fusion & Test Session
+    outcome: PLC vs vision speed mismatch detection and comprehensive end-to-end test matrix
+    files:
+    - path: demo/speed_fusion.py
+      kind: core-lib
+      outcome: Compares PLC motor_speed with vision belt speed_pct — returns MATCH/SLIP/JAM; MockBeltStatus auto-cycles through
+        fault scenarios
+      lines: 78
+    - path: demo/test_session.py
+      kind: test
+      outcome: '6-step test suite: prerequisites, vLLM endpoint, screenshot capture, 5 scenario diagnoses, live PLC, Q&A mode
+        — with result tracking and summary table'
+      lines: 613
+  - name: Demo Prompts & Docs
+    outcome: YAML prompt templates and competition documentation
+    files:
+    - path: demo/prompts/factory_diagnosis.yaml
+      kind: config
+      outcome: System and user prompt templates for Cosmos R2 diagnosis, question-answering, and video description
+      lines: 74
+    - path: demo/README.md
+      kind: docs
+      outcome: Demo package usage guide
+      lines: 82
+    - path: demo/WHITEPAPER.md
+      kind: docs
+      outcome: Technical whitepaper on multimodal industrial AI diagnostics
+      lines: 750
+    - path: demo/MATRIX_WHITEPAPER.md
+      kind: docs
+      outcome: Matrix API architecture whitepaper
+      lines: 513
+    - path: demo/DEMO_VIDEO_SCRIPT.md
+      kind: docs
+      outcome: Scripted demo video sequence for Cosmos Cookoff judges
+      lines: 95
+    - path: demo/USER_MANUAL.md
+      kind: docs
+      outcome: End-user manual for FactoryLM demo system
+      lines: 1017
+- name: Edge Gateway API
+  outcome: FastAPI edge gateway with PLC discovery, Modbus/EtherNet-IP/OPC-UA drivers, setup wizard, belt vision, VFD monitoring,
+    and CompactCom server
+  chapters:
+  - name: Gateway API Server
+    outcome: '1145-line FastAPI app with 30+ endpoints: PLC scan, config, live tags, Cosmos diagnose, belt status/stream,
+      VFD, WiFi, QR, CompactCom'
+    files:
+    - path: net/__init__.py
+      kind: init
+      outcome: Package marker
+      lines: 1
+    - path: net/api/__init__.py
+      kind: init
+      outcome: Empty init
+      lines: 0
+    - path: net/api/main.py
+      kind: entrypoint
+      outcome: 'FastAPI app: setup wizard, live I/O panel, PLC scan/config/test, tag polling, Cosmos R2 diagnosis, belt tachometer
+        stream, VFD status, WiFi provisioning, QR pairing, CompactCom registers'
+      lines: 1144
+  - name: Data Models
+    outcome: Canonical tag format and extraction result models used across drivers, poller, and API
+    files:
+    - path: net/models.py
+      kind: core-lib
+      outcome: ExtractedTag and TagExtractionResult dataclasses for standardized PLC tag representation
+      lines: 47
+    - path: net/models/__init__.py
+      kind: init
+      outcome: Empty init
+      lines: 0
+    - path: net/models/tags.py
+      kind: core-lib
+      outcome: TagSnapshot dataclass — canonical point-in-time PLC reading with 18 coils, named I/O, E-stop validation, and
+        error codes
+      lines: 58
+  - name: Industrial Protocol Drivers
+    outcome: 'Multi-protocol PLC connectivity: Modbus TCP, EtherNet/IP (CIP), OPC UA, VFD registers, CompactCom server'
+    files:
+    - path: net/drivers/__init__.py
+      kind: init
+      outcome: Empty init
+      lines: 0
+    - path: net/drivers/discovery.py
+      kind: core-lib
+      outcome: 'Async subnet scanner: TCP probe + Modbus validation + Allen-Bradley fingerprinting on port 502, EtherNet/IP
+        on 44818, multi-protocol detection'
+      lines: 286
+    - path: net/drivers/modbus_reader.py
+      kind: core-lib
+      outcome: Template-driven Modbus TCP reader with coil/register maps from JSON; includes brute-force tag scanner for discovery
+      lines: 193
+    - path: net/drivers/modbus_tag_source.py
+      kind: core-lib
+      outcome: Canonical Micro 820 Modbus tag source — reads coils 0-17 and registers 100-105, returns TagSnapshot with E-stop
+        dual-contact validation
+      lines: 197
+    - path: net/drivers/ethip_reader.py
+      kind: core-lib
+      outcome: EtherNet/IP tag discovery via pycomm3 CIP tag upload with graceful fallback
+      lines: 226
+    - path: net/drivers/ethip_tag_source.py
+      kind: core-lib
+      outcome: EtherNet/IP CIP native tag source for Micro 820 — named tags, auto-discovery, returns TagSnapshot identical
+        to Modbus source
+      lines: 268
+    - path: net/drivers/opcua_reader.py
+      kind: core-lib
+      outcome: OPC UA tag discovery via recursive address space tree browsing with python-opcua
+      lines: 298
+    - path: net/drivers/vfd_reader.py
+      kind: core-lib
+      outcome: ATO GS10 VFD register reader — reads 14 registers (control word, setpoint, status, actual freq/current, bus
+        volts, RPM, temp, fault code) via Modbus TCP
+      lines: 155
+    - path: net/drivers/pi_compactcom.py
+      kind: core-lib
+      outcome: Modbus TCP server emulating HMS CompactCom — PLC reads Pi data (21 published registers) and writes commands
+        (registers 100-103) via MSG instruction
+      lines: 137
+    - path: net/drivers/tag_extractor.py
+      kind: core-lib
+      outcome: 'Master auto-extraction engine: priority waterfall scan across EtherNet/IP, OPC UA, Siemens S7, and Modbus
+        with asyncio concurrency'
+      lines: 291
+    - path: net/drivers/templates/micro820.json
+      kind: config
+      outcome: JSON template mapping Micro 820 coil and register addresses to tag names with scaling
+      lines: 20
+    - path: net/drivers/templates/generic_modbus.json
+      kind: config
+      outcome: Generic Modbus TCP template for unknown PLC types
+      lines: 24
+  - name: Gateway Services
+    outcome: Background poller, CompactCom publisher, and PLC command handler
+    files:
+    - path: net/services/__init__.py
+      kind: init
+      outcome: Empty init
+      lines: 0
+    - path: net/services/poller.py
+      kind: core-lib
+      outcome: Background tag poller at 5Hz with 1Hz SQLite history writes; auto-selects ModbusTagSource or EtherNetIPTagSource
+        based on env vars
+      lines: 336
+    - path: net/services/publisher.py
+      kind: core-lib
+      outcome: Aggregates PLC tags, belt tachometer, and VFD data at 5Hz; scales to uint16 and writes to CompactCom registers
+        for PLC consumption
+      lines: 260
+    - path: net/services/plc_command_handler.py
+      kind: core-lib
+      outcome: Watches CompactCom command registers at 5Hz; detects state changes (run/stop, speed, mode, fault reset) and
+        logs command history
+      lines: 162
+  - name: Platform Abstraction
+    outcome: OS-specific WiFi scanning and connection for Linux/Pi, macOS, and mock fallback
+    files:
+    - path: net/platform/__init__.py
+      kind: core-lib
+      outcome: Auto-selects LinuxWifiScanner, MacOSWifiScanner, or MockWifiScanner based on platform.system()
+      lines: 42
+    - path: net/platform/linux.py
+      kind: core-lib
+      outcome: Real WiFi scanner for Raspberry Pi using iwlist and wpa_cli
+      lines: 433
+    - path: net/platform/macos.py
+      kind: core-lib
+      outcome: macOS WiFi scanner using CoreWLAN framework for dev/test
+      lines: 84
+    - path: net/platform/mock.py
+      kind: core-lib
+      outcome: Mock WiFi scanner returning fake SSIDs for non-Pi dev environments
+      lines: 114
+  - name: Portal UI
+    outcome: HTML setup wizard and live I/O panel served by the gateway
+    files:
+    - path: net/portal/wizard.html
+      kind: ui
+      outcome: '5-screen setup wizard: gateway ID, WiFi config, PLC discovery, tag extraction, live I/O panel'
+      lines: 1692
+    - path: net/portal/panel.html
+      kind: ui
+      outcome: Live I/O panel showing real-time PLC tag values with auto-refresh
+      lines: 960
+- name: Matrix Dashboard Services
+  outcome: FastAPI-based tag ingestion API and demo UI dashboard with live diagnosis, speed fusion, and Cosmos R2 integration
+  chapters:
+  - name: Matrix API
+    outcome: SQLite-backed API for tag snapshots, incidents, and Cosmos insights
+    files:
+    - path: services/matrix/app.py
+      kind: entrypoint
+      outcome: 'Matrix API: tag ingestion, incident tracking, cosmos insights storage and retrieval, all backed by SQLite'
+      lines: 809
+  - name: Demo UI Dashboard
+    outcome: Live web dashboard with fault injection, speed fusion visualization, and Cosmos R2 chain-of-thought panel
+    files:
+    - path: services/matrix/demo_ui.py
+      kind: ui
+      outcome: 'FastAPI dashboard app: live IO display, fault diagnosis, speed fusion bars, Cosmos R2 reasoning panel, MockBeltStatus
+        cycling'
+      lines: 920
+  - name: PLC Modbus Service (deprecated)
+    outcome: Legacy Micro 820 Modbus client — kept for reference only
+    files:
+    - path: services/plc-modbus/micro820.py
+      kind: core-lib
+      outcome: Deprecated Micro 820 PLC client with broken imports; superseded by pymodbus-based drivers in net/
+      lines: 219
+    - path: services/factorylm-connect.service
+      kind: devops
+      outcome: Systemd unit file for FactoryLM Connect edge gateway
+      lines: 19
+    - path: services/factorylm-firstboot.service
+      kind: devops
+      outcome: Systemd unit for first-boot provisioning
+      lines: 17
+- name: Simulation Bridge
+  outcome: Bridges Factory I/O Modbus simulation or built-in PLC simulator to the Matrix API
+  chapters:
+  - name: Factory I/O Bridge
+    outcome: Reads PLC tags via Modbus TCP from Factory I/O and posts them to Matrix API; falls back to built-in simulator
+    files:
+    - path: sim/factoryio_bridge.py
+      kind: core-lib
+      outcome: 'Factory I/O to Matrix API bridge: Modbus TCP tag reading at 5Hz, built-in PLC simulator fallback, configurable
+        via factoryio.yaml'
+      lines: 312
+- name: Video Pipeline
+  outcome: 'End-to-end video processing: ingest raw recordings, chunk with ffmpeg, analyze via Cosmos R2, select highlights,
+    build demo reels'
+  chapters:
+  - name: Video Processing
+    outcome: 'Four-stage pipeline: ingestion, analysis, highlight selection, and short builder'
+    files:
+    - path: video/__init__.py
+      kind: init
+      outcome: Package marker
+      lines: 1
+    - path: video/ingester.py
+      kind: core-lib
+      outcome: Watches for new video files, splits into 10-30s clips with ffmpeg, stores metadata in Matrix DB
+      lines: 209
+    - path: video/cosmos_analyzer.py
+      kind: core-lib
+      outcome: Polls Matrix API for pending clips, sends each to Cosmos R2 for video analysis, stores scores and captions
+      lines: 127
+    - path: video/highlight_selector.py
+      kind: core-lib
+      outcome: Selects top-N most interesting clips from Matrix DB based on Cosmos interestingness scores
+      lines: 125
+    - path: video/short_builder.py
+      kind: core-lib
+      outcome: Concatenates highlight clips into demo videos with optional text overlays using ffmpeg
+      lines: 145
+- name: Diagnostic Tools
+  outcome: Standalone CLI utilities for live PLC tag reading and VFD probing
+  chapters:
+  - name: PLC & VFD Tools
+    outcome: Direct hardware diagnostic scripts
+    files:
+    - path: tools/plc_live_reader.py
+      kind: entrypoint
+      outcome: Live PLC tag reader using pylogix for Micro800 series — discovers all tags, polls in a loop
+      lines: 83
+    - path: tools/probe_vfd.py
+      kind: entrypoint
+      outcome: 'Standalone VFD diagnostic: scans for Modbus TCP devices, probes all ATO GS10 register banks with decoded output'
+      lines: 237
+- name: Pi Factory Deployment
+  outcome: 'Raspberry Pi edge gateway deployment: setup scripts, systemd services, watchdog, hotspot config, and SD card image
+    build'
+  chapters:
+  - name: Pi Factory Setup & Scripts
+    outcome: Install, configure, verify, and manage the Pi Factory edge gateway
+    files:
+    - path: pi-factory/setup.sh
+      kind: devops
+      outcome: 'Master setup script: installs deps, configures WiFi hotspot, systemd services, and firewall on Raspberry Pi'
+      lines: 603
+    - path: pi-factory/install.sh
+      kind: devops
+      outcome: 'Lightweight installer: clones repo, installs Python deps, enables systemd services'
+      lines: 43
+    - path: pi-factory/uninstall.sh
+      kind: devops
+      outcome: 'Clean removal of Pi Factory: stops services, removes files, restores network'
+      lines: 71
+    - path: pi-factory/verify.sh
+      kind: devops
+      outcome: 'Post-install verification: checks services, network, API endpoints, and PLC connectivity'
+      lines: 170
+    - path: pi-factory/first_boot.sh
+      kind: devops
+      outcome: 'First boot provisioning: generates gateway ID, starts hotspot, runs initial setup'
+      lines: 44
+    - path: pi-factory/connect.sh
+      kind: devops
+      outcome: Helper script for connecting Pi to plant WiFi network
+      lines: 174
+    - path: pi-factory/watchdog.py
+      kind: core-lib
+      outcome: Monitors Micro820 PLC, GS10 VFD, and CHARLIE laptop; restarts services on failure
+      lines: 150
+  - name: Pi Factory Configs & Systemd
+    outcome: Configuration files for hotspot, DNS, systemd services
+    files:
+    - path: pi-factory/configs/hostapd.conf
+      kind: config
+      outcome: WiFi hotspot config for PiFactory-Connect AP
+      lines: 16
+    - path: pi-factory/configs/dnsmasq.conf
+      kind: config
+      outcome: DHCP/DNS config for captive portal network
+      lines: 5
+    - path: pi-factory/configs/motd
+      kind: config
+      outcome: SSH login banner for Pi Factory
+      lines: 17
+    - path: pi-factory/configs/pi-factory.service
+      kind: devops
+      outcome: Systemd unit for main Pi Factory service
+      lines: 29
+    - path: pi-factory/systemd/pi-factory.service
+      kind: devops
+      outcome: Systemd unit for Pi Factory gateway server
+      lines: 29
+    - path: pi-factory/systemd/pi-factory-firstboot.service
+      kind: devops
+      outcome: Systemd unit for first-boot provisioning (runs once)
+      lines: 18
+    - path: pi-factory/systemd/pi-factory-watchdog.service
+      kind: devops
+      outcome: Systemd unit for hardware watchdog daemon
+      lines: 14
+    - path: pi-factory/requirements.txt
+      kind: config
+      outcome: Python dependencies for Pi Factory edge (pymodbus, pylogix, requests)
+      lines: 3
+  - name: Pi Factory CLI Scripts
+    outcome: Admin convenience scripts for service management
+    files:
+    - path: pi-factory/scripts/pf-info
+      kind: devops
+      outcome: Displays Pi Factory version, gateway ID, and system info
+      lines: 14
+    - path: pi-factory/scripts/pf-start
+      kind: devops
+      outcome: Starts Pi Factory systemd service
+      lines: 4
+    - path: pi-factory/scripts/pf-stop
+      kind: devops
+      outcome: Stops Pi Factory systemd service
+      lines: 4
+    - path: pi-factory/scripts/pf-restart
+      kind: devops
+      outcome: Restarts Pi Factory systemd service
+      lines: 4
+    - path: pi-factory/scripts/pf-status
+      kind: devops
+      outcome: Shows Pi Factory systemd service status
+      lines: 3
+    - path: pi-factory/scripts/pf-logs
+      kind: devops
+      outcome: Tails Pi Factory journal logs
+      lines: 3
+  - name: Pi Factory Docs
+    outcome: Deployment guide and product requirements
+    files:
+    - path: pi-factory/PI_FACTORY_GUIDE.md
+      kind: docs
+      outcome: Step-by-step deployment guide for Pi Factory on Raspberry Pi
+      lines: 195
+    - path: pi-factory/PRD.md
+      kind: docs
+      outcome: Product requirements document for Pi Factory edge gateway
+      lines: 186
+- name: Pi Image Build
+  outcome: pi-gen based Raspberry Pi OS image with FactoryLM pre-installed
+  chapters:
+  - name: pi-gen Stages
+    outcome: 'Custom pi-gen stage: install deps, deploy app, configure hotspot'
+    files:
+    - path: factorylm-image/pi-gen/config
+      kind: config
+      outcome: pi-gen build configuration (hostname, user, locale)
+      lines: 9
+    - path: factorylm-image/pi-gen/stage-factorylm/00-install-deps/00-run-chroot.sh
+      kind: devops
+      outcome: Install system dependencies in chroot (Python, network tools)
+      lines: 13
+    - path: factorylm-image/pi-gen/stage-factorylm/00-install-deps/01-run-chroot.sh
+      kind: devops
+      outcome: Install Python packages in chroot
+      lines: 23
+    - path: factorylm-image/pi-gen/stage-factorylm/01-install-app/00-run.sh
+      kind: devops
+      outcome: Copy FactoryLM application files into image
+      lines: 52
+    - path: factorylm-image/pi-gen/stage-factorylm/02-configure/00-run.sh
+      kind: devops
+      outcome: Configure hostapd, dnsmasq, and systemd services in image
+      lines: 23
+    - path: factorylm-image/pi-gen/stage-factorylm/02-configure/files/dnsmasq.conf
+      kind: config
+      outcome: DHCP config for captive portal in built image
+      lines: 3
+    - path: factorylm-image/pi-gen/stage-factorylm/02-configure/files/hostapd.conf
+      kind: config
+      outcome: Hotspot config for built image
+      lines: 14
+- name: Test Suite
+  outcome: Pytest test suite covering PLC drivers, fault detection, API endpoints, belt tachometer, VFD, CompactCom, and wizard
+    flow
+  chapters:
+  - name: Test Infrastructure
+    outcome: Shared test fixtures and configuration
+    files:
+    - path: tests/__init__.py
+      kind: init
+      outcome: Empty init
+      lines: 0
+    - path: tests/conftest.py
+      kind: test
+      outcome: Shared pytest fixtures
+      lines: 18
+  - name: Driver Tests
+    outcome: Tests for Modbus, EtherNet/IP, VFD, discovery, and tag extraction
+    files:
+    - path: tests/test_modbus_tag_source.py
+      kind: test
+      outcome: Tests ModbusTagSource coil/register reading, E-stop validation, error handling
+      lines: 232
+    - path: tests/test_ethip_tag_source.py
+      kind: test
+      outcome: Tests EtherNetIPTagSource tag reading, reconnection, error snapshots
+      lines: 302
+    - path: tests/test_vfd_reader.py
+      kind: test
+      outcome: Tests VFD register reading, fault codes, error handling
+      lines: 143
+    - path: tests/test_discovery.py
+      kind: test
+      outcome: Tests PLC subnet scanning
+      lines: 8
+    - path: tests/test_tag_extractor.py
+      kind: test
+      outcome: Tests multi-protocol tag extraction waterfall
+      lines: 58
+  - name: Fault & Diagnosis Tests
+    outcome: Tests for rule-based fault detection and Cosmos diagnosis
+    files:
+    - path: tests/test_conveyor_faults.py
+      kind: test
+      outcome: 'Tests all 8 fault rules: E-stop, overcurrent, overtemp, jam, unexpected stop, low pressure, speed mismatch,
+        PLC fault'
+      lines: 171
+    - path: tests/test_fault_engine.py
+      kind: test
+      outcome: Tests net/diagnosis fault engine severity tracking
+      lines: 39
+    - path: tests/test_vfd_conflicts.py
+      kind: test
+      outcome: Tests VFD conflict detection across PLC + VFD + belt vision
+      lines: 158
+    - path: tests/test_cosmos_diagnose.py
+      kind: test
+      outcome: Tests Cosmos R2 diagnosis endpoint in stub mode
+      lines: 68
+  - name: Service Tests
+    outcome: Tests for poller, publisher, command handler, and CompactCom
+    files:
+    - path: tests/test_poller.py
+      kind: test
+      outcome: Tests background poller lifecycle, tag reading, history writes
+      lines: 135
+    - path: tests/test_publisher.py
+      kind: test
+      outcome: Tests Publisher aggregation, uint16 scaling, source flags, heartbeat
+      lines: 243
+    - path: tests/test_plc_command_handler.py
+      kind: test
+      outcome: Tests PLCCommandHandler state change detection and event history
+      lines: 126
+    - path: tests/test_pi_compactcom.py
+      kind: test
+      outcome: Tests PiCompactCom Modbus TCP server register read/write
+      lines: 87
+    - path: tests/test_plc_reads_pi.py
+      kind: test
+      outcome: 'Integration test: PLC reads Pi CompactCom registers via MSG instruction'
+      lines: 193
+  - name: API & UI Tests
+    outcome: Tests for gateway API endpoints and wizard flow
+    files:
+    - path: tests/test_api.py
+      kind: test
+      outcome: 'Tests edge gateway API endpoints: status, scan, config, live tags'
+      lines: 86
+    - path: tests/test_matrix_api.py
+      kind: test
+      outcome: Tests Matrix API tag ingestion and retrieval
+      lines: 73
+    - path: tests/test_wizard_flow.py
+      kind: test
+      outcome: End-to-end test of 5-screen setup wizard flow
+      lines: 240
+    - path: tests/test_no_sim.py
+      kind: test
+      outcome: Tests that API runs without simulation mode
+      lines: 97
+  - name: Belt & Pipeline Tests
+    outcome: Tests for belt tachometer and build pipeline
+    files:
+    - path: tests/test_belt_tachometer.py
+      kind: test
+      outcome: Tests BeltTachometer RPM calculation, crossing detection, calibration, status determination, clip export
+      lines: 322
+    - path: tests/test_build_pipeline.py
+      kind: test
+      outcome: Tests PyInstaller build pipeline and demo module imports
+      lines: 94
+- name: Configuration & Infrastructure
+  outcome: YAML configs, CI/CD workflows, Docker, PyInstaller spec, and project metadata
+  chapters:
+  - name: Application Config
+    outcome: YAML configuration for Cosmos R2, Factory I/O bridge, and video pipeline
+    files:
+    - path: config/cosmos.yaml
+      kind: config
+      outcome: 'Cosmos R2 API settings: model, fallback, triggers, tag history window, video options'
+      lines: 32
+    - path: config/factoryio.yaml
+      kind: config
+      outcome: 'Factory I/O Modbus bridge config: connection, polling interval, coil/register address map matching CLAUDE.md'
+      lines: 62
+    - path: config/video.yaml
+      kind: config
+      outcome: 'Video pipeline settings: chunk duration, interesting threshold, overlay options, poll intervals'
+      lines: 32
+    - path: config.json
+      kind: config
+      outcome: 'Gateway config: gateway_id, version, mode, API port, poll rates'
+      lines: 8
+  - name: CI/CD
+    outcome: GitHub Actions for testing, Pi image building, and knowledge ingestion
+    files:
+    - path: .github/workflows/ci.yml
+      kind: ci
+      outcome: 'CI pipeline: pytest on Python 3.11/3.12, API endpoint smoke tests, syntax linting, shell script checks'
+      lines: 100
+    - path: .github/workflows/build-image.yml
+      kind: ci
+      outcome: 'Pi image build: runs CI first, then pi-gen to produce flashable .img.xz with GitHub Release'
+      lines: 123
+    - path: .github/workflows/brain-feed.yml
+      kind: ci
+      outcome: Feeds git commit metadata to Open Brain knowledge ingestion API
+      lines: 38
+  - name: Build & Deploy
+    outcome: PyInstaller spec, Docker, and package metadata
+    files:
+    - path: FactoryLM-Demo.spec
+      kind: devops
+      outcome: PyInstaller spec for building standalone FactoryLM-Demo executable with bundled prompts, clips, and configs
+      lines: 73
+    - path: infra/local/docker-compose.yml
+      kind: devops
+      outcome: 'Local dev stack: PostgreSQL 16 for Matrix DB'
+      lines: 25
+    - path: requirements.txt
+      kind: config
+      outcome: 'Python dependencies: fastapi, uvicorn, httpx, pymodbus, pycomm3, opcua, opencv-python, openai, etc.'
+      lines: 16
+    - path: releases/latest.json
+      kind: config
+      outcome: Raspberry Pi Imager compatible release manifest
+      lines: 12
+  - name: Project Root
+    outcome: Entrypoints, environment, and project metadata
+    files:
+    - path: server.py
+      kind: entrypoint
+      outcome: 'Pi Factory main server: starts FastAPI gateway with optional belt tachometer from VIDEO_SOURCE env var'
+      lines: 155
+    - path: launcher.py
+      kind: entrypoint
+      outcome: 'Desktop launcher: starts Matrix API + Demo UI on separate ports, opens browser'
+      lines: 48
+    - path: first_boot.sh
+      kind: devops
+      outcome: Root-level first boot script
+      lines: 44
+    - path: .gitignore
+      kind: config
+      outcome: Git ignore rules for Python, env, IDE, and database files
+      lines: 52
+    - path: .env.example
+      kind: config
+      outcome: Environment variable template with placeholders for API keys and host addresses
+      lines: 26
+    - path: .mcp.json
+      kind: config
+      outcome: MCP server configuration for Serena AI agent
+      lines: 23
+    - path: LICENSE
+      kind: docs
+      outcome: Project license
+      lines: 21
+    - path: README.md
+      kind: docs
+      outcome: 'Project README: problem statement, architecture diagram, hardware stack, quick start, Cosmos Cookoff judging
+        criteria'
+      lines: 162
+    - path: CLAUDE.md
+      kind: docs
+      outcome: 'Claude Code project instructions: CTO role, workflow pipeline, safety rules, VPS protocol'
+      lines: 201
+    - path: CHANGELOG.md
+      kind: docs
+      outcome: Version changelog
+      lines: 54
+    - path: IMPLEMENTATION_SUMMARY.md
+      kind: docs
+      outcome: Implementation summary of all components
+      lines: 206
+- name: Cluster Context
+  outcome: Lesson logs, memory snapshots, and operational rules from the FactoryLM cluster
+  chapters:
+  - name: Cluster Logs & Memory
+    outcome: Session lessons, hardware references, and operational memory
+    files:
+    - path: cluster/logs/LESSON-2026-03-02.md
+      kind: docs
+      outcome: Session lesson log covering infrastructure work
+      lines: 108
+    - path: cluster/logs/LESSON-ANYBUS-EVAL.md
+      kind: docs
+      outcome: Lesson log from Anybus CompactCom evaluation
+      lines: 103
+    - path: cluster/memory/latest.md
+      kind: docs
+      outcome: Latest cluster memory snapshot
+      lines: 37
+    - path: cluster/memory/anybus_reference.md
+      kind: docs
+      outcome: Anybus CompactCom technical reference for PLC integration
+      lines: 211
+    - path: cluster/rules/RULE-python39-type-hints.md
+      kind: docs
+      outcome: 'Rule: avoid Python 3.10+ type hint syntax for 3.9 compatibility'
+      lines: 70
+- name: Architecture Documentation
+  outcome: Technical docs covering wiring, VFD setup, PLC MSG instructions, field testing, and academic papers
+  chapters:
+  - name: Hardware & Architecture Docs
+    outcome: Wiring guides, VFD setup, PLC configuration, and field test reports
+    files:
+    - path: docs/WIRING_GUIDE.md
+      kind: docs
+      outcome: Complete wiring guide for Micro 820 + VFD + sensors
+      lines: 620
+    - path: docs/vfd_setup.md
+      kind: docs
+      outcome: ATO GS10 VFD setup and Modbus configuration guide
+      lines: 195
+    - path: docs/micro820_msg_setup.md
+      kind: docs
+      outcome: Micro 820 MSG instruction setup for CompactCom register reads
+      lines: 242
+    - path: docs/field_test_conveyor.md
+      kind: docs
+      outcome: Field test report for conveyor monitoring system
+      lines: 290
+    - path: docs/cosmos_architecture.md
+      kind: docs
+      outcome: Cosmos R2 integration architecture overview
+      lines: 229
+    - path: docs/cosmos_cookoff_demo_runbook.md
+      kind: docs
+      outcome: Step-by-step demo runbook for Cosmos Cookoff judges
+      lines: 215
+    - path: docs/PI_DEPLOY_CHECKLIST.md
+      kind: docs
+      outcome: Raspberry Pi deployment checklist
+      lines: 187
+    - path: docs/CONVEYOR_OF_DESTINY.md
+      kind: docs
+      outcome: Full Conveyor of Destiny architecture and vision document
+      lines: 1015
+    - path: docs/CONVEYOR_OF_DESTINY_PLAN.md
+      kind: docs
+      outcome: Implementation plan for Conveyor of Destiny system
+      lines: 241
+    - path: docs/papers/paper1_multimodal_diagnostics.md
+      kind: docs
+      outcome: 'Academic paper draft: multimodal diagnostics for industrial automation'
+      lines: 335
+    - path: docs/papers/abstracts_portfolio.md
+      kind: docs
+      outcome: Portfolio of research abstract drafts
+      lines: 111

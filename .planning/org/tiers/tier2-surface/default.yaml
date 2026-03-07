@@ -1,0 +1,28 @@
+meta:
+  repo: default
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/default
+  one_line: Shared Ranger config for all Mikecranesync repos
+  primary_language: null
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:28Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- infra
+outcomes:
+- Shared Ranger config for all Mikecranesync repos
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: Org-wide Ranger config.
+file_tree:
+  total_files: 3
+  by_extension:
+    yml: 2
+    md: 1
+  key_dirs:
+  - .github/

@@ -1,0 +1,21 @@
+meta:
+  repo: RealtimeSTT
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/RealtimeSTT
+  one_line: A robust, efficient, low-latency speech-to-text library with advanced voice activity detection, wake word activation
+    and instant transcription.
+  primary_language: Python
+  is_fork: true
+  is_archived: false
+  last_pushed: '2026-02-12T09:12:50Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- fork
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: Fork with 1 custom commit — keep.
