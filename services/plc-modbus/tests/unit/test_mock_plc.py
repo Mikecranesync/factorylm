@@ -94,11 +94,12 @@ class TestMockPLCRegisters:
             assert values[0] == 75
 
     def test_initial_register_values(self):
-        """Default registers: speed=0, temp≈250 (25.0 °C), pressure=100."""
+        """Default registers: item_count=0, current=0 (idle), temp≈250 (25.0 °C)."""
         with MockPLC() as plc:
             values = plc.read_holding_registers(100, 6)
-            assert values[0] == 0        # motor_speed
-            assert 200 <= values[2] <= 300  # temperature raw ≈ 250
+            assert values[0] == 0                  # item_count
+            assert values[2] == 0                  # motor_current (idle)
+            assert 200 <= values[3] <= 300         # motor_temp raw ≈ 250
 
 
 # ---------------------------------------------------------------------------
@@ -124,18 +125,18 @@ class TestMockPLCCoils:
             assert values[0] is True
 
     def test_motor_running_stopped_sync(self):
-        """Setting motor_running syncs motor_stopped (and vice-versa)."""
+        """RunCommand syncs Conveyor and Emitter coils."""
         with MockPLC() as plc:
             # Initially stopped
-            coils = plc.read_coils(0, 2)
-            assert coils[0] is False  # motor_running
-            assert coils[1] is True   # motor_stopped
+            coils = plc.read_coils(0, 5)
+            assert coils[0] is False  # conveyor
+            assert coils[1] is False  # emitter
 
-            # Start motor
-            plc.write_coil(0, True)
-            coils = plc.read_coils(0, 2)
-            assert coils[0] is True
-            assert coils[1] is False
+            # Start via RunCommand
+            plc.write_coil(4, True)
+            coils = plc.read_coils(0, 5)
+            assert coils[0] is True   # conveyor
+            assert coils[1] is True   # emitter
 
 
 # ---------------------------------------------------------------------------
@@ -161,7 +162,7 @@ class TestMockPLCState:
             plc.start_motor(80)
             state = plc.read_state()
             assert state.motor_running is True
-            assert state.motor_speed == 80
+            assert state.motor_speed == 60  # clamped to 60 Hz max
 
             plc.stop_motor()
             state = plc.read_state()
@@ -198,19 +199,19 @@ class TestMockPLCMotorHelpers:
     """Test start_motor / stop_motor."""
 
     def test_start_motor(self):
-        """start_motor sets running=True and speed."""
+        """start_motor sets running=True and speed (clamped to 60 Hz max)."""
         with MockPLC() as plc:
             plc.start_motor(75)
             state = plc.read_state()
             assert state.motor_running is True
-            assert state.motor_speed == 75
+            assert state.motor_speed == 60  # clamped to 60 Hz max
 
     def test_start_motor_default_speed(self):
-        """start_motor defaults to 50 % speed."""
+        """start_motor defaults to 30 Hz speed."""
         with MockPLC() as plc:
             plc.start_motor()
             state = plc.read_state()
-            assert state.motor_speed == 50
+            assert state.motor_speed == 30
 
     def test_stop_motor(self):
         """stop_motor sets running=False."""
@@ -308,9 +309,9 @@ class TestMockPLCSimulation:
     def test_custom_initial_state(self):
         """MockPLC accepts an initial_state dict override."""
         initial = {
-            "motor_speed": 50,
-            "temperature": 600,  # 60.0 °C raw
-            "motor_running": True,
+            "conveyor_hz": 50,
+            "motor_temp": 600,  # 60.0 °C raw
+            "conveyor": True,
         }
         with MockPLC(initial_state=initial) as plc:
             state = plc.read_state()
