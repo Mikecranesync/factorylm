@@ -1,0 +1,366 @@
+id: telegram-text-router
+name: "Telegram Text Intent Router"
+version: 1
+description: >
+  Routes incoming Telegram TEXT messages to the correct V1 backend service
+  based on two-stage intent classification (keyword match + LLM fallback).
+  Completes the demo flow: Phone -> Telegram -> Intent -> Service -> Response.
+  Photos are handled separately by the wiring-telegram workflow.
+  Captures diagnosis results to Mem0 brain for future KB retrieval.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: intent-classifier
+    name: Intent Classifier
+    role: analysis
+    description: >
+      Classifies incoming text messages using the two-stage classifier
+      (keyword match then LLM fallback). Checks for active troubleshoot
+      sessions FIRST — bare numeric replies must not be misclassified.
+    timeoutSeconds: 10
+    workspace:
+      baseDir: agents/intent-classifier
+      files:
+        AGENTS.md: agents/intent-classifier/AGENTS.md
+        intent_module: openclaw/messages/intent.py
+        types_module: openclaw/types.py
+        session_middleware: openclaw/troubleshoot/integration.py
+
+  - id: plc-reader
+    name: PLC State Reader
+    role: scanning
+    description: >
+      Reads live PLC I/O state from the plc-modbus API on the PLC laptop.
+      Provides structured machine state for diagnosis, IO display, and
+      status checks. Shared by DIAGNOSE, IO, and STATUS intents.
+    timeoutSeconds: 15
+    workspace:
+      baseDir: agents/plc-reader
+      files:
+        AGENTS.md: agents/plc-reader/AGENTS.md
+        plc_backend: services/plc-modbus/backend/main.py
+
+  - id: service-dispatcher
+    name: Service Dispatcher
+    role: coding
+    description: >
+      Routes the classified intent to the correct backend service.
+      DIAGNOSE -> diagnosis service, IO -> format PLC tags,
+      STATUS -> health checks, TROUBLESHOOT -> TreeRunner,
+      GENERAL -> Gus conversational response.
+    timeoutSeconds: 60
+    workspace:
+      baseDir: agents/service-dispatcher
+      files:
+        AGENTS.md: agents/service-dispatcher/AGENTS.md
+        diagnosis_service: services/diagnosis/main.py
+        troubleshoot_engine: openclaw/troubleshoot/engine.py
+        troubleshoot_skill: openclaw/troubleshoot/skill.py
+
+  - id: response-formatter
+    name: Response Formatter
+    role: verification
+    description: >
+      Formats the service response in Gus's voice for Telegram delivery.
+      Seasoned factory tech persona — direct, practical, under 300 chars.
+    timeoutSeconds: 10
+    workspace:
+      baseDir: agents/response-formatter
+      files:
+        AGENTS.md: agents/response-formatter/AGENTS.md
+
+  - id: brain-recorder
+    name: Brain Recorder
+    role: coding
+    description: >
+      Captures diagnosis results and troubleshoot resolutions into Mem0
+      brain for future KB retrieval. Only fires for DIAGNOSE and
+      TROUBLESHOOT intents with successful results.
+    timeoutSeconds: 15
+    workspace:
+      baseDir: agents/brain-recorder
+      files:
+        AGENTS.md: agents/brain-recorder/AGENTS.md
+        brain_server: services/mcp/brain_server.py
+        brain_config: services/brain/config.py
+
+steps:
+  - id: classify_intent
+    agent: intent-classifier
+    input: |
+      Classify this incoming Telegram text message.
+
+      Message payload:
+        text: {{message_text}}
+        chat_id: {{chat_id}}
+        user_id: {{user_id}}
+        username: {{username}}
+
+      CRITICAL — Check active troubleshoot session FIRST:
+      If user has an active troubleshoot session (via TreeRunner.has_active_session),
+      OVERRIDE intent to TROUBLESHOOT regardless of keyword match.
+      Reason: bare "2" or "yes" replies get misclassified as GENERAL otherwise.
+      See: openclaw/troubleshoot/integration.py:70-103
+
+      If no active session, use two-stage classifier:
+      1. Keyword match (fast, free, deterministic):
+         - DIAGNOSE: why, stopped, diagnose, fault, wrong, error, alarm, trip, noise, vibrat, overheat, leak
+         - STATUS: status, health, online, connected, running
+         - IO: show io, live io, plc, tags, inputs, outputs
+         - TROUBLESHOOT: troubleshoot, walk me through, step by step, guide me, how do i fix, /troubleshoot
+         - GENERAL: anything else
+      2. If no keyword match and text is non-trivial (>5 chars), use LLM fallback
+         via Groq llama-3.3-70b-versatile for semantic classification.
+
+      Extract any fault codes or equipment references from the text.
+
+      Output format:
+      INTENT: DIAGNOSE | STATUS | IO | TROUBLESHOOT | GENERAL
+      CONFIDENCE: keyword | session_override | llm_<0.XX>
+      FAULT_CODE: <code or "none">
+      EQUIPMENT_REF: <equipment or "none">
+      HAS_ACTIVE_SESSION: true | false
+      ORIGINAL_TEXT: {{message_text}}
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: read_plc_state
+    agent: plc-reader
+    input: |
+      Read current PLC state from the plc-modbus API.
+
+      Intent: {{INTENT}}
+
+      Skip this step entirely if INTENT is GENERAL.
+      For TROUBLESHOOT with active session, skip (TreeRunner has its own context).
+
+      PLC Modbus API (PLC laptop via Tailscale):
+        - Full I/O: GET {{PLC_MODBUS_URL}}/api/plc/io
+        - Status:   GET {{PLC_MODBUS_URL}}/api/plc/status
+
+      Health checks (for STATUS intent only):
+        - PLC Modbus API:     GET {{PLC_MODBUS_URL}}/api/health
+        - Diagnosis service:  GET {{DIAGNOSIS_URL}}/health
+        - Jarvis (PLC):       GET {{PLC_LAPTOP_URL}}/health
+        - Jarvis (Travel):    GET {{TRAVEL_LAPTOP_URL}}/health
+
+      Format PLC data using Modbus address map:
+        Coils 0-4:  Conveyor, Emitter, SensorStart, SensorEnd, RunCommand
+        Coils 7-14: DI_00-DI_07 (selector switch, e-stop, pushbutton)
+        Coils 15-17: DO_00-DO_03 (indicator LEDs)
+        Register 100: ItemCount
+
+      Error code map: 1=Overload, 2=Overheat, 3=Sensor Failure, 4=Jam, 7=E-Stop
+
+      Output format:
+      PLC_CONNECTED: true | false
+      PLC_STATE_HUMAN: <formatted readable state>
+      HAS_FAULT: true | false
+      ERROR_CODE: <code or 0>
+      ERROR_NAME: <name or "none">
+      SERVICES_HEALTH: <JSON health map, for STATUS only>
+      RESULT: pass | skip | error
+      STATUS: done
+    expects: "STATUS: done"
+    max_retries: 1
+
+  - id: dispatch_to_service
+    agent: service-dispatcher
+    input: |
+      Route to the correct backend service based on classified intent.
+
+      Intent: {{INTENT}}
+      Original text: {{ORIGINAL_TEXT}}
+      User ID: {{user_id}}
+      PLC connected: {{PLC_CONNECTED}}
+      PLC state: {{PLC_STATE_HUMAN}}
+      Has fault: {{HAS_FAULT}}
+      Error code: {{ERROR_CODE}}
+      Error name: {{ERROR_NAME}}
+      Services health: {{SERVICES_HEALTH}}
+      Fault code from message: {{FAULT_CODE}}
+      Equipment ref: {{EQUIPMENT_REF}}
+      Has active session: {{HAS_ACTIVE_SESSION}}
+
+      === DIAGNOSE ===
+      POST {{DIAGNOSIS_URL}}/diagnose
+      Body: {"question": "{{ORIGINAL_TEXT}}"}
+      Returns: {question, diagnosis, plc_data, sources, timestamp, latency_ms}
+      The service internally reads PLC + searches Mem0 KB + calls LLM.
+
+      === IO ===
+      Format PLC_STATE_HUMAN as readable Telegram message.
+      Structure: Motor, Sensors, E-Stop, VFD, Temperature, Item Count.
+      Add fault warnings if HAS_FAULT is true.
+
+      === STATUS ===
+      Report health from SERVICES_HEALTH.
+      List each service: Online/OFFLINE.
+      Summary: "All systems green" or list issues.
+
+      === TROUBLESHOOT ===
+      If HAS_ACTIVE_SESSION: User is answering a guided question.
+        Call TreeRunner.answer(user_id, text).
+      If NOT active: Start new session.
+        Find tree by fault code or trigger words.
+        Call TreeRunner.start(user_id, tree_slug).
+      TreeRunner: openclaw/troubleshoot/engine.py
+
+      === GENERAL ===
+      Respond in Gus voice:
+        Greetings -> "Hey boss, Gus here..."
+        Help -> list capabilities (show IO, diagnose, troubleshoot, status)
+        Unknown -> suggest "try: show IO, or: why is the conveyor stopped?"
+
+      Output format:
+      SERVICE_CALLED: diagnosis | plc_io | health_check | troubleshoot | gus_chat
+      SERVICE_RESPONSE: <response text>
+      DIAGNOSIS_TEXT: <diagnosis if DIAGNOSE, else "n/a">
+      SOURCES: <KB source list if DIAGNOSE, else []>
+      TROUBLESHOOT_STATE: question | resolution | llm_handoff | n/a
+      LATENCY_MS: <service call latency>
+      RESULT: pass | error
+      STATUS: done
+    expects: "STATUS: done"
+    max_retries: 2
+    on_fail:
+      escalate_to: human
+
+  - id: format_response
+    agent: response-formatter
+    input: |
+      Format the service response for Telegram in Gus's voice.
+
+      Intent: {{INTENT}}
+      Service called: {{SERVICE_CALLED}}
+      Service response: {{SERVICE_RESPONSE}}
+      Diagnosis text: {{DIAGNOSIS_TEXT}}
+      Sources: {{SOURCES}}
+      Troubleshoot state: {{TROUBLESHOOT_STATE}}
+      Has fault: {{HAS_FAULT}}
+      Error name: {{ERROR_NAME}}
+      Latency: {{LATENCY_MS}}ms
+      Chat ID: {{chat_id}}
+
+      Gus persona:
+      - Seasoned factory tech, 20 years experience
+      - Direct, practical, no fluff
+      - Uses "boss", "let me check", "looks like"
+      - Under 300 chars when possible
+      - Plain text (no markdown headers, no bullet lists — mobile readability)
+
+      DIAGNOSE: Lead with diagnosis. Add "Sources: [list]" if available.
+      IO: Table layout — MOTOR: RUNNING @ 60Hz, TEMP: 42C, E-STOP: Released, etc.
+      STATUS: List services Online/OFFLINE. Summary line.
+      TROUBLESHOOT: Show question + numbered options, or resolution + action steps.
+      GENERAL: Conversational response.
+
+      Output format:
+      FORMATTED_MESSAGE: <telegram message text>
+      MESSAGE_LENGTH: <char count>
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+
+  - id: capture_to_brain
+    agent: brain-recorder
+    input: |
+      Capture this interaction to Mem0 brain for future KB retrieval.
+
+      Intent: {{INTENT}}
+      Original question: {{ORIGINAL_TEXT}}
+      Service called: {{SERVICE_CALLED}}
+      Diagnosis text: {{DIAGNOSIS_TEXT}}
+      Sources: {{SOURCES}}
+      Troubleshoot state: {{TROUBLESHOOT_STATE}}
+      Has fault: {{HAS_FAULT}}
+      Error code: {{ERROR_CODE}}
+      PLC state: {{PLC_STATE_HUMAN}}
+
+      CAPTURE RULES:
+      - Only capture for DIAGNOSE and TROUBLESHOOT intents
+      - Skip for STATUS, IO, GENERAL (not KB-worthy)
+      - Skip if DIAGNOSIS_TEXT is "n/a" or empty
+      - Skip if service call failed
+
+      For DIAGNOSE:
+        Content: "Diagnosis: [question] -> [diagnosis]. Error: [code]. Sources: [sources]"
+        Tags: ["diagnosis", "telegram", "fault-{error_code}"]
+
+      For TROUBLESHOOT (resolution only):
+        Content: "Troubleshoot: [question] -> [resolution text]"
+        Tags: ["troubleshoot", "telegram", "guided-diagnosis"]
+
+      Brain capture via:
+        from services.brain.config import get_memory
+        mem = get_memory()
+        mem.add(content, user_id="mike", metadata={source, tags, ...})
+
+      Requires: NEON_DATABASE_URL, GEMINI_API_KEY, GROQ_API_KEY
+
+      Output format:
+      CAPTURED: true | false | skipped
+      CAPTURE_REASON: <why captured or skipped>
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+    max_retries: 1
+
+triggers:
+  - type: webhook
+    path: /api/v1/message
+    method: POST
+    description: >
+      Text messages forwarded from the Telegram bot handler.
+      Payload: {"text": "...", "chat_id": 123, "user_id": 123, "username": "mike"}
+  - type: command
+    pattern: "/route"
+    description: Manual trigger for testing intent routing
+
+integration:
+  env_defaults:
+    PLC_MODBUS_URL: "http://100.72.2.99:8001"
+    DIAGNOSIS_URL: "http://100.68.120.99:8200"
+    PLC_LAPTOP_URL: "http://100.72.2.99:8765"
+    TRAVEL_LAPTOP_URL: "http://100.83.251.23:8765"
+  services:
+    diagnosis_service:
+      url: "{{DIAGNOSIS_URL}}"
+      endpoints:
+        - POST /diagnose
+        - GET /health
+    plc_modbus_api:
+      url: "{{PLC_MODBUS_URL}}"
+      endpoints:
+        - GET /api/plc/io
+        - GET /api/plc/status
+        - GET /api/health
+    jarvis_nodes:
+      plc_laptop: "{{PLC_LAPTOP_URL}}"
+      travel_laptop: "{{TRAVEL_LAPTOP_URL}}"
+    brain:
+      module: services.brain.config
+      client: get_memory()
+      description: Mem0 pgvector on Neon for KB capture
+    telegram:
+      bot: "@FactoryLM_bot"
+      description: Gus bot for tech communication
+  capabilities:
+    module: services.capabilities
+    client: CapabilityClient
+    used:
+      - factory
+      - telemetry
+      - memory
+  intent_classifier:
+    module: openclaw.messages.intent
+    function: classify_intent
+    llm_fallback: true
+    llm_provider: groq
+    llm_model: llama-3.3-70b-versatile
+  troubleshoot_engine:
+    module: openclaw.troubleshoot.engine
+    class: TreeRunner
+    session_ttl: 1800
+    middleware: openclaw.troubleshoot.integration.session_dispatch
