@@ -41,6 +41,7 @@ class DiagnosisResponse(BaseModel):
     question: str
     diagnosis: str
     plc_data: Optional[dict] = None
+    sources: list[str] = []
     timestamp: str
     latency_ms: int
 
@@ -173,15 +174,15 @@ DIAGNOSIS_SYSTEM_PROMPT = (
 )
 
 
-def _retrieve_kb_context(question: str) -> str | None:
+def _retrieve_kb_context(question: str) -> tuple[str | None, list[str]]:
     """Search Mem0 brain for relevant maintenance knowledge.
 
-    Returns formatted context string, or None if unavailable.
+    Returns (formatted_context, list_of_source_ids).
     """
     neon_url = os.getenv('NEON_DATABASE_URL')
     if not neon_url:
         logger.debug("NEON_DATABASE_URL not set — skipping KB retrieval")
-        return None
+        return None, []
 
     try:
         import sys as _sys
@@ -191,24 +192,29 @@ def _retrieve_kb_context(question: str) -> str | None:
         results = mem.search(question, user_id="mike", limit=5)
 
         if not results or not results.get('results'):
-            return None
+            return None, []
 
         lines = ["Relevant maintenance knowledge from KB:"]
+        sources: list[str] = []
         for r in results['results']:
             text = r.get('memory', r.get('text', ''))
-            source = r.get('metadata', {}).get('file', r.get('metadata', {}).get('source', 'brain'))
+            meta = r.get('metadata', {})
+            source = meta.get('file', meta.get('source', 'brain'))
             if text:
                 lines.append(f"- {text[:300]} [source: {source}]")
+                if source not in sources:
+                    sources.append(source)
 
         if len(lines) <= 1:
-            return None
+            return None, []
 
-        logger.info("KB retrieval: %d results for '%s'", len(lines) - 1, question[:50])
-        return '\n'.join(lines)
+        logger.info("KB retrieval: %d results, %d sources for '%s'",
+                     len(lines) - 1, len(sources), question[:50])
+        return '\n'.join(lines), sources
 
     except Exception as e:
         logger.warning("KB retrieval failed (non-fatal): %s", e)
-        return None
+        return None, []
 
 
 def _build_diagnosis_prompt(question: str, plc_context: str, kb_context: str | None = None) -> str:
@@ -275,15 +281,17 @@ def _ask_llm_direct_groq(prompt: str) -> str | None:
     return None
 
 
-def ask_llm(question: str, plc_context: str) -> str:
+def ask_llm(question: str, plc_context: str) -> tuple[str, list[str]]:
     """Send question + PLC context + KB context to LLM for diagnosis.
 
     Retrieves relevant maintenance knowledge from Mem0/Neon before calling LLM.
     Tries llm-router first (budget + circuit breaker + multi-provider),
     then falls back to direct Groq, then returns raw PLC data.
+
+    Returns (diagnosis_text, list_of_source_ids).
     """
     t0 = time.monotonic()
-    kb_context = _retrieve_kb_context(question)
+    kb_context, kb_sources = _retrieve_kb_context(question)
     prompt = _build_diagnosis_prompt(question, plc_context, kb_context)
 
     # Try router first, then direct Groq
@@ -292,10 +300,10 @@ def ask_llm(question: str, plc_context: str) -> str:
     elapsed_ms = int((time.monotonic() - t0) * 1000)
     if result:
         logger.info("LLM diagnosis completed in %dms", elapsed_ms)
-        return result
+        return result, kb_sources
 
     logger.warning("All LLM providers failed (%dms), returning raw PLC data", elapsed_ms)
-    return f'[LLM unavailable — showing raw PLC data]\n\n{plc_context}'
+    return f'[LLM unavailable — showing raw PLC data]\n\n{plc_context}', []
 
 @app.get('/')
 async def root():
@@ -347,15 +355,16 @@ async def diagnose(request: DiagnosisRequest):
         plc_context = plc_data.get('plc_state', 'No PLC state available')
 
     # Get diagnosis from LLM (router -> Groq fallback -> raw data)
-    diagnosis = ask_llm(request.question, plc_context)
+    diagnosis, sources = ask_llm(request.question, plc_context)
 
     elapsed_ms = int((time.monotonic() - t0) * 1000)
-    logger.info("DIAGNOSE complete: %dms", elapsed_ms)
+    logger.info("DIAGNOSE complete: %dms, sources=%d", elapsed_ms, len(sources))
 
     return DiagnosisResponse(
         question=request.question,
         diagnosis=diagnosis,
         plc_data=plc_data,
+        sources=sources,
         timestamp=datetime.utcnow().isoformat(),
         latency_ms=elapsed_ms,
     )
