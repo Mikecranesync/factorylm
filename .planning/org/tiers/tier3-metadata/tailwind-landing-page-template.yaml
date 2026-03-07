@@ -1,0 +1,23 @@
+meta:
+  repo: tailwind-landing-page-template
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/tailwind-landing-page-template
+  one_line: 'Simple Light is a free landing page template built on top of TailwindCSS and fully coded in React / Next.js.
+    Made by '
+  primary_language: TypeScript
+  is_fork: true
+  is_archived: false
+  last_pushed: '2025-12-12T08:54:32Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- frontend
+- fork
+outcomes: []
+consolidation:
+  status: deletable
+  merged_into: null
+  overlaps_with: []
+  notes: Pure fork, 0 custom commits.

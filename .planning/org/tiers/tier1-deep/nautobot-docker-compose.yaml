@@ -1,0 +1,277 @@
+meta:
+  repo: nautobot-docker-compose
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/nautobot-docker-compose
+  one_line: Fork of Nautobot Docker Compose with custom tools for FactoryLM industrial cluster network management and auto-discovery
+  primary_language: Python
+  is_fork: true
+  is_archived: false
+  last_pushed: '2026-03-03T17:46:24Z'
+  tier: 1
+  mapped_at: '2026-03-06'
+  local_path: /Users/charlienode/nautobot-docker-compose
+categories:
+- network-management
+- industrial-automation
+- infrastructure
+- fork
+outcomes:
+- Runs Nautobot DCIM/IPAM as the network source of truth for the FactoryLM cluster
+- Auto-discovers and seeds 14 devices (PLCs, servers, VPSes, mobile) with IPs, interfaces, and Tailscale overlay
+- Continuously monitors device/service health and syncs status to Nautobot
+- Regenerates network-topology.md from live Nautobot data for cluster memory
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: Infrastructure tool, cluster health monitor.
+file_tree:
+  total_files: 43
+  total_lines: 3428
+  by_extension:
+    py: 7
+    yml: 10
+    yaml: 1
+    toml: 2
+    md: 4
+    env: 4
+    json: 1
+    Dockerfile: 2
+    other: 12
+  key_dirs:
+  - tools/
+  - environments/
+  - config/
+  - plugins/
+  - jobs/
+  - docs/
+  - .github/
+  - logs/
+parts:
+- name: Custom Cluster Tools
+  outcome: Six Python scripts that seed, scan, monitor, and verify the FactoryLM industrial network topology in Nautobot
+  chapters:
+  - name: Topology Seeding
+    outcome: Bootstraps Nautobot with the full FactoryLM device inventory, IP addresses, interfaces, and metadata
+    files:
+    - path: tools/seed_topology.py
+      kind: core-lib
+      outcome: Seeds initial 5-device LAN topology (charlie, pi-factory, micro820-1, gs10-vfd-1, sg605-sw-1) with interfaces,
+        IPs, manufacturer/device-type/role records, and the 192.168.1.0/24 prefix
+      lines: 311
+    - path: tools/seed_full_topology.py
+      kind: core-lib
+      outcome: Seeds full 14-device topology across LAN, Tailscale, cloud, and mobile locations; fixes gs10-vfd-1 bad IP;
+        creates Tailscale namespace/prefix; writes service comments on every device
+      lines: 518
+  - name: Health Monitoring
+    outcome: Probes all cluster devices and services, updates Nautobot statuses, regenerates topology documentation
+    files:
+    - path: tools/health_monitor.py
+      kind: core-lib
+      outcome: Runs via launchd every 5 min on CHARLIE; pings/TCP-probes all 14 devices; patches Nautobot Active/Offline status
+        on change; regenerates /Users/Shared/cluster/betterclaw/memory/network-topology.md from Nautobot API data
+      lines: 393
+    - path: tools/scan_endpoints.py
+      kind: core-lib
+      outcome: TCP/HTTP probes every known service port across 6 devices (30+ services); creates/updates Nautobot IPAM service
+        records with dependency metadata and offline timestamps
+      lines: 388
+  - name: Network Discovery
+    outcome: Auto-discovers hosts on the LAN via nmap and syncs findings to Nautobot
+    files:
+    - path: tools/network_scan_to_nautobot.py
+      kind: core-lib
+      outcome: Runs nmap ping-scan on 192.168.1.0/24, compares live IPs to Nautobot inventory, updates device statuses, and
+        flags unknown hosts; designed for Pi edge node cron
+      lines: 184
+  - name: Verification
+    outcome: Automated test suite validating the Nautobot topology matches expected cluster state
+    files:
+    - path: tools/verify_nautobot.py
+      kind: test
+      outcome: Runs 20 deterministic tests verifying device count, IP assignments, interface presence, topology file completeness,
+        and service comments against Nautobot API
+      lines: 215
+- name: Docker Compose Infrastructure
+  outcome: Defines container stack (Nautobot, Celery, Redis, PostgreSQL/MySQL) with build, env, and compose layering
+  chapters:
+  - name: Compose Definitions
+    outcome: Layered Docker Compose files for base services, database backends, LDAP, and local development overrides
+    files:
+    - path: environments/docker-compose.base.yml
+      kind: devops
+      outcome: Defines Nautobot app, Celery worker, Celery beat, and Redis services with health checks and YAML anchors for
+        reuse
+      lines: 66
+    - path: environments/docker-compose.postgres.yml
+      kind: devops
+      outcome: Starts PostgreSQL 13 with health check, persistent volume, and env-based credentials
+      lines: 21
+    - path: environments/docker-compose.mysql.yml
+      kind: devops
+      outcome: Alternative MySQL 8 database backend with SHA2 auth and persistent volume
+      lines: 35
+    - path: environments/docker-compose.local.yml
+      kind: devops
+      outcome: 'Local development overrides: exposes port 8443, mounts config and jobs as volumes, adjusts health check'
+      lines: 19
+    - path: environments/docker-compose.ldap.yml
+      kind: devops
+      outcome: LDAP variant of base compose file pointing to Dockerfile-LDAP for Active Directory auth
+      lines: 66
+  - name: Dockerfiles
+    outcome: Multi-stage builds for Nautobot container images with optional LDAP support
+    files:
+    - path: environments/Dockerfile
+      kind: devops
+      outcome: 'Multi-stage Dockerfile: builds from nautobot-dev image, installs Poetry deps, copies jobs and config, produces
+        final nautobot image with pyuwsgi SSL verification'
+      lines: 70
+    - path: environments/Dockerfile-LDAP
+      kind: devops
+      outcome: 'LDAP variant Dockerfile: adds libldap2-dev/libsasl2-dev, installs django-auth-ldap, builds and installs all
+        plugins as wheels'
+      lines: 76
+  - name: Environment Files
+    outcome: Configuration and secrets for Docker container runtime
+    files:
+    - path: environments/local.env
+      kind: config
+      outcome: 'Live local env for CHARLIE node: sets banner to ''FactoryLM - CHARLIE Node'', enables debug/metrics, configures
+        DB and Redis hosts'
+      lines: 23
+    - path: environments/local.example.env
+      kind: config
+      outcome: Template local env with placeholder values, LDAP vars, and MySQL settings for new deployments
+      lines: 39
+    - path: environments/creds.env
+      kind: config
+      outcome: 'Live credentials: DB password, Redis password, secret key, superuser account, and API token for FactoryLM
+        Nautobot instance'
+      lines: 17
+    - path: environments/creds.example.env
+      kind: config
+      outcome: Template credentials file with 'changeme' placeholders for safe git distribution
+      lines: 24
+- name: Invoke Task Runner
+  outcome: Python-based CLI (Invoke) providing build, start, stop, migrate, db-export/import, and shell commands for Nautobot
+  chapters:
+  - name: Task Definitions
+    outcome: All invoke tasks for managing the Nautobot Docker environment
+    files:
+    - path: tasks.py
+      kind: entrypoint
+      outcome: Defines 14 invoke tasks (build, debug, start, restart, stop, destroy, nbshell, cli, createsuperuser, migrate,
+        post_upgrade, import_nautobot_data, db_export, db_import) wrapping docker compose commands with project config
+      lines: 292
+  - name: Invoke Configuration
+    outcome: YAML config files selecting compose file layers and Python version for invoke tasks
+    files:
+    - path: invoke.yml
+      kind: config
+      outcome: 'Active invoke config: project name ''nautobot'', Python 3.12, PostgreSQL compose stack'
+      lines: 10
+    - path: invoke.example.yml
+      kind: config
+      outcome: Example invoke config template with default project name and PostgreSQL stack
+      lines: 10
+    - path: invoke.ldap.yml
+      kind: config
+      outcome: Invoke config variant selecting the LDAP compose file instead of base
+      lines: 10
+    - path: invoke.mysql.yml
+      kind: config
+      outcome: Invoke config variant selecting MySQL compose file instead of PostgreSQL
+      lines: 10
+- name: Nautobot Configuration
+  outcome: Django settings and plugin scaffold for Nautobot application behavior
+  chapters:
+  - name: Django Settings
+    outcome: Nautobot config files for standard and LDAP-enabled deployments
+    files:
+    - path: config/nautobot_config.py
+      kind: config
+      outcome: 'Standard Nautobot Django settings: debug toggle, Redis cacheops, empty plugin list'
+      lines: 44
+    - path: config/nautobot_config.py.ldap
+      kind: config
+      outcome: 'LDAP-enabled Nautobot settings: adds django_auth_ldap backend, AD bind config, user search/mapping'
+      lines: 96
+  - name: Example Plugin
+    outcome: Skeleton Nautobot plugin demonstrating plugin development pattern
+    files:
+    - path: plugins/plugin_example/nautobot_example_plugin/__init__.py
+      kind: core-lib
+      outcome: Minimal PluginConfig subclass registering nautobot_example_plugin with version 0.1.1
+      lines: 21
+    - path: plugins/plugin_example/pyproject.toml
+      kind: config
+      outcome: 'Plugin Poetry config: depends on nautobot and nautobot-device-onboarding, includes dev tooling (black, pylint,
+        pytest)'
+      lines: 48
+  - name: Jobs
+    outcome: Empty Nautobot jobs package placeholder
+    files:
+    - path: jobs/__init__.py
+      kind: init
+      outcome: Empty init file for Nautobot custom jobs directory
+      lines: 1
+- name: Project Metadata and CI
+  outcome: Repository configuration, CI pipeline, and documentation
+  chapters:
+  - name: CI and Linting
+    outcome: GitHub Actions CI and YAML linting configuration
+    files:
+    - path: .github/workflows/ci.yml
+      kind: ci
+      outcome: GitHub Actions workflow running yamllint on push and pull_request events
+      lines: 20
+    - path: .github/CODEOWNERS
+      kind: config
+      outcome: Sets upstream maintainers (jvanderaa, jdrew82) as default code owners
+      lines: 2
+    - path: .yamllint.yml
+      kind: config
+      outcome: 'YAML lint rules: double-quoted strings, consistent indent-sequences, line-length disabled'
+      lines: 9
+  - name: Project Files
+    outcome: Package definition, dependency lock, and repo hygiene
+    files:
+    - path: pyproject.toml
+      kind: config
+      outcome: 'Root Poetry config: nautobot 2.4.20, Python 3.10-3.12, dev deps invoke+toml'
+      lines: 21
+    - path: renovate.json
+      kind: config
+      outcome: Renovate bot config (schema reference only, no custom rules)
+      lines: 3
+    - path: .gitignore
+      kind: config
+      outcome: Comprehensive gitignore covering Python, Django, macOS, Windows, JetBrains, VSCode; excludes creds.env and
+        invoke.yml
+      lines: 305
+    - path: .dockerignore
+      kind: config
+      outcome: 'Docker build context exclusions: compose files, env files, docs, git, logs, tasks.py'
+      lines: 26
+  - name: Documentation
+    outcome: Setup guides for Nautobot deployment, SSL, LDAP, and plugins
+    files:
+    - path: README.md
+      kind: docs
+      outcome: 'Comprehensive setup guide: Docker/Poetry install, quick start, invoke CLI reference, MySQL/LDAP/plugin setup,
+        superuser creation'
+      lines: 240
+    - path: docs/create_ssl_cert.md
+      kind: docs
+      outcome: Step-by-step guide for generating self-signed SSL certificates for Nautobot NGINX
+      lines: 63
+    - path: docs/ldap.md
+      kind: docs
+      outcome: 'LDAP integration setup: Dockerfile-LDAP usage, config file swap, environment variables'
+      lines: 41
+    - path: docs/plugins.md
+      kind: docs
+      outcome: 'Plugin installation guide: pyproject.toml edits, config file updates, Poetry rebuild steps'
+      lines: 81

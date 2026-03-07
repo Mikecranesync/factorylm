@@ -1,0 +1,32 @@
+meta:
+  repo: factorylm-cmms
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/factorylm-cmms
+  one_line: ISO 55000 compliant CMMS — GitHub-native maintenance management for industrial teams
+  primary_language: null
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:23Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- ai
+- maintenance
+outcomes:
+- ISO 55000 compliant CMMS — GitHub-native maintenance management for industrial teams
+consolidation:
+  status: deprecated
+  merged_into: null
+  overlaps_with:
+  - cmms
+  - factorylm
+  notes: GitHub Issues CMMS experiment, superseded by apps/cmms/ in monolith.
+file_tree:
+  total_files: 5
+  by_extension:
+    md: 3
+    yml: 2
+  key_dirs:
+  - .github/

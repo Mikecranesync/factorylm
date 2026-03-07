@@ -1,0 +1,38 @@
+meta:
+  repo: CodeBang
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/CodeBang
+  one_line: 'DevCTO Agent: Self-improving AI DevOps system that learns best practices, maintains codebases, and generates
+    applications from specifications using a digest → analyze → act → learn loop.'
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:20Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+outcomes:
+- '**🔍 Analyzes** them against a knowledge base of proven patterns'
+- 1. DIGEST                    2. ANALYZE
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: DevCTO agent.
+file_tree:
+  total_files: 21
+  by_extension:
+    md: 10
+    py: 3
+    sh: 3
+    yml: 2
+    json: 1
+    example: 1
+    (no ext): 1
+  key_dirs:
+  - docs/
+  - scripts/
+  - .github/
+  - .claude/

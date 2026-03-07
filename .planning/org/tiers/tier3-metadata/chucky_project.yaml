@@ -1,0 +1,20 @@
+meta:
+  repo: chucky_project
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/chucky_project
+  one_line: (no description — needs manual review)
+  primary_language: PLpgSQL
+  is_fork: false
+  is_archived: true
+  last_pushed: '2025-11-05T23:43:46Z'
+  tier: 3
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- archived
+outcomes: []
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with: []
+  notes: ''

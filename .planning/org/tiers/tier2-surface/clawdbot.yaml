@@ -1,0 +1,52 @@
+meta:
+  repo: clawdbot
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/clawdbot
+  one_line: 'Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞 '
+  primary_language: TypeScript
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:27Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- ai
+- personal-ai
+outcomes:
+- 'Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞 '
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with:
+  - openclaw
+  - jarvis-core
+  - jarvis-unified
+  notes: Personal AI assistant.
+file_tree:
+  total_files: 4433
+  by_extension:
+    ts: 3074
+    swift: 437
+    md: 421
+    json: 97
+    prose: 64
+    kt: 63
+    sh: 47
+    png: 43
+    (no ext): 36
+    yml: 27
+    css: 15
+    js: 14
+    jpg: 11
+    yaml: 10
+    xml: 10
+  key_dirs:
+  - src/
+  - apps/
+  - extensions/
+  - docs/
+  - vendor/
+  - ui/
+  - scripts/
+  - skills/

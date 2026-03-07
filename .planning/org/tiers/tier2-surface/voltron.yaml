@@ -1,0 +1,49 @@
+meta:
+  repo: voltron
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/voltron
+  one_line: Distributed industrial AI system — edge gateways, central Matrix controller, LLM routing
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:12Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- ai
+- messaging
+outcomes:
+- Read-only enforced   Offline-first      /health /metrics    UNIQUE constraints
+consolidation:
+  status: deprecated
+  merged_into: null
+  overlaps_with: []
+  notes: Superseded by factorylm-cosmos-cookoff. Archive candidate.
+file_tree:
+  total_files: 157
+  by_extension:
+    py: 96
+    md: 25
+    yaml: 12
+    ps1: 4
+    sh: 4
+    yml: 3
+    html: 3
+    service: 3
+    sql: 2
+    (no ext): 1
+    spec: 1
+    iss: 1
+    toml: 1
+    bat: 1
+  key_dirs:
+  - matrix/
+  - tests/
+  - docs/
+  - node/
+  - scripts/
+  - config/
+  - node_installer/
+  - shared/

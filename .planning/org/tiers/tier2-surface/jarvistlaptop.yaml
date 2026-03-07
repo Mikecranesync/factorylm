@@ -1,0 +1,47 @@
+meta:
+  repo: JarvisTLaptop
+  org: Mikecranesync
+  url: https://github.com/Mikecranesync/JarvisTLaptop
+  one_line: Jarvis Telegram Bot - Factory troubleshooting via Telegram with Groq/Claude AI, photo diagnosis, voice transcription
+  primary_language: Python
+  is_fork: false
+  is_archived: false
+  last_pushed: '2026-03-03T07:22:09Z'
+  tier: 2
+  mapped_at: '2026-03-06'
+  local_path: null
+categories:
+- industrial
+- ai
+- personal-ai
+- messaging
+outcomes:
+- '**Puppeteer Bot** — Photo diagnosis (Gemini vision), voice commands, work order creation'
+- '**Claude Bridge** — Routes text to Claude CLI subprocess'
+- '| 1 | Photo Diagnosis | Send a photo |'
+consolidation:
+  status: standalone
+  merged_into: null
+  overlaps_with:
+  - factorylm
+  - jarvis-core
+  - pi-factory-cosmos
+  notes: Telegram bot with photo diagnosis — overlaps monolith telegram service and pi-factory-cosmos fault detection.
+file_tree:
+  total_files: 23
+  by_extension:
+    py: 13
+    (no ext): 2
+    md: 2
+    example: 1
+    yml: 1
+    json: 1
+    txt: 1
+    sh: 1
+    service: 1
+  key_dirs:
+  - handlers/
+  - integrations/
+  - .github/
+  - scripts/
+  - systemd/
