@@ -64,6 +64,8 @@ Before doing ANY work, read the FactoryLM Vision:
 
 That document IS the architecture. Do not propose ideas that contradict it.
 
+> **System Spec:** See [`docs/specs/factorylm-system-spec-v1.md`](docs/specs/factorylm-system-spec-v1.md) for the detailed V1+ target architecture (milestones, KB standards, anti-regression). Status: Draft.
+
 ## Quick Reference
 
 ### The Stack (Layer 0-3)
@@ -75,6 +77,8 @@ That document IS the architecture. Do not propose ideas that contradict it.
 ### Key Principle
 Intelligence flows DOWNWARD. Convert Layer 3 answers into Layer 0 code over time.
 
+> **Target Architecture (V1+):** The visual workflow requirement and 5-layer model are defined in [`docs/specs/factorylm-system-spec-v1.md`](docs/specs/factorylm-system-spec-v1.md) — not enforced today, but the direction we're heading.
+
 ### Interfaces (Priority Order)
 1. WhatsApp (PRIMARY)
 2. Phone
@@ -85,6 +89,36 @@ Intelligence flows DOWNWARD. Convert Layer 3 answers into Layer 0 code over time
 ### The Rule
 When Mike says "update the README" → Update the VISION.
 Everything references the vision. One source of truth.
+
+---
+
+## V0-V3 Phased Milestones
+
+*Target architecture — see [full spec](docs/specs/factorylm-system-spec-v1.md) for detail.*
+
+- **V0: Resurrection** — Audit codebase, map what exists, reconnect broken services, establish baselines
+- **V1: Solo Technician** — One tech queries via Telegram, gets sourced answers from KB + LLM fallback
+- **V2: Machine Awareness** — Live PLC data from Conveyor of Destiny feeds context into responses
+- **V3: Agentic Programming** — System proposes PLC logic changes; human approves before execution
+
+---
+
+## Knowledge Base Standards
+
+- All docs chunked semantically before embedding (not page-level, not raw-dump)
+- Persistent vector DB with metadata: source, date, equipment type, technician
+- Every response must cite sources — no unsourced answers
+- No document silently discarded — log as `pending` if processing fails
+- Knowledge compounds: every interaction feeds back into the KB
+
+---
+
+## Anti-Regression Principles
+
+- **Drift is a defect** — unauthorized behavior changes are bugs, not features
+- Every layer has acceptance criteria defined in the [system spec](docs/specs/factorylm-system-spec-v1.md)
+- Previously passing tests must continue to pass — no silent regressions
+- Benchmark questions with expected output criteria validate behavior across releases
 
 ---
 
