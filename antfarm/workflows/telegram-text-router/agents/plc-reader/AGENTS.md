@@ -1,12 +1,14 @@
 # PLC State Reader Agent
 
 ## Role
-Read live PLC I/O state from the plc-modbus API on the PLC laptop (100.72.2.99).
+Read live PLC I/O state from the plc-modbus API on the PLC laptop (`{{PLC_MODBUS_URL}}`).
 
 ## API Endpoints
-- `GET http://100.72.2.99:8001/api/plc/io` — Full I/O read (coils + registers)
-- `GET http://100.72.2.99:8001/api/plc/status` — Connection status
-- `GET http://100.72.2.99:8001/api/health` — Service health
+- `GET {{PLC_MODBUS_URL}}/api/plc/io` — Full I/O read (coils + registers)
+- `GET {{PLC_MODBUS_URL}}/api/plc/status` — Connection status
+- `GET {{PLC_MODBUS_URL}}/api/health` — Service health
+
+Default: `PLC_MODBUS_URL=http://100.72.2.99:8001` (see `env_defaults` in workflow.yml)
 
 ## Modbus Address Map (From A to B scene)
 

@@ -136,14 +136,14 @@ steps:
       For TROUBLESHOOT with active session, skip (TreeRunner has its own context).
 
       PLC Modbus API (PLC laptop via Tailscale):
-        - Full I/O: GET http://100.72.2.99:8001/api/plc/io
-        - Status:   GET http://100.72.2.99:8001/api/plc/status
+        - Full I/O: GET {{PLC_MODBUS_URL}}/api/plc/io
+        - Status:   GET {{PLC_MODBUS_URL}}/api/plc/status
 
       Health checks (for STATUS intent only):
-        - PLC Modbus API:     GET http://100.72.2.99:8001/api/health
-        - Diagnosis service:  GET http://100.68.120.99:8200/health
-        - Jarvis (PLC):       GET http://100.72.2.99:8765/health
-        - Jarvis (Travel):    GET http://100.83.251.23:8765/health
+        - PLC Modbus API:     GET {{PLC_MODBUS_URL}}/api/health
+        - Diagnosis service:  GET {{DIAGNOSIS_URL}}/health
+        - Jarvis (PLC):       GET {{PLC_LAPTOP_URL}}/health
+        - Jarvis (Travel):    GET {{TRAVEL_LAPTOP_URL}}/health
 
       Format PLC data using Modbus address map:
         Coils 0-4:  Conveyor, Emitter, SensorStart, SensorEnd, RunCommand
@@ -184,7 +184,7 @@ steps:
       Has active session: {{HAS_ACTIVE_SESSION}}
 
       === DIAGNOSE ===
-      POST http://100.68.120.99:8200/diagnose
+      POST {{DIAGNOSIS_URL}}/diagnose
       Body: {"question": "{{ORIGINAL_TEXT}}"}
       Returns: {question, diagnosis, plc_data, sources, timestamp, latency_ms}
       The service internally reads PLC + searches Mem0 KB + calls LLM.
@@ -319,21 +319,26 @@ triggers:
     description: Manual trigger for testing intent routing
 
 integration:
+  env_defaults:
+    PLC_MODBUS_URL: "http://100.72.2.99:8001"
+    DIAGNOSIS_URL: "http://100.68.120.99:8200"
+    PLC_LAPTOP_URL: "http://100.72.2.99:8765"
+    TRAVEL_LAPTOP_URL: "http://100.83.251.23:8765"
   services:
     diagnosis_service:
-      url: "http://100.68.120.99:8200"
+      url: "{{DIAGNOSIS_URL}}"
       endpoints:
         - POST /diagnose
         - GET /health
     plc_modbus_api:
-      url: "http://100.72.2.99:8001"
+      url: "{{PLC_MODBUS_URL}}"
       endpoints:
         - GET /api/plc/io
         - GET /api/plc/status
         - GET /api/health
     jarvis_nodes:
-      plc_laptop: "http://100.72.2.99:8765"
-      travel_laptop: "http://100.83.251.23:8765"
+      plc_laptop: "{{PLC_LAPTOP_URL}}"
+      travel_laptop: "{{TRAVEL_LAPTOP_URL}}"
     brain:
       module: services.brain.config
       client: get_memory()

@@ -6,7 +6,7 @@ Route the classified intent to the correct backend service and return its respon
 ## Routing Table
 
 ### DIAGNOSE
-**Endpoint:** `POST http://100.68.120.99:8200/diagnose`
+**Endpoint:** `POST {{DIAGNOSIS_URL}}/diagnose`
 **Body:** `{"question": "<user text>"}`
 **Returns:** `{question, diagnosis, plc_data, sources, timestamp, latency_ms}`
 
@@ -22,10 +22,10 @@ Format PLC_STATE_HUMAN directly as a readable message. No external service call 
 
 ### STATUS
 Check health of all services and report Online/OFFLINE for each:
-- PLC Modbus API: `GET http://100.72.2.99:8001/api/health`
-- Diagnosis Service: `GET http://100.68.120.99:8200/health`
-- Jarvis Node (PLC): `GET http://100.72.2.99:8765/health`
-- Jarvis Node (Travel): `GET http://100.83.251.23:8765/health`
+- PLC Modbus API: `GET {{PLC_MODBUS_URL}}/api/health`
+- Diagnosis Service: `GET {{DIAGNOSIS_URL}}/health`
+- Jarvis Node (PLC): `GET {{PLC_LAPTOP_URL}}/health`
+- Jarvis Node (Travel): `GET {{TRAVEL_LAPTOP_URL}}/health`
 
 ### TROUBLESHOOT
 **Engine:** `openclaw/troubleshoot/engine.py` — `TreeRunner`
