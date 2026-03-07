@@ -54,6 +54,10 @@ INTENT_PATTERNS: dict[str, list[str]] = {
         "error",
         "alarm",
         "trip",
+        "noise",
+        "vibrat",
+        "overheat",
+        "leak",
     ],
     Intent.STATUS: [
         "status",
