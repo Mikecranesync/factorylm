@@ -5,12 +5,14 @@ Deterministic tests for the V1 milestone components:
 1. Intent classification (keyword stage)
 2. KB chunking (semantic splitter)
 3. Diagnosis prompt construction with source citations
+4. LLM fallback path coverage
 
 Run with: pytest tests/test_v1_benchmark.py -v
 """
 
 import sys
 from pathlib import Path
+from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -23,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # ---------------------------------------------------------------------------
 
 from openclaw.types import Intent
-from openclaw.messages.intent import classify_intent, _keyword_classify
+from openclaw.messages.intent import classify_intent, _keyword_classify, _llm_classify
 
 
 class TestKeywordClassify:
@@ -296,3 +298,55 @@ class TestIntentGoldenSet:
     def test_golden_intent(self, text, has_photo, has_project, expected):
         result = classify_intent(text, has_photo=has_photo, has_active_project=has_project)
         assert result == expected, f"Expected {expected.value}, got {result.value} for: '{text}'"
+
+
+# ---------------------------------------------------------------------------
+# 5. LLM Fallback Path Coverage
+# ---------------------------------------------------------------------------
+
+
+def _mock_groq_response(intent_name: str, confidence: float = 0.9, status_code: int = 200):
+    """Build a mock requests.Response for Groq API."""
+    mock_resp = MagicMock()
+    mock_resp.status_code = status_code
+    mock_resp.json.return_value = {
+        "choices": [{"message": {"content": f'{{"intent": "{intent_name}", "confidence": {confidence}}}'}}]
+    }
+    return mock_resp
+
+
+class TestLLMFallback:
+    """Test the LLM fallback path in intent classification (no real API calls)."""
+
+    @patch.dict("os.environ", {"GROQ_API_KEY": "test-key"})
+    @patch("requests.post")
+    def test_ambiguous_input_triggers_llm_classify(self, mock_post):
+        """Ambiguous text with use_llm_fallback=True reaches the LLM path."""
+        mock_post.return_value = _mock_groq_response("DIAGNOSE")
+        # "the machine seems off" has no keyword hits
+        result = classify_intent("the machine seems off", use_llm_fallback=True)
+        assert mock_post.called, "_llm_classify was never called"
+        assert result == Intent.DIAGNOSE
+
+    @patch.dict("os.environ", {"GROQ_API_KEY": "test-key"})
+    @patch("requests.post")
+    def test_llm_classify_valid_response_used(self, mock_post):
+        """_llm_classify returns correct Intent from valid Groq response."""
+        mock_post.return_value = _mock_groq_response("TROUBLESHOOT", 0.85)
+        result = _llm_classify("can you help me with this pump")
+        assert result == Intent.TROUBLESHOOT
+
+    @patch.dict("os.environ", {"GROQ_API_KEY": "test-key"})
+    @patch("requests.post")
+    def test_llm_classify_garbage_response_falls_back_to_general(self, mock_post):
+        """Invalid intent name from LLM → None → classify_intent returns GENERAL."""
+        mock_post.return_value = _mock_groq_response("INVALID_INTENT_XYZ")
+        result = classify_intent("something ambiguous", use_llm_fallback=True)
+        assert result == Intent.GENERAL
+
+    @patch.dict("os.environ", {"GROQ_API_KEY": "test-key"})
+    @patch("requests.post", side_effect=Exception("connection timeout"))
+    def test_llm_classify_exception_no_crash(self, mock_post):
+        """LLM call exception → graceful fallback to GENERAL, no crash."""
+        result = classify_intent("something ambiguous here", use_llm_fallback=True)
+        assert result == Intent.GENERAL
