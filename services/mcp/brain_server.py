@@ -163,28 +163,29 @@ def brain_ingest_file(file_path: str, source: str = "repo", tags: list[str] = []
     """Ingest a file's contents into the brain.
 
     Use for .md knowledge files, code summaries, architecture docs, etc.
-    Large files are chunked by paragraphs (split on double newlines).
+    Files are chunked semantically (1000 chars, 200 overlap) with heading
+    and equipment metadata extracted per chunk.
     """
     try:
         mem = _get_memory()
     except RuntimeError as e:
         return {"error": str(e)}
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
-    # Chunk large files by paragraphs
-    chunks = [c.strip() for c in content.split("\n\n") if c.strip() and len(c.strip()) > 50]
+    from kb.chunker import chunk_file
+
+    chunks = chunk_file(file_path, extra_metadata={"tags": tags})
 
     if not chunks:
-        chunks = [content[:5000]]
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        mem.add(content[:5000], user_id="mike", metadata={"source": source, "file": file_path, "tags": tags})
+        return {"status": "ingested", "file": file_path, "chunks": 1}
 
     results = []
     for chunk in chunks:
-        result = mem.add(
-            chunk,
-            user_id="mike",
-            metadata={"source": source, "file": file_path, "tags": tags},
-        )
+        meta = {"source": source, "file": file_path, "tags": tags}
+        meta.update(chunk.metadata)
+        result = mem.add(chunk.text, user_id="mike", metadata=meta)
         results.append(result)
 
     return {"status": "ingested", "file": file_path, "chunks": len(chunks)}
