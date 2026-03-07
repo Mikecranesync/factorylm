@@ -27,6 +27,20 @@ This README IS the vision statement for FactoryLM.
 
 ---
 
+## Live Demo — Real Hardware Bench
+
+https://github.com/Mikecranesync/factorylm/raw/main/demos/conveyor_beginnings.mp4
+
+[![FactoryLM Conveyor Demo — Real PLC + VFD Hardware](https://github.com/Mikecranesync/factorylm/raw/main/demos/conveyor_thumbnail.jpg)](https://github.com/Mikecranesync/factorylm/raw/main/demos/conveyor_beginnings.mp4)
+
+> *Real Modbus/TCP PLC, Variable Frequency Drive, and hardwired button station — all controlled by FactoryLM edge AI running locally. No cloud required.*
+
+![FactoryLM conveyor live preview](demos/conveyor_preview.gif)
+
+> Full narrated walkthrough available — contact for access (12MB, exceeds GitHub inline limit)
+
+---
+
 ## Component Maturity
 
 This is the honest state of the codebase as of February 2026. Vision items appear in the Roadmap section below.
