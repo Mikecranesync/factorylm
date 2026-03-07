@@ -24,7 +24,7 @@ import httpx
 
 # ── Monorepo path so we can import the PLC drivers directly ──
 _MONOREPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
-sys.path.insert(0, os.path.join(_MONOREPO, "packages", "factorylm-cli", "src"))
+sys.path.insert(0, os.path.join(_MONOREPO, "docs", "archive", "factorylm-cli", "src"))
 
 from nicegui import app, run, ui  # noqa: E402
 
