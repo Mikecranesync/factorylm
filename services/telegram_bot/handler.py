@@ -37,15 +37,13 @@ from diagnosis.conveyor_faults import detect_faults, format_diagnosis_for_techni
 from diagnosis.prompts import build_diagnosis_prompt
 from services.telegram_bot.prompts import build_system_prompt, HELP_TEXT
 from services.telegram_bot.work_orders import WorkOrderStore
+from core.src.factorylm.llm.client import async_diagnose
 
 logger = logging.getLogger(__name__)
 
 # --- Configuration ---
 PLC_MODBUS_URL = os.getenv("PLC_MODBUS_URL", "http://100.72.2.99:8001")
 MATRIX_API_URL = os.getenv("MATRIX_API_URL", "http://100.72.2.99:8000")
-LLM_ROUTER_URL = os.getenv("LLM_ROUTER_URL", "http://localhost:8100")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 MAX_HISTORY = 10  # messages per user to keep in context
 
 
@@ -132,50 +130,9 @@ async def get_recent_incidents(limit: int = 5) -> str:
 
 
 async def ask_llm(system_prompt: str, messages: List[dict]) -> str:
-    """Send conversation to LLM. Tries router first, then direct Groq."""
-    llm_messages = [{"role": "system", "content": system_prompt}] + messages
-
-    # Try LLM Router
-    try:
-        r = await http_client.post(
-            f"{LLM_ROUTER_URL}/v1/chat/completions",
-            json={
-                "model": "auto",
-                "task_type": "fast",
-                "messages": llm_messages,
-                "max_tokens": 400,
-                "temperature": 0.3,
-            },
-        )
-        if r.status_code == 200:
-            return r.json()["choices"][0]["message"]["content"]
-        logger.warning("LLM router returned %d", r.status_code)
-    except Exception as e:
-        logger.warning("LLM router unreachable: %s", e)
-
-    # Fallback: direct Groq
-    if GROQ_API_KEY:
-        try:
-            r = await http_client.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {GROQ_API_KEY}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": GROQ_MODEL,
-                    "messages": llm_messages,
-                    "max_tokens": 400,
-                    "temperature": 0.3,
-                },
-            )
-            if r.status_code == 200:
-                return r.json()["choices"][0]["message"]["content"]
-            logger.error("Groq returned %d: %s", r.status_code, r.text[:200])
-        except Exception as e:
-            logger.error("Groq failed: %s", e)
-
-    return "I'm having trouble reaching the AI service right now. Try again in a moment."
+    """Send conversation to LLM via LiteLLM Proxy. Fallbacks handled by proxy config."""
+    result = await async_diagnose(system_prompt, messages)
+    return result or "I'm having trouble reaching the AI service right now. Try again in a moment."
 
 
 def extract_actions(response: str) -> tuple[str, Optional[str]]:

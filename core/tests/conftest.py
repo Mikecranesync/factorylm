@@ -11,9 +11,8 @@ from unittest.mock import MagicMock, patch
 
 
 # Set test environment variables before imports
-os.environ.setdefault("LLM_PROVIDER", "groq")
-os.environ.setdefault("LLM_API_KEY", "test-api-key-for-testing")
-os.environ.setdefault("LLM_MODEL", "mixtral-8x7b-32768")
+os.environ.setdefault("LLM_PROVIDER", "litellm")
+os.environ.setdefault("LLM_API_KEY", "sk-factorylm")
 os.environ.setdefault("LOG_LEVEL", "DEBUG")
 os.environ.setdefault("DEBUG", "true")
 
@@ -40,11 +39,11 @@ def sample_machine_state() -> Dict[str, Any]:
 def sample_machine_state_with_issues() -> Dict[str, Any]:
     """Provide a machine state with issues for testing."""
     return {
-        "temperature": 250.0,  # High temperature
-        "pressure_psi": 120.0,  # High pressure
-        "rpm": 0,  # Motor stopped
+        "temperature": 250.0,
+        "pressure_psi": 120.0,
+        "rpm": 0,
         "motor_current": 0.0,
-        "vibration_hz": 150,  # High vibration
+        "vibration_hz": 150,
         "status": "fault",
         "alarms": ["HIGH_TEMP", "HIGH_PRESSURE", "MOTOR_FAULT"],
         "error_code": "E-501",
@@ -67,8 +66,8 @@ def sample_messages():
 
 
 @pytest.fixture
-def mock_groq_response():
-    """Create a mock GROQ API response."""
+def mock_llm_response():
+    """Create a mock OpenAI-compatible LLM response (as returned by LiteLLM Proxy)."""
     response = MagicMock()
     response.choices = [
         MagicMock(
@@ -81,71 +80,24 @@ def mock_groq_response():
         prompt_tokens=100,
         completion_tokens=50,
     )
-    response.model = "mixtral-8x7b-32768"
+    response.model = "deepseek-main"
     return response
 
 
 @pytest.fixture
-def mock_deepseek_response():
-    """Create a mock DeepSeek API response."""
-    response = MagicMock()
-    response.choices = [
-        MagicMock(
-            message=MagicMock(content="Analysis complete. No issues detected."),
-            finish_reason="stop",
-        )
-    ]
-    response.usage = MagicMock(
-        total_tokens=120,
-        prompt_tokens=80,
-        completion_tokens=40,
-    )
-    response.model = "deepseek-chat"
-    return response
+def mock_litellm_client(mock_llm_response):
+    """Mock the shared LiteLLM client."""
+    with patch("factorylm.llm.client.llm_client") as mock_client:
+        mock_client.chat.completions.create.return_value = mock_llm_response
+        yield mock_client
 
 
 @pytest.fixture
-def mock_claude_response():
-    """Create a mock Claude API response."""
-    response = MagicMock()
-    response.content = [MagicMock(text="The system appears to be operating normally.")]
-    response.usage = MagicMock(
-        input_tokens=100,
-        output_tokens=30,
-    )
-    response.model = "claude-3-sonnet-20240229"
-    response.stop_reason = "end_turn"
-    return response
-
-
-@pytest.fixture
-def mock_groq_client(mock_groq_response):
-    """Create a mock GROQ client."""
-    with patch("factorylm.llm.groq_client.Groq") as mock_class:
-        mock_instance = MagicMock()
-        mock_instance.chat.completions.create.return_value = mock_groq_response
-        mock_class.return_value = mock_instance
-        yield mock_class
-
-
-@pytest.fixture
-def mock_openai_client(mock_deepseek_response):
-    """Create a mock OpenAI client (for DeepSeek)."""
-    with patch("factorylm.llm.deepseek_client.OpenAI") as mock_class:
-        mock_instance = MagicMock()
-        mock_instance.chat.completions.create.return_value = mock_deepseek_response
-        mock_class.return_value = mock_instance
-        yield mock_class
-
-
-@pytest.fixture
-def mock_anthropic_client(mock_claude_response):
-    """Create a mock Anthropic client."""
-    with patch("factorylm.llm.claude_client.Anthropic") as mock_class:
-        mock_instance = MagicMock()
-        mock_instance.messages.create.return_value = mock_claude_response
-        mock_class.return_value = mock_instance
-        yield mock_class
+def mock_litellm_async_client(mock_llm_response):
+    """Mock the shared async LiteLLM client."""
+    with patch("factorylm.llm.client.llm_async_client") as mock_client:
+        mock_client.chat.completions.create.return_value = mock_llm_response
+        yield mock_client
 
 
 @pytest.fixture

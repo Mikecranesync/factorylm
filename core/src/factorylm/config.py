@@ -17,21 +17,24 @@ except ImportError:
     DOTENV_AVAILABLE = False
 
 
-# Valid LLM providers
-# - groq:     Free tier, fast inference (https://console.groq.com)
-# - deepseek: Budget option, good for code tasks (https://platform.deepseek.com)
-# - claude:   Anthropic, best reasoning (https://console.anthropic.com)
-# - flm:      FactoryLM's own industrial model (future / not yet available)
-VALID_PROVIDERS = ["groq", "deepseek", "claude", "flm"]
+# LiteLLM Proxy handles all model routing — these are the virtual model names
+# defined in config/litellm_config.yaml
+LITELLM_MODELS = {
+    "local-gemma": "Free local inference via Ollama (intent classification)",
+    "deepseek-main": "Primary workhorse — DeepSeek V3.2 ($0.28/1M tokens)",
+    "haiku-fallback": "Anthropic Haiku fallback",
+    "sonnet-vision": "Anthropic Sonnet for vision/image tasks",
+    "groq-emergency": "Groq free tier emergency fallback",
+}
 
-# Default models per provider
-# These should match what we actually use in production (OpenClaw bots, services).
-# Updated 2026-02-12 — see docs/Architecture.md for current model lineup.
+# Kept for backward compatibility — maps old provider names to LiteLLM model names
+VALID_PROVIDERS = ["groq", "deepseek", "claude", "flm", "litellm"]
 DEFAULT_MODELS = {
-    "groq": "llama-3.3-70b-versatile",       # Free tier, primary model across all bots
-    "deepseek": "deepseek-chat",              # Budget fallback, good for code generation
-    "claude": "claude-sonnet-4-20250514",     # Best reasoning, requires API key or Max sub
-    "flm": "flm-industrial-v1",              # Future — FactoryLM's own fine-tuned model
+    "groq": "groq-emergency",
+    "deepseek": "deepseek-main",
+    "claude": "haiku-fallback",
+    "flm": "deepseek-main",
+    "litellm": "deepseek-main",
 }
 
 

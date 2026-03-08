@@ -1,36 +1,64 @@
 # FactoryLM LiteLLM Proxy Configuration
-# Run: make litellm  (or: bash scripts/start_litellm.sh)
-# Add more providers later as accounts are funded.
+# Replaces custom llm-router service (~550 lines) with declarative YAML
+# Run: litellm --config config/litellm_config.yaml --port 4000
 
 model_list:
-  # --- Local: Free inference via Ollama (classification, intent) ---
+  # --- Tier 1: Free local inference (Ollama) ---
   - model_name: local-gemma
     litellm_params:
       model: ollama/gemma3:12b
       api_base: http://localhost:11434
 
-  # --- Cloud: Groq free tier (reasoning, diagnosis, operator Q&A) ---
-  - model_name: groq-main
+  # --- Tier 2: DeepSeek — primary workhorse ($0.28/1M tokens) ---
+  - model_name: deepseek-main
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+
+  # --- Tier 3: Haiku fallback ---
+  - model_name: haiku-fallback
+    litellm_params:
+      model: anthropic/claude-haiku-4-5-20251001
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # --- Tier 4: Sonnet — vision only ---
+  - model_name: sonnet-vision
+    litellm_params:
+      model: anthropic/claude-sonnet-4-20250514
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # --- Tier 5: Groq emergency free tier ---
+  - model_name: groq-emergency
     litellm_params:
       model: groq/llama-3.3-70b-versatile
       api_key: os.environ/GROQ_API_KEY
 
 litellm_settings:
-  # Fallback: groq -> local-gemma (degraded but functional)
+  # Fallback chain: DeepSeek -> Haiku -> Groq
   fallbacks:
-    - groq-main: [local-gemma]
+    - deepseek-main: [haiku-fallback, groq-emergency]
+    - haiku-fallback: [groq-emergency]
 
+  # Retry with exponential backoff
   num_retries: 2
   retry_after: 5
-  request_timeout: 30
-  drop_params: true
 
-  # Cache identical requests
+  # Request timeout
+  request_timeout: 30
+
+  # Enable cost tracking
+  success_callback: ["langfuse"]
+  max_budget: 50.0  # Monthly cap in USD
+
+  # Cache identical requests (saves money on repeated fault lookups)
   cache: true
   cache_params:
     type: local
-    ttl: 300
+    ttl: 300  # 5 minutes
+
+  # Drop unsupported params instead of erroring
+  drop_params: true
 
 general_settings:
   master_key: sk-factorylm
-  database_url: null
+  database_url: null  # No DB needed for v1 — in-memory tracking

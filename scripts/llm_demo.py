@@ -23,22 +23,16 @@ import sys
 # Load environment variables
 load_dotenv()
 
-# Try to import FactoryLM core (if installed)
+# LLM calls via LiteLLM Proxy
 try:
-    from factorylm import create_llm_client
-    HAS_FACTORYLM = True
+    from core.src.factorylm.llm.client import llm_client
+    HAS_LITELLM = True
 except ImportError:
-    HAS_FACTORYLM = False
-    try:
-        import groq
-        HAS_GROQ = True
-    except ImportError:
-        HAS_GROQ = False
+    HAS_LITELLM = False
 
 # Configuration from environment
 PLC_IP = os.getenv("PLC_HOST", "192.168.1.100")
 PLC_PORT = int(os.getenv("PLC_PORT", "502"))
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "groq")
 
 
 class FactoryState:
@@ -171,34 +165,21 @@ OPERATOR QUESTION: {question}
 Please analyze the current factory state and answer the operator's question.
 """
 
-    if HAS_FACTORYLM:
-        # Use FactoryLM abstraction
-        api_key = os.getenv("GROQ_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
-        llm = create_llm_client(LLM_PROVIDER, api_key)
-        response = llm.analyze_machine_state(question, state.to_dict())
-        return response.text
-
-    elif HAS_GROQ:
-        # Direct GROQ call
-        api_key = os.getenv("GROQ_API_KEY")
-        if not api_key:
-            return "Error: GROQ_API_KEY not set in environment"
-
-        client = groq.Groq(api_key=api_key)
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+    if HAS_LITELLM:
+        response = llm_client.chat.completions.create(
+            model="deepseek-main",
             messages=[
                 {"role": "system", "content": get_system_prompt()},
                 {"role": "user", "content": full_prompt}
             ],
-            temperature=0.3,  # Lower for more factual responses
-            max_tokens=500
+            temperature=0.3,
+            max_tokens=500,
         )
         return response.choices[0].message.content
 
     else:
-        return ("Error: No LLM client available. "
-                "Install factorylm-core or groq package and set API key.")
+        return ("Error: LiteLLM client not available. "
+                "Ensure LiteLLM Proxy is running on :4000 and openai package is installed.")
 
 
 def main():
@@ -231,10 +212,9 @@ def main():
     print("=" * 60)
 
     # Check for LLM availability
-    if not HAS_FACTORYLM and not HAS_GROQ:
-        print("\nWarning: No LLM client available!")
-        print("Install with: pip install groq")
-        print("Then set GROQ_API_KEY in .env file")
+    if not HAS_LITELLM:
+        print("\nWarning: LiteLLM client not available!")
+        print("Ensure LiteLLM Proxy is running: scripts/start_litellm.sh")
 
     # Initial state read
     demo_mode = args.demo
