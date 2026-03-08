@@ -46,8 +46,8 @@ litellm_settings:
   # Request timeout
   request_timeout: 30
 
-  # Enable cost tracking
-  success_callback: ["langfuse"]
+  # Cost tracking (add langfuse later: pip install langfuse)
+  # success_callback: ["langfuse"]
   max_budget: 50.0  # Monthly cap in USD
 
   # Cache identical requests (saves money on repeated fault lookups)
