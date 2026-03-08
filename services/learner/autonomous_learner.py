@@ -273,20 +273,81 @@ async def phase_3_curiosity(
 # Phase 4: Consolidation + KB Export
 # ---------------------------------------------------------------------------
 
-async def phase_4_consolidation(scene_id: int, ks: KnowledgeStore) -> dict:
-    """Summarize learnings, write to KB, export JSONL."""
+def export_training_jsonl(export: dict, scene_name: str, output_path: Path) -> int:
+    """Convert scene knowledge to JSONL training records for Qwen fine-tuning.
+
+    Returns number of records written.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    count = 0
+
+    instruction = (
+        "You are a Factory I/O automation expert. Given the PLC I/O state, "
+        "explain what happens when the specified output is activated."
+    )
+
+    for exp in export.get("experiments", []):
+        learning = exp.get("learning", "")
+        if not learning:
+            continue
+
+        before = exp.get("before_tags", {})
+        tag_delta = exp.get("tag_delta", {})
+        coil = exp.get("coil_name", exp.get("io_point", "unknown"))
+        exp_type = exp.get("experiment_type", "SingleCoilToggle")
+
+        # Build input description
+        before_str = ", ".join(f"{k}: {v}" for k, v in before.items()) if before else "unknown"
+        delta_str = ", ".join(
+            f"{k}: {v['old']} -> {v['new']}" for k, v in tag_delta.items()
+        ) if tag_delta else "no changes observed"
+
+        input_text = (
+            f"Scene: {scene_name}\n"
+            f"Experiment: {exp_type}\n"
+            f"Output: {coil}\n"
+            f"Before: {{{before_str}}}\n"
+            f"Tag changes: {delta_str}"
+        )
+
+        record = {
+            "instruction": instruction,
+            "input": input_text,
+            "output": learning,
+            "metadata": {
+                "scene": scene_name,
+                "experiment_id": exp.get("experiment_id", 0),
+                "confidence": exp.get("confidence", 0.0),
+                "verified": exp.get("verified", False),
+            },
+        }
+
+        with open(output_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        count += 1
+
+    return count
+
+
+async def phase_4_consolidation(scene_id: int, ks: KnowledgeStore,
+                                 training_config: Optional[dict] = None) -> dict:
+    """Summarize learnings, write to KB, export JSON + JSONL."""
     update_status(phase="consolidation", status="running")
 
     context = ks.to_prompt_context(scene_id)
     scene = ks.get_scene(scene_id)
     scene_name = scene["name"] if scene else f"scene_{scene_id}"
 
-    # Ask model to consolidate
-    result = await observer.consolidate_scene(context)
-    consolidation = result.get("content", "")
-    if consolidation:
-        ks.add_learning(scene_id, f"Scene summary: {consolidation[:500]}",
-                        confidence=0.9, category="behavior")
+    # Ask model to consolidate (degrades gracefully if LLM unavailable)
+    try:
+        result = await observer.consolidate_scene(context)
+        consolidation = result.get("content", "")
+        if consolidation:
+            ks.add_learning(scene_id, f"Scene summary: {consolidation[:500]}",
+                            confidence=0.9, category="behavior")
+    except Exception as exc:
+        logger.warning("Consolidation model unavailable: %s", exc)
+        consolidation = ""
 
     # Write unwritten learnings to KB
     unwritten = ks.get_unwritten_learnings(scene_id)
@@ -308,7 +369,7 @@ async def phase_4_consolidation(scene_id: int, ks: KnowledgeStore) -> dict:
             ks.mark_kb_written(learning["id"])
             kb_written += 1
 
-    # Export to JSONL
+    # Export knowledge JSON
     export = ks.export_scene_knowledge(scene_id)
     export_path = REPO_ROOT / "data" / "learner" / f"{scene_name.lower().replace(' ', '_')}_knowledge.json"
     export_path.parent.mkdir(parents=True, exist_ok=True)
@@ -316,8 +377,16 @@ async def phase_4_consolidation(scene_id: int, ks: KnowledgeStore) -> dict:
         json.dump(export, f, indent=2, default=str)
     logger.info("Exported knowledge to %s", export_path)
 
+    # Export JSONL training data
+    jsonl_count = 0
+    if training_config:
+        jsonl_path = REPO_ROOT / training_config.get("output_path", "data/training/qwen_plc_v1.jsonl")
+        jsonl_count = export_training_jsonl(export, scene_name, jsonl_path)
+        logger.info("Exported %d training records to %s", jsonl_count, jsonl_path)
+
     update_status(phase="consolidation", status="complete",
-                  kb_written=kb_written, export_path=str(export_path))
+                  kb_written=kb_written, export_path=str(export_path),
+                  training_records=jsonl_count)
 
     return export
 
@@ -329,7 +398,8 @@ async def phase_4_consolidation(scene_id: int, ks: KnowledgeStore) -> dict:
 async def run_scene(scene_name: str, ks: KnowledgeStore,
                     max_experiments: int = 100,
                     max_hours: float = 2.0,
-                    settle_time: float = 2.0) -> dict:
+                    settle_time: float = 2.0,
+                    training_config: Optional[dict] = None) -> dict:
     """Run the full 4-phase experiment loop on a single scene."""
     t_start = time.time()
     deadline = t_start + (max_hours * 3600)
@@ -371,7 +441,7 @@ async def run_scene(scene_name: str, ks: KnowledgeStore,
         all_results.extend(p3)
 
     # Phase 4
-    export = await phase_4_consolidation(scene_id, ks)
+    export = await phase_4_consolidation(scene_id, ks, training_config)
 
     elapsed = time.time() - t_start
     stats = export.get("stats", {})
@@ -390,14 +460,16 @@ async def run_scene(scene_name: str, ks: KnowledgeStore,
 
 async def run_all_scenes(scenes: list[str], ks: KnowledgeStore,
                           max_experiments: int = 100,
-                          max_hours: float = 2.0) -> list[dict]:
+                          max_hours: float = 2.0,
+                          training_config: Optional[dict] = None) -> list[dict]:
     """Run the learner across a queue of scenes."""
     results = []
     for i, scene_name in enumerate(scenes):
         logger.info("=== Scene %d/%d: %s ===", i + 1, len(scenes), scene_name)
         update_status(scene_index=i + 1, total_scenes=len(scenes))
 
-        result = await run_scene(scene_name, ks, max_experiments, max_hours)
+        result = await run_scene(scene_name, ks, max_experiments, max_hours,
+                                 training_config=training_config)
         results.append(result)
 
         # Cleanup between scenes
@@ -438,6 +510,19 @@ def main():
     config = load_config()
     learner_cfg = config.get("learner", {})
 
+    # Wire connection settings from config to module vars
+    conns = config.get("connections", {})
+    if conns.get("fio_api"):
+        sm.FIO_API_BASE = conns["fio_api"]
+    if conns.get("modbus_host"):
+        sm.MODBUS_HOST = conns["modbus_host"]
+    if conns.get("modbus_port"):
+        sm.MODBUS_PORT = int(conns["modbus_port"])
+    if conns.get("litellm_url"):
+        observer.LITELLM_URL = conns["litellm_url"]
+    if conns.get("vllm_url"):
+        observer.VLLM_URL = conns["vllm_url"]
+
     # Resolve settings (CLI > config > defaults)
     scenes = (
         [s.strip() for s in args.scenes.split(",")]
@@ -451,13 +536,18 @@ def main():
     # Init knowledge store
     ks = KnowledgeStore(db_path=args.db)
 
+    # Training export config
+    training_cfg = config.get("training_export")
+
     logger.info("Autonomous Scene Learner starting")
     logger.info("Scenes: %s", scenes)
     logger.info("Max experiments/scene: %d, Max hours/scene: %.1f", max_exp, max_hrs)
+    logger.info("Modbus: %s:%s | FIO API: %s", sm.MODBUS_HOST, sm.MODBUS_PORT, sm.FIO_API_BASE)
     logger.info("DB: %s", ks.db_path)
 
     # Run
-    results = asyncio.run(run_all_scenes(scenes, ks, max_exp, max_hrs))
+    results = asyncio.run(run_all_scenes(scenes, ks, max_exp, max_hrs,
+                                          training_config=training_cfg))
 
     # Summary
     print("\n" + "=" * 60)

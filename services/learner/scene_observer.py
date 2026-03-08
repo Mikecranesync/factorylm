@@ -114,12 +114,16 @@ async def _call_vllm(image_path: str, prompt: str,
     }
 
     t_start = time.time()
-    async with httpx.AsyncClient(timeout=300) as client:
-        resp = await client.post(
-            VLLM_URL,
-            json=payload,
-            headers={"Content-Type": "application/json"},
-        )
+    try:
+        async with httpx.AsyncClient(timeout=300) as client:
+            resp = await client.post(
+                VLLM_URL,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+            )
+    except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.ConnectError) as exc:
+        elapsed = time.time() - t_start
+        return {"error": f"vLLM connection failed: {exc}", "elapsed_s": elapsed}
     elapsed = time.time() - t_start
 
     if resp.status_code != 200:
@@ -166,15 +170,19 @@ async def _call_litellm_vision(image_path: str, prompt: str,
     }
 
     t_start = time.time()
-    async with httpx.AsyncClient(timeout=120) as client:
-        resp = await client.post(
-            f"{LITELLM_URL}/v1/chat/completions",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {LITELLM_KEY}",
-                "Content-Type": "application/json",
-            },
-        )
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            resp = await client.post(
+                f"{LITELLM_URL}/v1/chat/completions",
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {LITELLM_KEY}",
+                    "Content-Type": "application/json",
+                },
+            )
+    except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.ConnectError) as exc:
+        elapsed = time.time() - t_start
+        return {"error": f"LiteLLM vision connection failed ({model}): {exc}", "elapsed_s": elapsed}
     elapsed = time.time() - t_start
 
     if resp.status_code != 200:
@@ -205,15 +213,19 @@ async def _call_litellm_text(prompt: str, system_prompt: str = "",
     }
 
     t_start = time.time()
-    async with httpx.AsyncClient(timeout=60) as client:
-        resp = await client.post(
-            f"{LITELLM_URL}/v1/chat/completions",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {LITELLM_KEY}",
-                "Content-Type": "application/json",
-            },
-        )
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                f"{LITELLM_URL}/v1/chat/completions",
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {LITELLM_KEY}",
+                    "Content-Type": "application/json",
+                },
+            )
+    except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.ConnectError) as exc:
+        elapsed = time.time() - t_start
+        return {"error": f"LiteLLM connection failed ({model}): {exc}", "elapsed_s": elapsed}
     elapsed = time.time() - t_start
 
     if resp.status_code != 200:

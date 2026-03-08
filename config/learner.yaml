@@ -33,11 +33,16 @@ learner:
 
 # Connection defaults (override via env vars)
 connections:
-  fio_api: "http://localhost:7410"     # Factory I/O web API
-  modbus_host: "127.0.0.1"            # Modbus TCP host
+  fio_api: "http://100.72.2.99:7410"  # Factory I/O web API (PLC laptop)
+  modbus_host: "100.72.2.99"           # Modbus TCP host (PLC laptop via Tailscale)
   modbus_port: 502                      # Modbus TCP port
   litellm_url: "http://localhost:4000" # LiteLLM proxy
   vllm_url: "http://localhost:8000/v1/chat/completions"  # vLLM (Cosmos R2)
+
+# Training data export (for Qwen fine-tuning)
+training_export:
+  format: "jsonl"
+  output_path: "data/training/qwen_plc_v1.jsonl"
 
 # Matrix API dashboard reporting
 matrix:
