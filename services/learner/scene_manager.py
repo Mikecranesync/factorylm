@@ -148,7 +148,7 @@ def read_coils(address: int = 0, count: int = 16) -> Optional[list[bool]]:
     client = _get_modbus()
     if not client:
         return None
-    result = client.read_coils(address=address, count=count, slave=1)
+    result = client.read_coils(address=address, count=count, device_id=1)
     if result.isError():
         logger.error("Coil read error at %d: %s", address, result)
         return None
@@ -160,7 +160,7 @@ def read_discrete_inputs(address: int = 0, count: int = 16) -> Optional[list[boo
     client = _get_modbus()
     if not client:
         return None
-    result = client.read_discrete_inputs(address=address, count=count, slave=1)
+    result = client.read_discrete_inputs(address=address, count=count, device_id=1)
     if result.isError():
         logger.error("DI read error at %d: %s", address, result)
         return None
@@ -172,7 +172,7 @@ def read_holding_registers(address: int = 0, count: int = 10) -> Optional[list[i
     client = _get_modbus()
     if not client:
         return None
-    result = client.read_holding_registers(address=address, count=count, slave=1)
+    result = client.read_holding_registers(address=address, count=count, device_id=1)
     if result.isError():
         logger.error("Register read error at %d: %s", address, result)
         return None
@@ -190,7 +190,7 @@ def write_coil(address: int, value: bool, tag_name: str = "",
     client = _get_modbus()
     if not client:
         return False
-    result = client.write_coil(address=address, value=value, slave=1)
+    result = client.write_coil(address=address, value=value, device_id=1)
     if result.isError():
         logger.error("Coil write error at %d: %s", address, result)
         return False
@@ -208,7 +208,7 @@ def write_register(address: int, value: int, tag_name: str = "",
     client = _get_modbus()
     if not client:
         return False
-    result = client.write_register(address=address, value=value, slave=1)
+    result = client.write_register(address=address, value=value, device_id=1)
     if result.isError():
         logger.error("Register write error at %d: %s", address, result)
         return False
@@ -221,7 +221,7 @@ def clear_all_coils(count: int = 16) -> bool:
     if not client:
         return False
     for addr in range(count):
-        client.write_coil(addr, False, slave=1)
+        client.write_coil(addr, False, device_id=1)
     return True
 
 

@@ -3,7 +3,7 @@
 # Source: services/plc-modbus/scenes/README.md
 
 factoryio:
-  host: "127.0.0.1"
+  host: "100.72.2.99"
   port: 502
   scene: "From A to B"
 
