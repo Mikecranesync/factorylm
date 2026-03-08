@@ -291,21 +291,39 @@ def _read_tags_modbus(io_map: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def load_scene_config(scene_name: str) -> Optional[dict]:
-    """Load scene configuration from config/factoryio.yaml or scene directory.
+    """Load scene configuration from config/factoryio_*.yaml or scene directory.
+
+    Search order:
+    1. config/factoryio_<scene_slug>.yaml (scene-specific config)
+    2. config/factoryio.yaml (default config, if scene name matches)
+    3. services/plc-modbus/scenes/<scene_slug>.yaml
 
     Returns the raw YAML dict for the scene, or None if not found.
     """
-    # Try config/factoryio.yaml first
+    config_dir = REPO_ROOT / "config"
+    scene_slug = scene_name.lower().replace(" ", "_")
+
+    # Try scene-specific config in config/ directory
+    for pattern in [f"factoryio_{scene_slug}.yaml", f"factoryio_{scene_slug.replace('_', '-')}.yaml"]:
+        path = config_dir / pattern
+        if path.exists():
+            with open(path) as f:
+                config = yaml.safe_load(f)
+            fio = config.get("factoryio", config)
+            logger.info("Loaded scene config from %s", path)
+            return fio
+
+    # Try default config/factoryio.yaml
     if FACTORYIO_CONFIG.exists():
         with open(FACTORYIO_CONFIG) as f:
             config = yaml.safe_load(f)
         fio = config.get("factoryio", {})
-        # Currently factoryio.yaml is single-scene; check if it matches
         if scene_name.lower() in fio.get("scene", "").lower():
+            logger.info("Loaded scene config from %s", FACTORYIO_CONFIG)
             return fio
 
     # Try scene-specific YAML in scenes directory
-    for pattern in [f"{scene_name}.yaml", f"{scene_name.lower().replace(' ', '_')}.yaml"]:
+    for pattern in [f"{scene_name}.yaml", f"{scene_slug}.yaml"]:
         path = SCENES_DIR / pattern
         if path.exists():
             with open(path) as f:

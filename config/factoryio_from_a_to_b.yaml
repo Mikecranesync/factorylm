@@ -1,0 +1,20 @@
+# Factory I/O Scene: "From A to B"
+# Simplest scene — single conveyor + emitter + item counter
+# Source: services/plc-modbus/scenes/README.md
+
+factoryio:
+  host: "127.0.0.1"
+  port: 502
+  scene: "From A to B"
+
+  # Coils (Bool) — 5 total
+  coils:
+    0: {name: Conveyor, description: "Belt motor — PLC drives conveyor"}
+    1: {name: Emitter, description: "Item spawner — creates boxes on belt"}
+    2: {name: SensorStart, description: "Entry photoelectric sensor"}
+    3: {name: SensorEnd, description: "Exit photoelectric sensor"}
+    4: {name: RunCommand, description: "Remote run trigger — starts conveyor + emitter"}
+
+  # Holding Registers (Int) — 1 total
+  registers:
+    100: {name: ItemCount, description: "Count of items reaching exit sensor"}

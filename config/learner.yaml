@@ -4,10 +4,10 @@
 learner:
   # Scene queue — processed in order, each gets a full clean-install cycle
   scenes:
-    - "Sorting by Height"
+    - "From A to B"
+    # - "Sorting by Height"
     # - "Pick and Place"
     # - "Palletizer"
-    # - "From A to B"
 
   # Limits per scene
   max_experiments_per_scene: 100
