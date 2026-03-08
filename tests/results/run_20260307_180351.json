@@ -1,0 +1,70 @@
+{
+  "timestamp": "20260307_180351",
+  "factory_server": "http://127.0.0.1:8600",
+  "cycles": 1,
+  "total": 6,
+  "passed": 1,
+  "failed": 5,
+  "results": [
+    {
+      "scenario_id": "C002_diverter_conflict",
+      "expected_fault_code": "C002",
+      "observed_faults": [
+        "E001"
+      ],
+      "passed": false,
+      "duration_s": 11.17,
+      "cycle": 1
+    },
+    {
+      "scenario_id": "E001_estop",
+      "expected_fault_code": "E001",
+      "observed_faults": [
+        "E001"
+      ],
+      "passed": true,
+      "duration_s": 1.02,
+      "cycle": 1
+    },
+    {
+      "scenario_id": "IDLE_scene_stopped",
+      "expected_fault_code": "IDLE",
+      "observed_faults": [
+        "E001"
+      ],
+      "passed": false,
+      "duration_s": 7.05,
+      "cycle": 1
+    },
+    {
+      "scenario_id": "J001_high_sensor_jam",
+      "expected_fault_code": "J001",
+      "observed_faults": [
+        "E001"
+      ],
+      "passed": false,
+      "duration_s": 11.09,
+      "cycle": 1
+    },
+    {
+      "scenario_id": "J001_low_sensor_jam",
+      "expected_fault_code": "J001",
+      "observed_faults": [
+        "E001"
+      ],
+      "passed": false,
+      "duration_s": 11.16,
+      "cycle": 1
+    },
+    {
+      "scenario_id": "OK_normal",
+      "expected_fault_code": "OK",
+      "observed_faults": [
+        "error: HTTPConnectionPool(host='127.0.0.1', port=8600): Max retries exceeded with url: /api/faults (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8600): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+      ],
+      "passed": false,
+      "duration_s": 9.07,
+      "cycle": 1
+    }
+  ]
+}

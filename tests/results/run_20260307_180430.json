@@ -1,0 +1,20 @@
+{
+  "timestamp": "20260307_180430",
+  "factory_server": "http://127.0.0.1:8600",
+  "cycles": 1,
+  "total": 1,
+  "passed": 1,
+  "failed": 0,
+  "results": [
+    {
+      "scenario_id": "E001_estop",
+      "expected_fault_code": "E001",
+      "observed_faults": [
+        "E001"
+      ],
+      "passed": true,
+      "duration_s": 1.1,
+      "cycle": 1
+    }
+  ]
+}
