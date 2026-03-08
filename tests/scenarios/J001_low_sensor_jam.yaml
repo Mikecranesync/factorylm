@@ -1,0 +1,12 @@
+scenario_id: J001_low_sensor_jam
+description: Low sensor stuck triggers jam warning
+inject:
+  - {coil: 1, value: true}    # low_sensor
+  - {coil: 13, value: true}   # fio_running
+expected_fault_code: J001
+expected_severity: warning
+hold_seconds: 7
+timeout_seconds: 10
+cleanup:
+  - {coil: 1, value: false}
+  - {coil: 13, value: false}

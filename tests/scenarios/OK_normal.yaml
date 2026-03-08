@@ -1,0 +1,13 @@
+scenario_id: OK_normal
+description: Normal operation with no faults
+inject:
+  - {coil: 13, value: true}   # fio_running
+  - {coil: 11, value: false}  # e_stop off
+  - {coil: 0, value: false}   # high_sensor off
+  - {coil: 1, value: false}   # low_sensor off
+expected_fault_code: OK
+expected_severity: info
+hold_seconds: 2
+timeout_seconds: 5
+cleanup:
+  - {coil: 13, value: false}

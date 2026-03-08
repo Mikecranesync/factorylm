@@ -76,24 +76,31 @@ class SortingController:
         self.items_sorted_right = 0
 
     def read_sensor(self, name: str) -> bool:
-        """Read a discrete input (sensor) from the datastore."""
+        """Read a sensor value from the coils block.
+
+        Factory I/O (Modbus Client) writes sensor data via FC15 (Write Coils),
+        which lands in the server's 'co' (coils) block. We read it via FC1.
+        """
         idx = DI_NAMES.index(name)
-        # Discrete inputs are at function code 2, address base 0
-        # pymodbus stores discrete inputs in block starting at address 0
         store = self.context[1]  # slave ID 1
-        values = store.getValues(2, idx, count=1)  # FC2 = discrete inputs
+        values = store.getValues(1, idx, count=1)  # FC1 = coils block
         return bool(values[0])
 
     def read_all_sensors(self) -> dict:
         store = self.context[1]
-        values = store.getValues(2, 0, count=len(DI_NAMES))
+        values = store.getValues(1, 0, count=len(DI_NAMES))
         return {name: bool(values[i]) for i, name in enumerate(DI_NAMES)}
 
     def write_coil(self, name: str, value: bool):
-        """Write a coil (actuator command) to the datastore."""
+        """Write an actuator command to the discrete inputs block.
+
+        Factory I/O (Modbus Client) reads actuator commands via FC2
+        (Read Discrete Inputs) when 'Read Digital' is set to 'Inputs'.
+        We write to the 'di' block so FIO can read them.
+        """
         idx = COIL_NAMES.index(name)
         store = self.context[1]
-        store.setValues(1, idx, [value])  # FC1 = coils
+        store.setValues(2, idx, [value])  # FC2 = discrete inputs block
 
     def log_event(self, event: str):
         ts = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
@@ -196,13 +203,13 @@ def main():
     args = parser.parse_args()
 
     # Create datastore with enough addresses
-    # Coils (FC1/FC5/FC15): 16 addresses
-    # Discrete Inputs (FC2): 16 addresses
-    # Input Registers (FC4): 16 addresses
-    # Holding Registers (FC3/FC6/FC16): 16 addresses
+    # Coils (FC1 read / FC5,FC15 write): FIO writes sensor data here (14 sensors)
+    # Discrete Inputs (FC2 read): FIO reads actuator commands from here (10 outputs)
+    # Input Registers (FC4): FIO reads register values
+    # Holding Registers (FC3 read / FC6,FC16 write): FIO writes register values
     store = ModbusSlaveContext(
-        co=ModbusSequentialDataBlock(0, [False] * 16),   # Coils
-        di=ModbusSequentialDataBlock(0, [False] * 16),   # Discrete Inputs
+        co=ModbusSequentialDataBlock(0, [False] * 16),   # Sensors (FIO writes here)
+        di=ModbusSequentialDataBlock(0, [False] * 16),   # Actuators (FIO reads here)
         ir=ModbusSequentialDataBlock(0, [0] * 16),       # Input Registers
         hr=ModbusSequentialDataBlock(0, [0] * 16),       # Holding Registers
     )

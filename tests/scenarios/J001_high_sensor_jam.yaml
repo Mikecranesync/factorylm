@@ -1,0 +1,12 @@
+scenario_id: J001_high_sensor_jam
+description: High sensor stuck triggers jam warning
+inject:
+  - {coil: 0, value: true}    # high_sensor
+  - {coil: 13, value: true}   # fio_running
+expected_fault_code: J001
+expected_severity: warning
+hold_seconds: 7
+timeout_seconds: 10
+cleanup:
+  - {coil: 0, value: false}
+  - {coil: 13, value: false}
