@@ -152,7 +152,7 @@ async def _route_text(
     messages.append({"role": "user", "content": enriched})
 
     payload = {
-        "model": "deepseek-main",
+        "model": "groq-main",
         "messages": messages,
         "temperature": 0.3,
         "max_tokens": 1024,

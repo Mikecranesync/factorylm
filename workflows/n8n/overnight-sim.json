@@ -1,0 +1,112 @@
+{
+  "name": "FactoryLM Overnight Sim Loop",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "triggerAtHour": 23 }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron 11PM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 10 fault scenarios to simulate overnight\nconst scenarios = [\n  { text: 'Motor current spiked to 6.2A on conveyor line 3, error code 1', error_code: 1, motor_current: 6.2, temperature: 45 },\n  { text: 'Temperature sensor reading 78C on motor housing, error code 2', error_code: 2, motor_current: 3.1, temperature: 78 },\n  { text: 'Conveyor belt stopped unexpectedly, items piling up at station 5, error code 3', error_code: 3, motor_current: 0, temperature: 35 },\n  { text: 'Proximity sensor S1 not detecting parts, line running but no count, error code 4', error_code: 4, motor_current: 2.5, temperature: 40 },\n  { text: 'Lost communication with PLC node 7, last heartbeat 30s ago, error code 5', error_code: 5, motor_current: 0, temperature: 0 },\n  { text: 'Motor overload on pump station, tripped breaker twice today, error code 1', error_code: 1, motor_current: 5.8, temperature: 62 },\n  { text: 'Pressure dropped to 65 PSI on pneumatic line, should be 100 PSI', error_code: 0, motor_current: 2.0, temperature: 38 },\n  { text: 'E-stop triggered on cell 2, operator reports unusual vibration', error_code: 0, motor_current: 0, temperature: 55 },\n  { text: 'Intermittent fault alarm on packaging line, clears itself after 10 seconds', error_code: 3, motor_current: 3.5, temperature: 42 },\n  { text: 'Temperature rising steadily on gearbox — 52C an hour ago, now 61C', error_code: 2, motor_current: 4.1, temperature: 61 }\n];\n\nreturn scenarios.map((s, i) => ({\n  json: {\n    scenario_index: i + 1,\n    total: scenarios.length,\n    ...s,\n    trace_id: Math.random().toString(16).slice(2, 14),\n    sim_start: Date.now()\n  }\n}));"
+      },
+      "id": "generate-scenarios",
+      "name": "Generate 10 Fault Scenarios",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:4000/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer sk-factorylm" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'groq-main', messages: [{ role: 'system', content: 'You are FactoryLM, an expert industrial fault diagnosis AI. Analyze the reported fault. Identify root cause, severity (critical/warning/info), and provide step-by-step troubleshooting. Error codes: 0=None, 1=Motor overload, 2=Temp high, 3=Conveyor jam, 4=Sensor failure, 5=Comm loss. Current readings: motor_current=' + $json.motor_current + 'A, temperature=' + $json.temperature + 'C, error_code=' + $json.error_code }, { role: 'user', content: $json.text }], temperature: 0.3, max_tokens: 512 }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "diagnose-fault",
+      "name": "Diagnose via groq-main",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract diagnosis and build log entry\nconst llm = $input.first().json;\nconst meta = $('Generate 10 Fault Scenarios').item;\nconst diagnosis = llm.choices[0].message.content;\nconst elapsed = (Date.now() - meta.json.sim_start) / 1000;\n\nreturn [{\n  json: {\n    scenario_index: meta.json.scenario_index,\n    fault_text: meta.json.text,\n    error_code: meta.json.error_code,\n    diagnosis: diagnosis.slice(0, 500),\n    model: llm.model || 'groq-main',\n    elapsed_s: Math.round(elapsed * 10) / 10,\n    trace_id: meta.json.trace_id\n  }\n}];"
+      },
+      "id": "extract-diagnosis",
+      "name": "Extract Diagnosis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate all 10 results into a morning brief\nconst items = $input.all();\nconst timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');\n\nlet summary = `🏭 FactoryLM Overnight Sim Report — ${timestamp}\\n`;\nsummary += `Scenarios tested: ${items.length}\\n\\n`;\n\nfor (const item of items) {\n  const d = item.json;\n  summary += `[${d.scenario_index}] Error ${d.error_code} | ${d.elapsed_s}s | ${d.model}\\n`;\n  summary += `  Fault: ${d.fault_text.slice(0, 80)}\\n`;\n  summary += `  Dx: ${d.diagnosis.slice(0, 120)}...\\n\\n`;\n}\n\nconst avgTime = items.reduce((s, i) => s + i.json.elapsed_s, 0) / items.length;\nsummary += `Avg response: ${Math.round(avgTime * 10) / 10}s`;\n\nreturn [{ json: { summary, scenario_count: items.length, avg_elapsed_s: Math.round(avgTime * 10) / 10 } }];"
+      },
+      "id": "morning-brief",
+      "name": "Build Morning Brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/api/traces",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ trace_id: 'overnight-sim-' + Date.now(), channel: 'n8n-sim', input_type: 'overnight_sim', task_type: 'sim', status: 'success', input_summary: 'Overnight sim: ' + $json.scenario_count + ' scenarios', response_summary: $json.summary.slice(0, 200) }) }}",
+        "options": { "timeout": 10000 }
+      },
+      "id": "log-to-matrix",
+      "name": "Log to Matrix API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1300, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Final output — the morning brief text\nconst brief = $('Build Morning Brief').first().json;\nreturn [{ json: { morning_brief: brief.summary } }];"
+      },
+      "id": "final-output",
+      "name": "Final Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 300]
+    }
+  ],
+  "connections": {
+    "Cron 11PM": { "main": [[{ "node": "Generate 10 Fault Scenarios", "type": "main", "index": 0 }]] },
+    "Generate 10 Fault Scenarios": { "main": [[{ "node": "Diagnose via groq-main", "type": "main", "index": 0 }]] },
+    "Diagnose via groq-main": { "main": [[{ "node": "Extract Diagnosis", "type": "main", "index": 0 }]] },
+    "Extract Diagnosis": { "main": [[{ "node": "Build Morning Brief", "type": "main", "index": 0 }]] },
+    "Build Morning Brief": { "main": [[{ "node": "Log to Matrix API", "type": "main", "index": 0 }]] },
+    "Log to Matrix API": { "main": [[{ "node": "Final Output", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
