@@ -22,7 +22,7 @@ import asyncio
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +38,22 @@ class TelegramMediaHandler:
         ~/.openclaw/media-inbox/telegram/<date>/<filename>.json
     """
 
-    def __init__(self, inbox_dir: Optional[str] = None, notify_sync: bool = True):
-        """Initialize media handler."""
+    def __init__(
+        self,
+        inbox_dir: Optional[str] = None,
+        notify_sync: bool = True,
+        on_media_saved: Optional[Any] = None,
+    ):
+        """Initialize media handler.
+
+        Args:
+            inbox_dir: Custom inbox directory path.
+            notify_sync: Whether to mention Google Drive sync in replies.
+            on_media_saved: Optional async callback(file_path, metadata) → str.
+                            Called after media is saved. If it returns a string,
+                            that string is appended to the confirmation message
+                            (e.g. a diagnosis result from the vision pipeline).
+        """
         if inbox_dir:
             self.inbox_dir = Path(inbox_dir)
         else:
@@ -47,6 +61,7 @@ class TelegramMediaHandler:
 
         self.inbox_dir.mkdir(parents=True, exist_ok=True)
         self.notify_sync = notify_sync
+        self.on_media_saved = on_media_saved
 
         # Stats
         self.stats = {
@@ -184,6 +199,18 @@ class TelegramMediaHandler:
 
             logger.info(f"Saved media: {file_path.name} ({len(file_bytes)} bytes)")
 
+            # Run vision analysis callback if configured
+            analysis_text = None
+            if self.on_media_saved and media_type in ("photo", "video"):
+                try:
+                    analysis_text = await self.on_media_saved(
+                        str(file_path), metadata
+                    )
+                except Exception as cb_err:
+                    logger.warning(f"on_media_saved callback failed: {cb_err}")
+
+            result["analysis"] = analysis_text
+
             # Send confirmation with sync status
             size_kb = len(file_bytes) / 1024
             total_files = self.stats["photos_received"] + self.stats["videos_received"] + self.stats["documents_received"]
@@ -192,8 +219,11 @@ class TelegramMediaHandler:
             response = f"[OK] Saved {media_type} ({size_kb:.1f} KB)"
             if caption:
                 response += f"\nCaption: \"{caption[:50]}{'...' if len(caption) > 50 else ''}\""
+            if analysis_text:
+                response += f"\n\n{analysis_text}"
             response += f"\n\nSession: {total_files} files ({total_mb:.1f} MB total)"
-            response += "\nWill sync to Google Drive automatically."
+            if self.notify_sync:
+                response += "\nWill sync to Google Drive automatically."
 
             await update.message.reply_text(response)
 
@@ -271,6 +301,58 @@ class TelegramMediaHandler:
             meta["synced_to_gdrive"] = True
             meta["synced_at"] = datetime.now().isoformat()
             meta_path.write_text(json.dumps(meta, indent=2))
+
+
+# ---------------------------------------------------------------------------
+# Diagnosis wiring — callback for on_media_saved
+# ---------------------------------------------------------------------------
+
+def create_diagnosis_callback(
+    plc_host: Optional[str] = None,
+    plc_port: int = 502,
+):
+    """Create an async callback that runs vision diagnosis on saved media.
+
+    Wire it into TelegramMediaHandler:
+        handler = TelegramMediaHandler(on_media_saved=create_diagnosis_callback())
+
+    The callback:
+      1. Optionally reads live PLC tags via Modbus
+      2. Calls diagnosis_engine.diagnose(file_path, plc_tags, caption)
+      3. Returns the diagnosis text for inclusion in the Telegram reply
+    """
+    import asyncio
+    import sys
+    from pathlib import Path as _Path
+
+    repo_root = _Path(__file__).parent.parent
+    sys.path.insert(0, str(repo_root))
+
+    async def _on_media_saved(file_path: str, metadata: dict) -> Optional[str]:
+        from cookoff.diagnosis_engine import diagnose
+
+        # Get PLC context if configured
+        plc_tags = None
+        if plc_host:
+            try:
+                from cookoff.diagnosis_engine import read_live_plc
+                plc_tags = await asyncio.to_thread(read_live_plc, plc_host, plc_port)
+            except Exception:
+                pass
+
+        caption = metadata.get("caption")
+        result = await asyncio.to_thread(
+            diagnose,
+            media_path=file_path,
+            plc_tags=plc_tags,
+            question=caption if caption else None,
+        )
+
+        if "error" in result:
+            return f"Vision analysis failed: {result['error']}"
+        return result.get("diagnosis", "")
+
+    return _on_media_saved
 
 
 # Standalone test

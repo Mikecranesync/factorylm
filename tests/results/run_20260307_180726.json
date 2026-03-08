@@ -1,0 +1,60 @@
+{
+  "timestamp": "20260307_180726",
+  "factory_server": "http://127.0.0.1:8600",
+  "cycles": 1,
+  "total": 5,
+  "passed": 5,
+  "failed": 0,
+  "results": [
+    {
+      "scenario_id": "E001_estop",
+      "expected_fault_code": "E001",
+      "observed_faults": [
+        "E001"
+      ],
+      "passed": true,
+      "duration_s": 4.64,
+      "cycle": 1
+    },
+    {
+      "scenario_id": "IDLE_scene_stopped",
+      "expected_fault_code": "IDLE",
+      "observed_faults": [
+        "IDLE"
+      ],
+      "passed": true,
+      "duration_s": 3.55,
+      "cycle": 1
+    },
+    {
+      "scenario_id": "J001_high_sensor_jam",
+      "expected_fault_code": "J001",
+      "observed_faults": [
+        "J001"
+      ],
+      "passed": true,
+      "duration_s": 8.55,
+      "cycle": 1
+    },
+    {
+      "scenario_id": "J001_low_sensor_jam",
+      "expected_fault_code": "J001",
+      "observed_faults": [
+        "J001"
+      ],
+      "passed": true,
+      "duration_s": 8.53,
+      "cycle": 1
+    },
+    {
+      "scenario_id": "OK_normal",
+      "expected_fault_code": "OK",
+      "observed_faults": [
+        "OK"
+      ],
+      "passed": true,
+      "duration_s": 3.55,
+      "cycle": 1
+    }
+  ]
+}
