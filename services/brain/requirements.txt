@@ -7,3 +7,5 @@ groq
 eval_type_backport
 chromadb
 langchain-text-splitters
+qdrant-client>=1.7.0
+sentence-transformers>=2.2.0

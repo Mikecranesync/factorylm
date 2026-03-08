@@ -76,10 +76,27 @@ async def get_plc_state() -> Optional[dict]:
 
 
 # ---------------------------------------------------------------------------
-# KB context (Mem0 / Open Brain)
+# KB context (Qdrant primary, Mem0 fallback)
 # ---------------------------------------------------------------------------
 
+_qdrant_store = None
 _brain_memory = None
+
+
+def _get_qdrant():
+    """Lazy-init Qdrant store."""
+    global _qdrant_store
+    if _qdrant_store is not None:
+        return _qdrant_store
+    try:
+        from services.brain.qdrant_store import get_store
+        store = get_store()
+        if store.healthy():
+            _qdrant_store = store
+            return _qdrant_store
+    except Exception as exc:
+        logger.debug("Qdrant unavailable: %s", exc)
+    return None
 
 
 def _get_brain():
@@ -97,7 +114,21 @@ def _get_brain():
 
 
 async def _retrieve_kb_context(query: str) -> Optional[str]:
-    """Search Mem0 knowledge base for relevant factory context."""
+    """Search Qdrant first, fall back to Mem0 if Qdrant is unavailable."""
+    # Try Qdrant (primary)
+    qdrant = _get_qdrant()
+    if qdrant is not None:
+        try:
+            results = await asyncio.to_thread(qdrant.search_all, query, 3)
+            if results:
+                texts = [r["text"] for r in results if r.get("text")]
+                if texts:
+                    logger.info("KB context from Qdrant: %d results", len(texts))
+                    return "\n".join(texts)
+        except Exception as exc:
+            logger.debug("Qdrant search failed: %s", exc)
+
+    # Fallback to Mem0
     brain = _get_brain()
     if brain is None:
         return None
@@ -115,6 +146,8 @@ async def _retrieve_kb_context(query: str) -> Optional[str]:
             text = m.get("memory", m.get("text", "")) if isinstance(m, dict) else str(m)
             if text:
                 texts.append(text)
+        if texts:
+            logger.info("KB context from Mem0 (fallback): %d results", len(texts))
         return "\n".join(texts) if texts else None
     except Exception as exc:
         logger.debug("KB search failed: %s", exc)

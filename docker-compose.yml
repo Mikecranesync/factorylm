@@ -44,6 +44,15 @@ services:
       retries: 3
     restart: unless-stopped
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: factorylm-qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+
   # ══════════════════════════════════════════════════════════════════
   # CHANNEL ADAPTERS
   # ══════════════════════════════════════════════════════════════════
@@ -59,6 +68,7 @@ services:
       LITELLM_KEY: "sk-factorylm"
       PLC_MODBUS_URL: "http://plc-modbus:8001"
       MATRIX_API_URL: "http://matrix:8000"
+      QDRANT_URL: "http://qdrant:6333"
     depends_on:
       litellm:
         condition: service_healthy
@@ -77,6 +87,7 @@ services:
       MATRIX_URL: "http://matrix:8000"
       TWILIO_ACCOUNT_SID: "${TWILIO_ACCOUNT_SID:-}"
       TWILIO_AUTH_TOKEN: "${TWILIO_AUTH_TOKEN:-}"
+      QDRANT_URL: "http://qdrant:6333"
     depends_on:
       litellm:
         condition: service_healthy
@@ -157,3 +168,4 @@ services:
 volumes:
   n8n-data:
   node-red-data:
+  qdrant-data:
