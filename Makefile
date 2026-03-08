@@ -5,7 +5,7 @@ PIP := $(PYTHON) -m pip
 REPO := $(shell pwd)
 LITELLM_PID := /tmp/factorylm-litellm.pid
 
-.PHONY: setup litellm litellm-stop test health services stop ansible env telegram telegram-stop whatsapp whatsapp-stop
+.PHONY: setup litellm litellm-stop test health services stop ansible env telegram telegram-stop whatsapp whatsapp-stop stack-up stack-down
 
 ## ── Phase 0: Prerequisites ──────────────────────────────────────
 
@@ -108,6 +108,16 @@ services: litellm telegram whatsapp  ## Start all services
 
 stop: litellm-stop telegram-stop whatsapp-stop  ## Stop all services
 	@echo "All services stopped"
+
+## ── Phase 7: Docker Compose Stack ─────────────────────────────
+
+stack-up:  ## Start full stack via Docker Compose (secrets via Doppler)
+	doppler run -p factorylm -c dev -- docker compose up -d
+	@echo "Stack started — run 'docker compose ps' to check"
+
+stack-down:  ## Stop Docker Compose stack
+	docker compose down
+	@echo "Stack stopped"
 
 ## ── Infra ───────────────────────────────────────────────────────
 

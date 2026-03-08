@@ -1,18 +1,109 @@
-# FactoryLM SCADA Stack — Local Simulation
+# FactoryLM Unified Stack
 #
-# Usage:  docker-compose up -d
-# HMI:    http://localhost:1880/ui
-# PLC:    http://localhost:8001/api/plc/io
-# Diag:   http://localhost:8200/sim
-# Modbus: localhost:502 (raw Modbus TCP)
+# Usage:
+#   doppler run -p factorylm -c dev -- docker compose up -d          # Full stack
+#   doppler run -p factorylm -c dev -- docker compose up -d litellm  # Just proxy
+#   docker compose --profile scada up -d                              # SCADA only
+#   docker compose --profile bravo up -d                              # BRAVO node services
 #
-# Env vars (optional):
-#   WEBCAM_URL    — MJPEG stream URL (default: PLC laptop webcam)
-#   GROQ_API_KEY  — enables AI diagnosis via Groq
+# Ports:
+#   4000  LiteLLM proxy        (AI gateway)
+#   5678  n8n                  (workflow automation)
+#   8000  Matrix API           (PLC state + incidents)
+#   8001  PLC Modbus API       (tag read/write)
+#   8200  WhatsApp adapter     (Twilio webhook)
+#   1880  Node-RED HMI         (SCADA dashboard)
+#   502   Modbus TCP           (PLC simulator)
 #
+# Secrets: All via Doppler (doppler run -- docker compose up)
+#          Or via .env file (cp .env.example .env && edit)
+
 services:
 
-  # ── Raw Modbus TCP simulator (Micro 820 register map) ──────────
+  # ══════════════════════════════════════════════════════════════════
+  # AI LAYER
+  # ══════════════════════════════════════════════════════════════════
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: factorylm-litellm
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./config/litellm_config.yaml:/app/config.yaml:ro
+    environment:
+      LITELLM_MASTER_KEY: sk-factorylm
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ══════════════════════════════════════════════════════════════════
+  # CHANNEL ADAPTERS
+  # ══════════════════════════════════════════════════════════════════
+
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: infra/docker/telegram-bot.Dockerfile
+    container_name: factorylm-telegram
+    environment:
+      TELEGRAM_TOKEN: "${TELEGRAM_TOKEN:-${TELEGRAM_BOT_TOKEN:-}}"
+      LITELLM_URL: "http://litellm:4000"
+      LITELLM_KEY: "sk-factorylm"
+      PLC_MODBUS_URL: "http://plc-modbus:8001"
+      MATRIX_API_URL: "http://matrix:8000"
+    depends_on:
+      litellm:
+        condition: service_healthy
+    restart: unless-stopped
+
+  whatsapp:
+    build:
+      context: .
+      dockerfile: infra/docker/whatsapp.Dockerfile
+    container_name: factorylm-whatsapp
+    ports:
+      - "8200:8200"
+    environment:
+      LITELLM_URL: "http://litellm:4000"
+      LITELLM_KEY: "sk-factorylm"
+      MATRIX_URL: "http://matrix:8000"
+      TWILIO_ACCOUNT_SID: "${TWILIO_ACCOUNT_SID:-}"
+      TWILIO_AUTH_TOKEN: "${TWILIO_AUTH_TOKEN:-}"
+    depends_on:
+      litellm:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ══════════════════════════════════════════════════════════════════
+  # WORKFLOW ENGINE (BRAVO node)
+  # ══════════════════════════════════════════════════════════════════
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: factorylm-n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n-data:/home/node/.n8n
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: "false"
+      WEBHOOK_URL: "http://localhost:5678"
+    profiles:
+      - bravo
+    restart: unless-stopped
+
+  # ══════════════════════════════════════════════════════════════════
+  # SCADA LAYER
+  # ══════════════════════════════════════════════════════════════════
+
   modbus-sim:
     image: oitc/modbus-server:latest
     container_name: factorylm-modbus
@@ -20,9 +111,10 @@ services:
       - "502:5020"
     volumes:
       - ./infra/scada/modbus/server_config.json:/server_config.json:ro
+    profiles:
+      - scada
     restart: unless-stopped
 
-  # ── PLC API + MockPLC (dynamic simulation) ─────────────────────
   plc-modbus:
     build:
       context: ./services/plc-modbus
@@ -38,26 +130,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    profiles:
+      - scada
     restart: unless-stopped
 
-  # ── AI Diagnosis service ───────────────────────────────────────
-  diagnosis:
-    build:
-      context: ./services/diagnosis
-      dockerfile: ../../infra/scada/diagnosis.Dockerfile
-    container_name: factorylm-diagnosis
-    ports:
-      - "8200:8200"
-    environment:
-      PLC_MODBUS_URL: "http://plc-modbus:8001"
-      LLM_ROUTER_URL: "http://llm-router:8100"
-      GROQ_API_KEY: "${GROQ_API_KEY:-}"
-    depends_on:
-      plc-modbus:
-        condition: service_healthy
-    restart: unless-stopped
-
-  # ── Node-RED SCADA HMI ────────────────────────────────────────
   node-red:
     build:
       context: ./infra/scada/node-red
@@ -68,14 +144,16 @@ services:
       - node-red-data:/data
     environment:
       PLC_API_URL: "http://plc-modbus:8001"
-      DIAGNOSIS_URL: "http://diagnosis:8200"
+      DIAGNOSIS_URL: "http://whatsapp:8200"
       MODBUS_HOST: "modbus-sim"
       MODBUS_PORT: "502"
-      WEBCAM_URL: "${WEBCAM_URL:-http://100.72.2.99:8081/stream}"
     depends_on:
       - plc-modbus
       - modbus-sim
+    profiles:
+      - scada
     restart: unless-stopped
 
 volumes:
+  n8n-data:
   node-red-data:
