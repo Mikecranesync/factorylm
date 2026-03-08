@@ -1,0 +1,50 @@
+# Autonomous Scene Learner Configuration
+# Used by: python -m services.learner.autonomous_learner
+
+learner:
+  # Scene queue — processed in order, each gets a full clean-install cycle
+  scenes:
+    - "From A to B"
+    # - "Sorting by Height"
+    # - "Pick and Place"
+    # - "Palletizer"
+
+  # Limits per scene
+  max_experiments_per_scene: 100
+  max_hours_per_scene: 2.0
+
+  # Experiment timing
+  settle_time_s: 2.0        # Wait after toggling coil before capture
+  stability_timeout_s: 5.0  # Max wait for tags to stabilize
+  stability_reads: 3        # Consecutive identical reads = stable
+
+  # Screenshot capture
+  monitor_index: 1          # 1 = primary monitor (Factory I/O window)
+
+  # KB integration
+  kb_enabled: true           # Search/write Mem0 before/after experiments
+  kb_user_id: "factorylm-learner"
+
+  # Safety
+  never_write_patterns:
+    - "e_stop"
+    - "emergency"
+    - "safety"
+
+# Connection defaults (override via env vars)
+connections:
+  fio_api: "http://100.72.2.99:7410"  # Factory I/O web API (PLC laptop)
+  modbus_host: "100.72.2.99"           # Modbus TCP host (PLC laptop via Tailscale)
+  modbus_port: 502                      # Modbus TCP port
+  litellm_url: "http://localhost:4000" # LiteLLM proxy
+  vllm_url: "http://localhost:8000/v1/chat/completions"  # vLLM (Cosmos R2)
+
+# Training data export (for Qwen fine-tuning)
+training_export:
+  format: "jsonl"
+  output_path: "data/training/qwen_plc_v1.jsonl"
+
+# Matrix API dashboard reporting
+matrix:
+  url: "http://localhost:8000"
+  report_interval_s: 10     # How often to POST learner status

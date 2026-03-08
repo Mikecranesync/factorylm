@@ -24,9 +24,8 @@ logger = logging.getLogger('factorylm.diagnosis')
 PLC_MODBUS_URL = os.getenv('PLC_MODBUS_URL', 'http://100.72.2.99:8001')
 PLC_LAPTOP_URL = os.getenv('PLC_LAPTOP_URL', 'http://100.72.2.99:8765')
 TRAVEL_LAPTOP_URL = os.getenv('TRAVEL_LAPTOP_URL', 'http://100.83.251.23:8765')
-LLM_ROUTER_URL = os.getenv('LLM_ROUTER_URL', 'http://localhost:8100')
-GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
-GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.1-70b-versatile')
+# LLM calls go through LiteLLM Proxy at :4000
+from core.src.factorylm.llm.client import diagnose_fault
 
 app = FastAPI(
     title='FactoryLM Diagnosis Service',
@@ -225,60 +224,9 @@ def _build_diagnosis_prompt(question: str, plc_context: str, kb_context: str | N
     return '\n'.join(parts)
 
 
-def _ask_llm_via_router(prompt: str) -> str | None:
-    """Try the llm-router service first (budget tracking + multi-provider)."""
-    try:
-        r = requests.post(
-            f'{LLM_ROUTER_URL}/v1/chat/completions',
-            json={
-                'model': 'auto',
-                'task_type': 'fast',
-                'messages': [
-                    {'role': 'system', 'content': DIAGNOSIS_SYSTEM_PROMPT},
-                    {'role': 'user', 'content': prompt},
-                ],
-                'max_tokens': 500,
-                'temperature': 0.3,
-            },
-            timeout=30,
-        )
-        if r.status_code == 200:
-            data = r.json()
-            logger.info("LLM response via router (provider=%s)", data.get('x_provider', '?'))
-            return data['choices'][0]['message']['content']
-        logger.warning("LLM router returned %d, falling back to direct Groq", r.status_code)
-        return None
-    except Exception as e:
-        logger.warning("LLM router unreachable (%s), falling back to direct Groq", e)
-        return None
-
-
-def _ask_llm_direct_groq(prompt: str) -> str | None:
-    """Direct Groq API call as fallback."""
-    if not GROQ_API_KEY:
-        return None
-    r = requests.post(
-        'https://api.groq.com/openai/v1/chat/completions',
-        headers={
-            'Authorization': f'Bearer {GROQ_API_KEY}',
-            'Content-Type': 'application/json',
-        },
-        json={
-            'model': GROQ_MODEL,
-            'messages': [
-                {'role': 'system', 'content': DIAGNOSIS_SYSTEM_PROMPT},
-                {'role': 'user', 'content': prompt},
-            ],
-            'max_tokens': 500,
-            'temperature': 0.3,
-        },
-        timeout=30,
-    )
-    if r.status_code == 200:
-        logger.info("LLM response via direct Groq")
-        return r.json()['choices'][0]['message']['content']
-    logger.error("Groq API error: %d - %s", r.status_code, r.text)
-    return None
+def _ask_llm(prompt: str) -> str | None:
+    """Send diagnosis prompt to LLM via LiteLLM Proxy. Fallbacks handled by proxy config."""
+    return diagnose_fault(DIAGNOSIS_SYSTEM_PROMPT, prompt)
 
 
 def ask_llm(question: str, plc_context: str) -> tuple[str, list[str]]:
@@ -294,8 +242,8 @@ def ask_llm(question: str, plc_context: str) -> tuple[str, list[str]]:
     kb_context, kb_sources = _retrieve_kb_context(question)
     prompt = _build_diagnosis_prompt(question, plc_context, kb_context)
 
-    # Try router first, then direct Groq
-    result = _ask_llm_via_router(prompt) or _ask_llm_direct_groq(prompt)
+    # LiteLLM Proxy handles fallback chain (DeepSeek -> Haiku -> Groq)
+    result = _ask_llm(prompt)
 
     elapsed_ms = int((time.monotonic() - t0) * 1000)
     if result:
@@ -323,7 +271,7 @@ async def health():
         'status': 'healthy',
         'service': 'factorylm-diagnosis',
         'timestamp': datetime.utcnow().isoformat(),
-        'llm_configured': bool(GROQ_API_KEY)
+        'llm_configured': True  # LiteLLM Proxy at :4000
     }
 
 @app.get('/network')

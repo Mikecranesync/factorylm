@@ -1,0 +1,113 @@
+{
+  "name": "FactoryLM Intent Classifier + Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "factorylm/classify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-classify",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Classify input type and prepare for intent detection\nconst input = $input.first().json.body;\nconst text = input.text || input.message || '';\nconst hasImage = !!input.image_url || !!input.media_path;\nconst hasVoice = !!input.voice_url;\nconst userId = input.user_id || 'anonymous';\nconst traceId = Math.random().toString(16).slice(2, 14);\nconst startTime = Date.now();\n\nlet inputType = 'text_only';\nif (hasImage) inputType = 'has_image';\nif (hasVoice) inputType = 'voice';\n\nreturn [{\n  json: {\n    text,\n    inputType,\n    userId,\n    traceId,\n    startTime,\n    hasImage,\n    hasVoice,\n    imageUrl: input.image_url || null,\n    voiceUrl: input.voice_url || null\n  }\n}];"
+      },
+      "id": "classify-input",
+      "name": "Classify Input Type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:4000/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer sk-factorylm" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'local-gemma', messages: [{ role: 'user', content: 'Classify this message into exactly one category: fault, maintenance, status, or general. Reply with ONLY the category word.\\n\\nMessage: ' + $json.text }], temperature: 0, max_tokens: 10 }) }}",
+        "options": { "timeout": 15000 }
+      },
+      "id": "intent-classify",
+      "name": "Intent Classify (local-gemma)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract intent and build the appropriate prompt\nconst llmResult = $input.first().json;\nconst meta = $('Classify Input Type').first().json;\nconst rawIntent = llmResult.choices[0].message.content.trim().toLowerCase();\n\n// Normalize intent\nlet intent = 'general';\nif (rawIntent.includes('fault')) intent = 'fault';\nelse if (rawIntent.includes('maintenance')) intent = 'maintenance';\nelse if (rawIntent.includes('status')) intent = 'status';\n\nconst prompts = {\n  fault: `You are FactoryLM, an expert industrial fault diagnosis AI. Analyze the reported fault condition. Identify likely root causes, severity (critical/warning/info), and provide step-by-step troubleshooting instructions.\\n\\nError codes: 0=None, 1=Motor overload, 2=Temp high, 3=Conveyor jam, 4=Sensor failure, 5=Comm loss\\n\\nTechnician report: ${meta.text}`,\n  maintenance: `You are FactoryLM, a preventive maintenance advisor. Based on the question, provide a maintenance checklist with: inspection items, recommended intervals, tools needed, and safety precautions.\\n\\nTechnician question: ${meta.text}`,\n  status: `You are FactoryLM, a factory systems monitor. Provide a concise status overview. Normal ranges: Temp 20-60C, Current 0-5A, Pressure 80-120 PSI, Speed 0-100%.\\n\\nOperator question: ${meta.text}`,\n  general: `You are FactoryLM, an industrial automation assistant. Be concise, practical, and helpful.\\n\\nTechnician question: ${meta.text}`\n};\n\nreturn [{\n  json: {\n    intent,\n    model: 'groq-main',\n    messages: [\n      { role: 'system', content: prompts[intent] },\n      { role: 'user', content: meta.text }\n    ],\n    temperature: 0.3,\n    max_tokens: 1024,\n    _meta: { trace_id: meta.traceId, user_id: meta.userId, start_time: meta.startTime, intent, input_type: meta.inputType }\n  }\n}];"
+      },
+      "id": "build-routed-prompt",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:4000/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer sk-factorylm" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $json.model, messages: $json.messages, temperature: $json.temperature, max_tokens: $json.max_tokens }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "llm-response",
+      "name": "LLM Response (groq-main)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract final response\nconst llmResponse = $input.first().json;\nconst meta = $('Route by Intent').first().json._meta;\nconst elapsed = (Date.now() - meta.start_time) / 1000;\n\nreturn [{\n  json: {\n    text: llmResponse.choices[0].message.content,\n    trace_id: meta.trace_id,\n    user_id: meta.user_id,\n    intent: meta.intent,\n    input_type: meta.input_type,\n    provider: llmResponse.model || 'groq-main',\n    elapsed_s: Math.round(elapsed * 10) / 10\n  }\n}];"
+      },
+      "id": "extract-final",
+      "name": "Extract Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond-classify",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1520, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Classify Input Type", "type": "main", "index": 0 }]] },
+    "Classify Input Type": { "main": [[{ "node": "Intent Classify (local-gemma)", "type": "main", "index": 0 }]] },
+    "Intent Classify (local-gemma)": { "main": [[{ "node": "Route by Intent", "type": "main", "index": 0 }]] },
+    "Route by Intent": { "main": [[{ "node": "LLM Response (groq-main)", "type": "main", "index": 0 }]] },
+    "LLM Response (groq-main)": { "main": [[{ "node": "Extract Response", "type": "main", "index": 0 }]] },
+    "Extract Response": { "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

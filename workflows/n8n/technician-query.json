@@ -1,0 +1,134 @@
+{
+  "name": "FactoryLM Technician Query",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "factorylm",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build FactoryLM system prompt + user message\nconst input = $input.first().json.body;\nconst text = input.text || 'What is the status of the factory?';\nconst userId = input.user_id || 'anonymous';\nconst traceId = Math.random().toString(16).slice(2, 14);\nconst startTime = Date.now();\n\nconst systemPrompt = `You are FactoryLM, an expert industrial maintenance AI.\nYou help factory technicians diagnose equipment issues from PLC data\nand factory floor observations. Be concise, actionable, and practical.\nIf something looks abnormal, explain the likely cause and recommended action.\n\nNormal operating ranges:\n- Temperature: 20-60 C (warn above 50 C, critical above 70 C)\n- Motor current: 0-5 A (warn above 4 A)\n- Pressure: 80-120 PSI\n- Motor speed: 0-100%\n\nError codes: 0=None, 1=Motor overload, 2=Temp high, 3=Conveyor jam, 4=Sensor failure, 5=Comm loss`;\n\nreturn [{\n  json: {\n    model: 'groq-main',\n    messages: [\n      { role: 'system', content: systemPrompt },\n      { role: 'user', content: text }\n    ],\n    temperature: 0.3,\n    max_tokens: 1024,\n    _meta: { trace_id: traceId, user_id: userId, start_time: startTime }\n  }\n}];"
+      },
+      "id": "build-prompt",
+      "name": "Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:4000/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer sk-factorylm"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $json.model, messages: $json.messages, temperature: $json.temperature, max_tokens: $json.max_tokens }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "litellm-call",
+      "name": "LiteLLM (groq-main)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract response and build final output\nconst llmResponse = $input.first().json;\nconst meta = $('Build Prompt').first().json._meta;\nconst elapsed = (Date.now() - meta.start_time) / 1000;\n\nconst content = llmResponse.choices[0].message.content;\nconst model = llmResponse.model || 'groq-main';\n\nreturn [{\n  json: {\n    text: content,\n    trace_id: meta.trace_id,\n    user_id: meta.user_id,\n    provider: model,\n    elapsed_s: Math.round(elapsed * 10) / 10,\n    task_type: 'fast'\n  }\n}];"
+      },
+      "id": "extract-response",
+      "name": "Extract Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1130, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "LiteLLM (groq-main)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LiteLLM (groq-main)": {
+      "main": [
+        [
+          {
+            "node": "Extract Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "factorylm"
+    }
+  ]
+}

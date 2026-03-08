@@ -1,13 +1,12 @@
 """
-Base LLM Interface
+LLM Response and Exception Types
 
-Defines the abstract interface that all LLM providers must implement.
-This ensures consistent behavior across GROQ, DeepSeek, Claude, and future providers.
+Kept for backward compatibility. All LLM calls now route through LiteLLM Proxy
+via client.py — the abstract BaseLLMClient is no longer needed.
 """
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Iterator
+from typing import Dict, Optional, Any
 from datetime import datetime
 
 
@@ -88,152 +87,5 @@ class LLMInvalidRequestError(LLMError):
     pass
 
 
-class BaseLLMClient(ABC):
-    """
-    Abstract base class for all LLM provider clients.
 
-    All LLM clients (GROQ, DeepSeek, Claude, FLM) must inherit from this class
-    and implement all abstract methods. This ensures a consistent interface
-    for the factory function and downstream consumers.
-
-    Example:
-        >>> class MyLLMClient(BaseLLMClient):
-        ...     def __init__(self, api_key: str, model: str = None):
-        ...         self.api_key = api_key
-        ...         self.model = model or "default-model"
-        ...     # implement other abstract methods...
-    """
-
-    @abstractmethod
-    def __init__(self, api_key: str, model: str = None):
-        """
-        Initialize the LLM client.
-
-        Args:
-            api_key: API key for authentication with the provider
-            model: Optional model name (provider-specific default if not specified)
-        """
-        pass
-
-    @abstractmethod
-    def analyze_machine_state(
-        self, question: str, machine_state: Dict[str, Any]
-    ) -> LLMResponse:
-        """
-        Analyze PLC/machine state and answer technician question.
-
-        This is the primary method for industrial applications. It takes
-        machine sensor data and allows natural language queries about the state.
-
-        Args:
-            question: Natural language question from technician
-                      (e.g., "Why is temperature rising?")
-            machine_state: Dictionary containing current machine sensor values
-                          (e.g., {"temperature": 150, "pressure": 45, "rpm": 1200})
-
-        Returns:
-            LLMResponse: Standardized response with analysis and answer
-
-        Raises:
-            LLMError: If the request fails
-
-        Example:
-            >>> response = client.analyze_machine_state(
-            ...     "Is the motor running too hot?",
-            ...     {"motor_temp": 185, "ambient_temp": 72, "load": 0.85}
-            ... )
-            >>> print(response.text)
-        """
-        pass
-
-    @abstractmethod
-    def get_model_name(self) -> str:
-        """
-        Return the model name being used.
-
-        Returns:
-            str: Full model identifier (e.g., "mixtral-8x7b-32768")
-        """
-        pass
-
-    @abstractmethod
-    def estimate_cost(self, response: LLMResponse) -> float:
-        """
-        Estimate the cost of an API call in USD.
-
-        Args:
-            response: The LLMResponse to estimate cost for
-
-        Returns:
-            float: Estimated cost in USD (e.g., 0.0015)
-
-        Note:
-            Costs are estimates based on published pricing and may vary.
-        """
-        pass
-
-    def chat(
-        self,
-        messages: List[Dict[str, str]],
-        temperature: float = 0.7,
-        max_tokens: int = 1024,
-    ) -> LLMResponse:
-        """
-        Send a chat completion request.
-
-        This is an optional method that provides direct chat access.
-        Default implementation raises NotImplementedError.
-
-        Args:
-            messages: List of message dicts with 'role' and 'content' keys
-            temperature: Sampling temperature (0.0 to 2.0)
-            max_tokens: Maximum tokens in response
-
-        Returns:
-            LLMResponse: The model's response
-        """
-        raise NotImplementedError(
-            f"{self.__class__.__name__} does not implement chat()"
-        )
-
-    def stream_chat(
-        self,
-        messages: List[Dict[str, str]],
-        temperature: float = 0.7,
-        max_tokens: int = 1024,
-    ) -> Iterator[str]:
-        """
-        Stream a chat completion response.
-
-        This is an optional method for streaming responses.
-        Default implementation raises NotImplementedError.
-
-        Args:
-            messages: List of message dicts with 'role' and 'content' keys
-            temperature: Sampling temperature (0.0 to 2.0)
-            max_tokens: Maximum tokens in response
-
-        Yields:
-            str: Chunks of the response text as they arrive
-        """
-        raise NotImplementedError(
-            f"{self.__class__.__name__} does not implement stream_chat()"
-        )
-
-    def health_check(self) -> bool:
-        """
-        Check if the LLM provider is accessible.
-
-        Returns:
-            bool: True if provider is accessible, False otherwise
-        """
-        try:
-            # Simple test: try to get model name
-            _ = self.get_model_name()
-            return True
-        except Exception:
-            return False
-
-    def __repr__(self) -> str:
-        """Return string representation of the client."""
-        return f"{self.__class__.__name__}(model={self.get_model_name()})"
+# BaseLLMClient removed — all LLM calls now go through LiteLLM Proxy (client.py)

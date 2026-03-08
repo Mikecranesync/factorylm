@@ -100,6 +100,26 @@ def init_db():
             timestamp TEXT NOT NULL DEFAULT (datetime('now')),
             tags_json TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS pipeline_traces (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            trace_id TEXT NOT NULL,
+            timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+            channel TEXT,
+            user_id TEXT,
+            input_type TEXT,
+            input_summary TEXT,
+            task_type TEXT,
+            provider TEXT,
+            model TEXT,
+            status TEXT DEFAULT 'pending',
+            elapsed_ms INTEGER,
+            tokens_used INTEGER,
+            plc_state_available INTEGER DEFAULT 0,
+            kb_context_available INTEGER DEFAULT 0,
+            incident_id INTEGER,
+            error_message TEXT,
+            response_summary TEXT
+        );
     """)
     conn.commit()
     conn.close()
@@ -175,6 +195,25 @@ class VideoAnalysisPayload(BaseModel):
     key_events_json: list | None = None
     interesting_score: int = 0
     cosmos_model: str = "nvidia/cosmos-reason2"
+
+
+class TracePayload(BaseModel):
+    trace_id: str
+    channel: str | None = None
+    user_id: str | None = None
+    input_type: str | None = None
+    input_summary: str | None = None
+    task_type: str | None = None
+    provider: str | None = None
+    model: str | None = None
+    status: str = "pending"
+    elapsed_ms: int | None = None
+    tokens_used: int | None = None
+    plc_state_available: bool = False
+    kb_context_available: bool = False
+    incident_id: int | None = None
+    error_message: str | None = None
+    response_summary: str | None = None
 
 
 # --- Health ---
@@ -497,6 +536,67 @@ async def list_video_analyses(clip_id: int | None = None, limit: int = 50):
         conn.close()
 
 
+# --- Pipeline Traces ---
+
+@app.post("/api/traces")
+async def create_trace(payload: TracePayload):
+    """Record a pipeline trace."""
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            """INSERT INTO pipeline_traces
+               (trace_id, channel, user_id, input_type, input_summary,
+                task_type, provider, model, status, elapsed_ms, tokens_used,
+                plc_state_available, kb_context_available, incident_id,
+                error_message, response_summary)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (payload.trace_id, payload.channel, payload.user_id,
+             payload.input_type, payload.input_summary,
+             payload.task_type, payload.provider, payload.model,
+             payload.status, payload.elapsed_ms, payload.tokens_used,
+             int(payload.plc_state_available), int(payload.kb_context_available),
+             payload.incident_id, payload.error_message, payload.response_summary),
+        )
+        conn.commit()
+        return {"trace_db_id": cur.lastrowid, "trace_id": payload.trace_id}
+    finally:
+        conn.close()
+
+
+@app.get("/api/traces")
+async def list_traces(limit: int = 50, status: str | None = None):
+    """List recent pipeline traces."""
+    conn = get_db()
+    try:
+        if status:
+            rows = conn.execute(
+                "SELECT * FROM pipeline_traces WHERE status=? ORDER BY id DESC LIMIT ?",
+                (status, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM pipeline_traces ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+@app.get("/api/traces/{trace_id}")
+async def get_trace(trace_id: str):
+    """Get a single pipeline trace by trace_id."""
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "SELECT * FROM pipeline_traces WHERE trace_id=?", (trace_id,)
+        ).fetchone()
+        if not row:
+            raise HTTPException(404, "Trace not found")
+        return dict(row)
+    finally:
+        conn.close()
+
+
 # --- Web HMI (inline HTML) ---
 
 @app.get("/video", response_class=HTMLResponse)
@@ -540,6 +640,14 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
   .insight-box .label { color: #888; }
   .checks { list-style: none; padding: 0; }
   .checks li::before { content: "→ "; color: #76b900; }
+  .trace-success { color: #76b900; }
+  .trace-error { color: #ff4444; }
+  .trace-pending { color: #aa8800; }
+  .trace-row { cursor: pointer; }
+  .trace-row:hover { background: #222; }
+  .trace-detail { background: #1e2a0a; border: 1px solid #76b900; border-radius: 6px; padding: 10px; margin-top: 8px; font-size: 0.85rem; }
+  .trace-detail p { margin: 3px 0; }
+  .trace-detail .label { color: #888; }
   #status { font-size: 0.8rem; color: #666; margin-top: 8px; }
   @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
 </style>
@@ -586,6 +694,17 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     <table id="pio-regs-table">
       <tr><th>Register</th><th>Value</th></tr>
     </table>
+  </div>
+</div>
+
+<div style="margin-top:16px;">
+  <div class="card" id="traces-card">
+    <h2>📡 Pipeline Traces</h2>
+    <table id="traces-table">
+      <thead><tr><th>Trace</th><th>Time</th><th>Ch</th><th>Type</th><th>Provider</th><th>Status</th><th>ms</th><th>Tokens</th></tr></thead>
+      <tbody id="traces-body"><tr><td colspan="8" style="color:#666">Loading...</td></tr></tbody>
+    </table>
+    <div id="trace-detail"></div>
   </div>
 </div>
 
@@ -780,9 +899,53 @@ async function fetchLiveTags() {
   } catch(e) {}
 }
 
+async function fetchTraces() {
+  try {
+    const res = await fetch(API + '/api/traces?limit=20');
+    const data = await res.json();
+    const tbody = document.getElementById('traces-body');
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:#666">No traces yet</td></tr>'; return; }
+    let html = '';
+    for (const t of data) {
+      const cls = t.status === 'success' ? 'trace-success' : t.status === 'error' ? 'trace-error' : 'trace-pending';
+      const shortId = t.trace_id ? t.trace_id.substring(0, 8) : '—';
+      const ts = t.timestamp ? t.timestamp.split('T').pop().split('.')[0] || t.timestamp.substring(11,19) : '—';
+      html += '<tr class="trace-row" onclick="showTrace(\'' + t.trace_id + '\')">';
+      html += '<td style="font-family:monospace;font-size:0.8rem;">' + shortId + '</td>';
+      html += '<td style="font-size:0.8rem;">' + ts + '</td>';
+      html += '<td>' + (t.channel || '—') + '</td>';
+      html += '<td>' + (t.input_type || '—') + '</td>';
+      html += '<td>' + (t.provider || '—') + '</td>';
+      html += '<td class="' + cls + '">' + (t.status || '—') + '</td>';
+      html += '<td style="font-family:monospace;">' + (t.elapsed_ms || '—') + '</td>';
+      html += '<td style="font-family:monospace;">' + (t.tokens_used || '—') + '</td>';
+      html += '</tr>';
+    }
+    tbody.innerHTML = html;
+  } catch(e) {}
+}
+
+async function showTrace(traceId) {
+  try {
+    const res = await fetch(API + '/api/traces/' + traceId);
+    const t = await res.json();
+    let html = '<div class="trace-detail">';
+    html += '<p><span class="label">Trace ID:</span> ' + t.trace_id + '</p>';
+    html += '<p><span class="label">Channel:</span> ' + (t.channel || '—') + ' | <span class="label">User:</span> ' + (t.user_id || '—') + '</p>';
+    html += '<p><span class="label">Input:</span> ' + (t.input_summary || '—') + '</p>';
+    html += '<p><span class="label">Task:</span> ' + (t.task_type || '—') + ' → ' + (t.provider || '—') + ' (' + (t.model || '—') + ')</p>';
+    html += '<p><span class="label">PLC state:</span> ' + (t.plc_state_available ? '✓' : '✗') + ' | <span class="label">KB context:</span> ' + (t.kb_context_available ? '✓' : '✗') + '</p>';
+    if (t.incident_id) html += '<p><span class="label">Incident:</span> #' + t.incident_id + '</p>';
+    if (t.error_message) html += '<p style="color:#ff4444;"><span class="label">Error:</span> ' + t.error_message + '</p>';
+    if (t.response_summary) html += '<p><span class="label">Response:</span> ' + t.response_summary + '</p>';
+    html += '</div>';
+    document.getElementById('trace-detail').innerHTML = html;
+  } catch(e) {}
+}
+
 // Poll every 2 seconds
-setInterval(() => { fetchTags(); fetchIncidents(); fetchLiveTags(); }, 2000);
-fetchTags(); fetchIncidents(); fetchLiveTags();
+setInterval(() => { fetchTags(); fetchIncidents(); fetchLiveTags(); fetchTraces(); }, 2000);
+fetchTags(); fetchIncidents(); fetchLiveTags(); fetchTraces();
 document.getElementById('status').textContent = 'Connected to Matrix API at ' + window.location.origin;
 </script>
 </body>

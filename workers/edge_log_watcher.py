@@ -14,14 +14,15 @@ from datetime import datetime
 from typing import Dict, List, Optional
 import logging
 
-sys.path.insert(0, '/opt/master_of_puppets')
+PROJECT_ROOT = os.getenv("FACTORYLM_ROOT", "/opt/master_of_puppets")
+sys.path.insert(0, PROJECT_ROOT)
 from celery_app import app
 from workers.base_worker import BaseAgent, with_token_tracking, with_celery_tracing
 from observability import traced, track_llm_call, track_api_call
 
-# Paths
-EDGE_LOGS_DIR = Path("/opt/factorylm-sync/edge-logs")
-STATE_DIR = Path("/opt/master_of_puppets/state")
+# Paths (configurable via env vars, defaults match VPS layout)
+EDGE_LOGS_DIR = Path(os.getenv("EDGE_LOGS_DIR", "/opt/factorylm-sync/edge-logs"))
+STATE_DIR = Path(os.getenv("FACTORYLM_STATE_DIR", os.path.join(PROJECT_ROOT, "state")))
 STATE_DIR.mkdir(exist_ok=True)
 WATCHER_STATE = STATE_DIR / "edge_log_watcher_state.json"
 

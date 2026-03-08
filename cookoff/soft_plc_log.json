@@ -1,0 +1,31 @@
+{
+  "total_cycles": 500,
+  "total_events": 5,
+  "events": [
+    {
+      "time": "16:18:23.685",
+      "cycle": 1,
+      "event": "Output conveyor_entry -> ON"
+    },
+    {
+      "time": "16:18:23.685",
+      "cycle": 1,
+      "event": "Output unload -> ON"
+    },
+    {
+      "time": "16:18:23.685",
+      "cycle": 1,
+      "event": "Output conveyor_left -> ON"
+    },
+    {
+      "time": "16:18:23.685",
+      "cycle": 1,
+      "event": "Output conveyor_right -> ON"
+    },
+    {
+      "time": "16:18:23.685",
+      "cycle": 1,
+      "event": "Output start_light -> ON"
+    }
+  ]
+}
