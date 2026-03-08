@@ -1,0 +1,12 @@
+scenario_id: E001_estop
+description: E-stop triggers EMERGENCY fault
+inject:
+  - {coil: 11, value: true}   # e_stop
+  - {coil: 13, value: true}   # fio_running (scene must be "on")
+expected_fault_code: E001
+expected_severity: emergency
+hold_seconds: 3
+timeout_seconds: 5
+cleanup:
+  - {coil: 11, value: false}
+  - {coil: 13, value: false}

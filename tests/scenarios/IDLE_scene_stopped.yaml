@@ -1,0 +1,11 @@
+scenario_id: IDLE_scene_stopped
+description: Scene stopped shows IDLE status
+inject:
+  - {coil: 13, value: false}  # fio_running off
+  - {coil: 11, value: false}  # e_stop off
+expected_fault_code: IDLE
+expected_severity: info
+hold_seconds: 2
+timeout_seconds: 5
+cleanup:
+  - {coil: 13, value: false}
