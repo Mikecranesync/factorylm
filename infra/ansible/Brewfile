@@ -1,0 +1,26 @@
+# FactoryLM Mac Mini Fleet — Canonical Package List
+# All 3 Mac minis get identical packages via: brew bundle --file=Brewfile
+
+# Core tools
+brew "git"
+brew "gh"
+brew "tmux"
+brew "jq"
+brew "tree"
+brew "htop"
+brew "curl"
+brew "wget"
+
+# Python
+brew "python@3.12"
+brew "pipx"
+
+# Node (for Claude Code CLI)
+brew "node"
+
+# Infrastructure
+brew "ollama"
+brew "tailscale"
+
+# Containers
+cask "docker"

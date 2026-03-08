@@ -132,6 +132,17 @@ GITHUB REPO:     /cluster/repos/FactoryLM-Architecture/
 - Scheduled Tasks:        support.claude.com/en/articles/13854387
 - Community Discord:      discord.gg/MRESQnf4R4
 
+## FLEET SYNC (all Mac minis identical)
+
+All 3 Mac minis are kept identical via Ansible. From any machine with Ansible installed:
+
+```bash
+cd ~/factorylm/infra/ansible
+ansible-playbook -i inventory.ini playbook.yml
+```
+
+Single node: `--limit bravo`. Dry run: `--check`. See `infra/ansible/README.md`.
+
 ## PER-NODE SETUP REQUIREMENTS
 
 ### ALPHA (192.168.1.10) — Orchestrator
