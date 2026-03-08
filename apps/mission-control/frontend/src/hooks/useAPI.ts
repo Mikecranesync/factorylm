@@ -117,7 +117,7 @@ export function useNodes() {
 export function useJHCScan() {
   return useMutation({
     mutationFn: ({ org, minScore }: { org: string; minScore: number }) =>
-      fetchAPI(`/tools/jhc/scan?org=${org}&min_score=${minScore}`, { method: 'POST' }),
+      fetchAPI<Record<string, unknown>>(`/tools/jhc/scan?org=${org}&min_score=${minScore}`, { method: 'POST' }),
   })
 }
 
@@ -125,12 +125,100 @@ export function useJHCResurrect() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (request: JHCResurrectRequest) =>
-      fetchAPI('/tools/jhc/resurrect', { method: 'POST', body: JSON.stringify(request) }),
+      fetchAPI<Record<string, unknown>>('/tools/jhc/resurrect', { method: 'POST', body: JSON.stringify(request) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hil-queue'] }),
   })
 }
 
+// Git Forensics
+export function useGitReport() {
+  return useMutation({
+    mutationFn: ({ repoPath }: { repoPath: string }) =>
+      fetchAPI<GitForensicsResult>(
+        `/tools/git/report?repo_path=${encodeURIComponent(repoPath)}`,
+        { method: 'POST' }
+      ),
+  })
+}
+
+export function useGitHotspots() {
+  return useMutation({
+    mutationFn: ({ repoPath, limit = 20 }: { repoPath: string; limit?: number }) =>
+      fetchAPI<GitForensicsResult>(
+        `/tools/git/hotspots?repo_path=${encodeURIComponent(repoPath)}&limit=${limit}`
+      ),
+  })
+}
+
+// Claude Code relay
+export function useClaudeRelay() {
+  return useMutation({
+    mutationFn: ({ nodeId, prompt, projectPath = '~/factorylm', timeout = 300 }: {
+      nodeId: string; prompt: string; projectPath?: string; timeout?: number
+    }) =>
+      fetchAPI<ClaudeResult>(`/nodes/${nodeId}/claude`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt, project_path: projectPath, timeout }),
+      }),
+  })
+}
+
+// Shell execution
+export function useShellExec() {
+  return useMutation({
+    mutationFn: ({ nodeId, command, timeout = 30 }: { nodeId: string; command: string; timeout?: number }) =>
+      fetchAPI<ShellResult>(`/nodes/${nodeId}/shell`, {
+        method: 'POST',
+        body: JSON.stringify({ command, timeout }),
+      }),
+  })
+}
+
+export function useNodeInfo(nodeId: string) {
+  return useQuery({
+    queryKey: ['node-info', nodeId],
+    queryFn: () => fetchAPI<Record<string, unknown>>(`/nodes/${nodeId}/info`),
+    enabled: !!nodeId,
+  })
+}
+
+export function useQuickActions() {
+  return useQuery({
+    queryKey: ['quick-actions'],
+    queryFn: () => fetchAPI<{ actions: QuickAction[] }>('/quick-actions'),
+    staleTime: 60000,
+  })
+}
+
 // Types
+export interface ClaudeResult {
+  node: string
+  node_name: string
+  prompt_preview: string
+  project_path: string
+  stdout: string
+  stderr: string
+  exit_code: number
+  duration_ms: number
+}
+
+export interface ShellResult {
+  node: string
+  node_name: string
+  stdout: string
+  stderr: string
+  exit_code: number
+  duration_ms: number
+}
+
+export interface QuickAction {
+  id: string
+  label: string
+  node: string
+  command: string
+  risk: string
+}
+
 export interface Worker {
   name: string
   file?: string
@@ -197,6 +285,12 @@ export interface JarvisNode {
   host: string
   port: number
   status: string
+}
+
+export interface GitForensicsResult {
+  repo: string
+  output: string
+  error: string | null
 }
 
 export interface JHCResurrectRequest {

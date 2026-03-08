@@ -13,6 +13,7 @@ Unified backend for managing all autonomous capabilities:
 Port: 8090
 """
 
+import logging
 import os
 import json
 import asyncio
@@ -25,8 +26,11 @@ import httpx
 import yaml
 from fastapi import FastAPI, BackgroundTasks, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+logger = logging.getLogger("mission-control")
 
 app = FastAPI(
     title="Mission Control API",
@@ -79,6 +83,18 @@ class HILAction(BaseModel):
     requested_at: str
     requested_by: str = "system"
     risk_level: str = "medium"
+
+
+class ShellExecRequest(BaseModel):
+    command: str
+    timeout: int = 30
+    cwd: Optional[str] = None
+
+
+class ClaudePromptRequest(BaseModel):
+    prompt: str
+    project_path: str = "~/factorylm"
+    timeout: int = 300
 
 
 # ============ HEALTH ============
@@ -139,8 +155,7 @@ async def run_workflow(workflow_id: str, request: WorkflowRunRequest, background
 
 async def execute_workflow(workflow_id: str, params: dict, run_id: str):
     """Background task to execute workflow."""
-    # Implementation would use antfarm CLI or direct execution
-    pass
+    logger.warning(f"Workflow execution not implemented: {workflow_id} (run_id={run_id})")
 
 
 # ============ CELERY WORKER SWARM ============
@@ -369,8 +384,7 @@ async def stop_agent(agent: str):
 
 async def _run_agent(agent: str):
     """Background task to run agent."""
-    # Implementation depends on agent type
-    pass
+    logger.warning(f"Agent execution not implemented: {agent}")
 
 
 # ============ PLC COLLECTORS ============
@@ -383,7 +397,7 @@ async def list_collectors():
             "name": "s7",
             "type": "Siemens S7",
             "file": "workers/collectors/s7_collector_tasks.py",
-            "status": "active",
+            "status": "unknown",
             "protocol": "S7comm",
             "last_poll": datetime.utcnow().isoformat()
         },
@@ -391,7 +405,7 @@ async def list_collectors():
             "name": "ab",
             "type": "Allen-Bradley",
             "file": "workers/collectors/ab_collector_tasks.py",
-            "status": "active",
+            "status": "unknown",
             "protocol": "EtherNet/IP",
             "last_poll": datetime.utcnow().isoformat()
         },
@@ -399,7 +413,7 @@ async def list_collectors():
             "name": "modbus",
             "type": "Modbus TCP",
             "file": "workers/collectors/modbus_collector_tasks.py",
-            "status": "active",
+            "status": "unknown",
             "protocol": "Modbus TCP",
             "last_poll": datetime.utcnow().isoformat()
         }
@@ -543,9 +557,11 @@ def _get_active_mode() -> str:
 # ============ JARVIS NODES ============
 
 JARVIS_NODES = {
-    "vps": {"host": "100.68.120.99", "port": 8765, "name": "VPS (Jarvis)"},
+    # "vps": {"host": "100.68.120.99", "port": 8765, "name": "VPS (Jarvis)"},  # Deprecated: Telegram moved to CHARLIE polling
     "travel": {"host": "100.83.251.23", "port": 8765, "name": "Travel Laptop"},
     "plc": {"host": "100.72.2.99", "port": 8765, "name": "PLC Laptop"},
+    "bravo": {"host": "100.86.236.11", "port": 8765, "name": "Mac Mini BRAVO"},
+    "charlie": {"host": "100.82.246.52", "port": 8765, "name": "Mac Mini CHARLIE"},
 }
 
 
@@ -572,6 +588,132 @@ async def _check_node_health(host: str, port: int) -> str:
     except:
         pass
     return "offline"
+
+
+# ============ SHELL EXECUTION ============
+
+@app.post("/api/nodes/{node_id}/shell")
+async def node_shell(node_id: str, request: ShellExecRequest):
+    """Execute shell command on a Jarvis node."""
+    if node_id not in JARVIS_NODES:
+        raise HTTPException(404, f"Unknown node: {node_id}")
+
+    node = JARVIS_NODES[node_id]
+    url = f"http://{node['host']}:{node['port']}/shell"
+
+    try:
+        async with httpx.AsyncClient(timeout=request.timeout + 5) as client:
+            resp = await client.post(url, json={
+                "command": request.command,
+                "timeout": request.timeout,
+                "cwd": request.cwd,
+            })
+            if resp.status_code == 200:
+                data = resp.json()
+                # Normalize field names across Jarvis node versions
+                if "returncode" in data and "exit_code" not in data:
+                    data["exit_code"] = data.pop("returncode")
+                if "duration_ms" not in data:
+                    data["duration_ms"] = 0
+                return {
+                    "node": node_id,
+                    "node_name": node["name"],
+                    **data
+                }
+            else:
+                raise HTTPException(resp.status_code, f"Node error: {resp.text}")
+    except httpx.ConnectError:
+        raise HTTPException(503, f"Cannot connect to {node['name']} at {node['host']}:{node['port']}")
+    except httpx.ReadTimeout:
+        raise HTTPException(408, f"Command timed out on {node['name']}")
+
+
+@app.get("/api/nodes/{node_id}/info")
+async def node_info(node_id: str):
+    """Get system info from a Jarvis node."""
+    if node_id not in JARVIS_NODES:
+        raise HTTPException(404, f"Unknown node: {node_id}")
+
+    node = JARVIS_NODES[node_id]
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(f"http://{node['host']}:{node['port']}/system-info")
+            if resp.status_code == 200:
+                return {"node": node_id, "node_name": node["name"], **resp.json()}
+            raise HTTPException(resp.status_code, "Failed to get system info")
+    except httpx.ConnectError:
+        raise HTTPException(503, f"Cannot reach {node['name']}")
+
+
+@app.get("/api/quick-actions")
+async def quick_actions():
+    """Pre-defined quick actions for the dashboard."""
+    return {
+        "actions": [
+            {"id": "openclaw-status", "label": "OpenClaw Status", "node": "vps", "command": "systemctl status openclaw --no-pager -l", "risk": "low"},
+            {"id": "openclaw-logs", "label": "OpenClaw Logs", "node": "vps", "command": "journalctl -u openclaw -n 50 --no-pager", "risk": "low"},
+            {"id": "restart-openclaw", "label": "Restart OpenClaw", "node": "vps", "command": "systemctl restart openclaw", "risk": "medium"},
+            {"id": "git-pull-vps", "label": "Git Pull (VPS)", "node": "vps", "command": "cd /opt/openclaw && git pull", "risk": "medium"},
+            {"id": "disk-space-vps", "label": "Disk Space (VPS)", "node": "vps", "command": "df -h /", "risk": "low"},
+            {"id": "tailscale-status", "label": "Tailscale Status", "node": "vps", "command": "tailscale status", "risk": "low"},
+            {"id": "ollama-bravo", "label": "Ollama Models (BRAVO)", "node": "bravo", "command": "ollama list", "risk": "low"},
+            {"id": "ollama-charlie", "label": "Ollama Models (CHARLIE)", "node": "charlie", "command": "ollama list", "risk": "low"},
+        ]
+    }
+
+
+# ============ CLAUDE CODE RELAY ============
+
+@app.post("/api/nodes/{node_id}/claude")
+async def node_claude(node_id: str, request: ClaudePromptRequest):
+    """Send a prompt to Claude Code CLI on a Jarvis node."""
+    if node_id not in JARVIS_NODES:
+        raise HTTPException(404, f"Unknown node: {node_id}")
+
+    node = JARVIS_NODES[node_id]
+    base_url = f"http://{node['host']}:{node['port']}"
+    prompt_id = str(uuid.uuid4())[:8]
+    tmp_path = f"/tmp/mc-prompt-{prompt_id}.txt"
+
+    # Step 1: Write prompt to temp file on target node
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            write_resp = await client.post(f"{base_url}/file/write", json={
+                "path": tmp_path,
+                "content": request.prompt,
+            })
+            if write_resp.status_code != 200:
+                raise HTTPException(502, f"Failed to write prompt file on {node['name']}")
+    except httpx.ConnectError:
+        raise HTTPException(503, f"Cannot connect to {node['name']}")
+
+    # Step 2: Run claude -p with the prompt file
+    command = f"cd {request.project_path} && claude -p < {tmp_path} ; rm -f {tmp_path}"
+    try:
+        async with httpx.AsyncClient(timeout=request.timeout + 10) as client:
+            resp = await client.post(f"{base_url}/shell", json={
+                "command": command,
+                "timeout": request.timeout,
+            })
+            if resp.status_code == 200:
+                data = resp.json()
+                if "returncode" in data and "exit_code" not in data:
+                    data["exit_code"] = data.pop("returncode")
+                if "duration_ms" not in data:
+                    data["duration_ms"] = 0
+                return {
+                    "node": node_id,
+                    "node_name": node["name"],
+                    "prompt_preview": request.prompt[:200],
+                    "project_path": request.project_path,
+                    **data,
+                }
+            else:
+                raise HTTPException(resp.status_code, f"Claude Code error: {resp.text}")
+    except httpx.ReadTimeout:
+        raise HTTPException(408, f"Claude Code timed out after {request.timeout}s on {node['name']}")
+    except httpx.ConnectError:
+        raise HTTPException(503, f"Lost connection to {node['name']}")
 
 
 # ============ HIL (Human-in-Loop) QUEUE ============
@@ -645,6 +787,22 @@ async def activity_stream():
     )
 
 
+# ============ SPA SERVING ============
+
+FRONTEND_BUILD = Path(__file__).parent.parent / "frontend" / "dist"
+
+if FRONTEND_BUILD.exists():
+    app.mount("/assets", StaticFiles(directory=FRONTEND_BUILD / "assets"), name="static")
+
+    @app.get("/{path:path}")
+    async def serve_spa(path: str):
+        """Serve React SPA - all non-API routes go to index.html."""
+        file_path = FRONTEND_BUILD / path
+        if file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(FRONTEND_BUILD / "index.html")
+
+
 # ============ STARTUP ============
 
 @app.on_event("startup")
@@ -653,6 +811,10 @@ async def startup():
     print(f"  Flower URL: {FLOWER_URL}")
     print(f"  Ralph API: {RALPH_API}")
     print(f"  Antfarm Dir: {ANTFARM_DIR}")
+    if FRONTEND_BUILD.exists():
+        print(f"  Serving React SPA from: {FRONTEND_BUILD}")
+    else:
+        print(f"  No React build found at {FRONTEND_BUILD} - run 'npm run build' in frontend/")
 
 
 if __name__ == "__main__":

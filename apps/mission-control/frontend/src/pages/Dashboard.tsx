@@ -2,6 +2,7 @@ import { useWorkflows, useWorkers, useAgents, useRalphStatus } from '../hooks/us
 import HILQueue from '../components/HILQueue'
 import NodeStatus from '../components/NodeStatus'
 import CollectorStatus from '../components/CollectorStatus'
+import QuickActions from '../components/QuickActions'
 import { Activity, Workflow, Users, Bot, Zap } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -88,23 +89,7 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="card">
-        <h3 className="text-sm font-semibold text-gray-400 uppercase mb-3">Quick Actions</h3>
-        <div className="grid grid-cols-4 gap-3">
-          <button className="btn bg-gray-800 hover:bg-gray-700 text-sm">
-            Start Ralph Loop
-          </button>
-          <button className="btn bg-gray-800 hover:bg-gray-700 text-sm">
-            Scan for Repos
-          </button>
-          <button className="btn bg-gray-800 hover:bg-gray-700 text-sm">
-            Check PLC Health
-          </button>
-          <button className="btn bg-gray-800 hover:bg-gray-700 text-sm">
-            View Workflows
-          </button>
-        </div>
-      </div>
+      <QuickActions />
     </div>
   )
 }

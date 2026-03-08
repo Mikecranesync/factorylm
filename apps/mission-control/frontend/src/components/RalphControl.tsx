@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useRalphStatus, useRalphControl, RalphStatus } from '../hooks/useAPI'
+import { useRalphStatus, useRalphControl } from '../hooks/useAPI'
 import { Play, Pause, Square, RefreshCw, Zap, Shield, AlertTriangle } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -7,7 +7,7 @@ export default function RalphControl() {
   const { data: status, isLoading, error } = useRalphStatus()
   const controlMutation = useRalphControl()
   const [projectPath, setProjectPath] = useState('')
-  const [promptFile, setPromptFile] = useState('.ralph/PROMPT.md')
+  const [promptFile] = useState('.ralph/PROMPT.md')
 
   const handleStart = () => {
     if (!projectPath) return

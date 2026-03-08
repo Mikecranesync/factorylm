@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useJHCResurrect, useJHCScan } from '../hooks/useAPI'
-import { Cross, Search, Zap, AlertTriangle, Check } from 'lucide-react'
+import { Search, Zap, AlertTriangle, Check } from 'lucide-react'
 
 export default function JHCPanel() {
   const [repoUrl, setRepoUrl] = useState('')
@@ -67,7 +67,7 @@ export default function JHCPanel() {
         {scanMutation.data && (
           <div className="mt-4 bg-gray-900 rounded-lg p-4 max-h-64 overflow-auto">
             <pre className="text-sm text-gray-300 whitespace-pre-wrap">
-              {scanMutation.data.output}
+              {JSON.stringify(scanMutation.data, null, 2)}
             </pre>
           </div>
         )}
@@ -152,7 +152,7 @@ export default function JHCPanel() {
             <div className="p-3 bg-green-900/20 border border-green-700 rounded-lg flex items-center gap-2">
               <Check className="w-5 h-5 text-green-500" />
               <span className="text-sm text-green-200">
-                Queued for approval. Action ID: {(resurrectMutation.data as any).action_id}
+                Queued for approval. Action ID: {String((resurrectMutation.data as Record<string, unknown>)?.action_id ?? '')}
               </span>
             </div>
           )}

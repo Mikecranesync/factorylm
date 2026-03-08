@@ -147,8 +147,11 @@ GITHUB REPO:     /cluster/repos/FactoryLM-Architecture/
 - Claude Code CLI installed
 - SMB mount to Alpha: `mount_smbfs //alpha/cluster /cluster`
 
-### CHARLIE (192.168.1.12) — Vector KB
+### CHARLIE (192.168.1.12) — Vector KB + Telegram Ingress
 - Qdrant running on :8000
+- **Telegram bot** via polling (`services/troubleshoot/adapters/telegram_bot.py`)
+  - Uses `run_polling()` — no public endpoint or webhook needed
+  - Replaced VPS OpenClaw webhook gateway (March 2026)
 - Claude Code CLI installed
 - SMB mount to Alpha: `mount_smbfs //alpha/cluster /cluster`
 
