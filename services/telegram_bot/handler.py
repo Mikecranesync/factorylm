@@ -33,8 +33,14 @@ from telegram.ext import (
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from diagnosis.conveyor_faults import detect_faults, format_diagnosis_for_technician
-from diagnosis.prompts import build_diagnosis_prompt
+try:
+    from diagnosis.conveyor_faults import detect_faults, format_diagnosis_for_technician
+except ImportError:
+    logger = logging.getLogger(__name__)
+    logger.warning("diagnosis module not available — fault detection disabled")
+    detect_faults = lambda tags: []
+    format_diagnosis_for_technician = lambda f: str(f)
+
 from services.telegram_bot.prompts import build_system_prompt, HELP_TEXT
 from services.telegram_bot.work_orders import WorkOrderStore
 from core.src.factorylm.llm.client import async_diagnose
@@ -42,8 +48,8 @@ from core.src.factorylm.llm.client import async_diagnose
 logger = logging.getLogger(__name__)
 
 # --- Configuration ---
-PLC_MODBUS_URL = os.getenv("PLC_MODBUS_URL", "http://100.72.2.99:8001")
-MATRIX_API_URL = os.getenv("MATRIX_API_URL", "http://100.72.2.99:8000")
+PLC_MODBUS_URL = os.getenv("PLC_MODBUS_URL", "http://127.0.0.1:8001")
+MATRIX_API_URL = os.getenv("MATRIX_API_URL", "http://127.0.0.1:8000")
 MAX_HISTORY = 10  # messages per user to keep in context
 
 

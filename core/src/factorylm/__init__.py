@@ -1,21 +1,17 @@
 """
 FactoryLM Core - LLM Abstraction Layer for Industrial Applications
 
-This package provides a unified interface for interacting with multiple LLM providers
-(GROQ, DeepSeek, Claude, and future FactoryLM proprietary models).
+All LLM calls route through LiteLLM Proxy (localhost:4000).
+Model routing, fallbacks, retries handled by the proxy config.
 
 Usage:
-    from factorylm import create_llm_client
-    from factorylm.config import LLM_PROVIDER, LLM_API_KEY, LLM_MODEL
-
-    llm = create_llm_client(LLM_PROVIDER, LLM_API_KEY, LLM_MODEL)
-    response = llm.analyze_machine_state(question, machine_state)
+    from factorylm.llm.client import diagnose_fault, async_diagnose
 """
 
 __version__ = "0.1.0"
 __author__ = "FactoryLM Team"
 
-from factorylm.llm import create_llm_client
-from factorylm.llm.base import BaseLLMClient, LLMResponse
+from factorylm.llm import llm_client, async_diagnose, diagnose_fault
+from factorylm.llm.base import LLMResponse
 
-__all__ = ["create_llm_client", "BaseLLMClient", "LLMResponse", "__version__"]
+__all__ = ["llm_client", "async_diagnose", "diagnose_fault", "LLMResponse", "__version__"]

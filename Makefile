@@ -5,7 +5,7 @@ PIP := $(PYTHON) -m pip
 REPO := $(shell pwd)
 LITELLM_PID := /tmp/factorylm-litellm.pid
 
-.PHONY: setup litellm litellm-stop test health services stop ansible env
+.PHONY: setup litellm litellm-stop test health services stop ansible env telegram telegram-stop
 
 ## ── Phase 0: Prerequisites ──────────────────────────────────────
 
@@ -68,16 +68,31 @@ health:  ## Check all service endpoints
 	@echo ""
 	@echo "Doppler:"; doppler secrets --only-names 2>/dev/null | wc -l | xargs printf "  %s secrets loaded\n"
 
-## ── Phase 5: Service Orchestration ──────────────────────────────
+## ── Phase 5: Telegram Bot ────────────────────────────────────────
 
-services: litellm  ## Start all services
-	@echo "Starting diagnosis service..."
-	@echo "Starting telegram bot..."
-	@echo "(launchd plists not yet configured — manual start only)"
+telegram: litellm  ## Start Telegram bot (requires TELEGRAM_TOKEN)
+	@if pgrep -f "services.telegram_bot" >/dev/null 2>&1; then \
+		echo "Telegram bot already running"; \
+	else \
+		if [ -z "$$TELEGRAM_TOKEN" ]; then \
+			echo "ERROR: TELEGRAM_TOKEN not set. Run: export TELEGRAM_TOKEN=<token>"; \
+			exit 1; \
+		fi; \
+		echo "Starting Telegram bot..."; \
+		PYTHONPATH=$(REPO) $(PYTHON) -m services.telegram_bot & \
+		echo "✓ Telegram bot started (PID $$!)"; \
+	fi
 
-stop: litellm-stop  ## Stop all services
+telegram-stop:  ## Stop Telegram bot
+	@pkill -f "services.telegram_bot" 2>/dev/null && echo "Stopped Telegram bot" || echo "Telegram bot not running"
+
+## ── Phase 6: Service Orchestration ──────────────────────────────
+
+services: litellm telegram  ## Start all services
+	@echo "All services started"
+
+stop: litellm-stop telegram-stop  ## Stop all services
 	@lsof -ti:8200 | xargs kill 2>/dev/null || true
-	@pkill -f "telegram_bot" 2>/dev/null || true
 	@echo "All services stopped"
 
 ## ── Infra ───────────────────────────────────────────────────────

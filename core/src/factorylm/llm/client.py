@@ -12,7 +12,7 @@ import openai
 
 logger = logging.getLogger(__name__)
 
-LITELLM_URL = os.getenv("LITELLM_URL", "http://localhost:4000")
+LITELLM_URL = os.getenv("LITELLM_URL", "http://127.0.0.1:4000")
 LITELLM_KEY = os.getenv("LITELLM_KEY", "sk-factorylm")
 
 # Shared sync + async clients — import these from anywhere
@@ -20,7 +20,7 @@ llm_client = openai.OpenAI(api_key=LITELLM_KEY, base_url=LITELLM_URL)
 llm_async_client = openai.AsyncOpenAI(api_key=LITELLM_KEY, base_url=LITELLM_URL)
 
 
-def diagnose_fault(system_prompt: str, user_message: str, model: str = "deepseek-main") -> str:
+def diagnose_fault(system_prompt: str, user_message: str, model: str = "groq-main") -> str:
     """Synchronous diagnosis call. Used by diagnosis service."""
     try:
         r = llm_client.chat.completions.create(
@@ -38,7 +38,7 @@ def diagnose_fault(system_prompt: str, user_message: str, model: str = "deepseek
         return None
 
 
-async def async_diagnose(system_prompt: str, messages: list[dict], model: str = "deepseek-main") -> str:
+async def async_diagnose(system_prompt: str, messages: list[dict], model: str = "groq-main") -> str:
     """Async diagnosis call. Used by Telegram bot and other async services."""
     try:
         r = await llm_async_client.chat.completions.create(
