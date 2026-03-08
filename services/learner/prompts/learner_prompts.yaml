@@ -1,0 +1,70 @@
+# Prompt templates for the autonomous scene learner.
+# Used by scene_observer.py — each prompt has a template with {variable} placeholders.
+
+describe_scene:
+  model: vision
+  template: |
+    You are analyzing a Factory I/O industrial simulation screenshot.
+    What factory equipment do you see? Identify conveyors, sensors, actuators,
+    pushers, sorters, lights, and any moving parts.
+    For each piece of equipment, note whether it appears to be running or stopped.
+    Be specific about positions and states.
+
+describe_change:
+  model: vision
+  template: |
+    I just toggled coil '{coil_name}' (documented as: '{coil_desc}') in a Factory I/O simulation.
+    This screenshot shows the scene AFTER the toggle.
+    What changed? What is moving now that wasn't before, or vice versa?
+    Be specific about which equipment was affected.
+
+verify_behavior:
+  model: vision
+  template: |
+    VERIFICATION CHECK:
+    The PLC program documents coil '{coil_name}' as: "{official_desc}"
+    I toggled this coil and observed: {observed_delta}
+
+    Does the observed behavior MATCH the official documentation?
+    Reply with exactly one of:
+    - MATCH: [brief explanation of how it matches]
+    - MISMATCH: [what the docs say vs what actually happened]
+
+extract_learning:
+  model: vision
+  template: |
+    I toggled coil '{coil_name}' in a Factory I/O simulation.
+    The following tags changed: {tag_delta}
+    Looking at the screenshot, in ONE sentence, what does this coil control?
+    Format: "Coil '{coil_name}' controls [what it does]."
+
+plan_experiment:
+  model: text
+  template: |
+    You are planning experiments for an autonomous Factory I/O scene learner.
+    Here is what we know so far:
+
+    {context}
+
+    Based on this knowledge, what should we test next?
+    Consider:
+    - Untested I/O points (highest priority)
+    - Low-confidence learnings that need re-testing
+    - Potential interactions between coils
+    - Sequences that might reveal dependent behavior
+
+    Suggest the single most informative next experiment and explain why.
+
+consolidate:
+  model: text
+  template: |
+    Summarize how this Factory I/O scene works based on our experiments:
+
+    {context}
+
+    Write a clear, technical summary covering:
+    1. What equipment is in the scene
+    2. What each coil/actuator controls
+    3. What each sensor detects
+    4. The normal operating sequence
+    5. Any surprising findings or mismatches with documentation
