@@ -5,7 +5,7 @@ PIP := $(PYTHON) -m pip
 REPO := $(shell pwd)
 LITELLM_PID := /tmp/factorylm-litellm.pid
 
-.PHONY: setup litellm litellm-stop test health services stop ansible env telegram telegram-stop
+.PHONY: setup litellm litellm-stop test health services stop ansible env telegram telegram-stop whatsapp whatsapp-stop
 
 ## ── Phase 0: Prerequisites ──────────────────────────────────────
 
@@ -86,13 +86,27 @@ telegram: litellm  ## Start Telegram bot (requires TELEGRAM_TOKEN)
 telegram-stop:  ## Stop Telegram bot
 	@pkill -f "services.telegram_bot" 2>/dev/null && echo "Stopped Telegram bot" || echo "Telegram bot not running"
 
+## ── Phase 5b: WhatsApp Adapter ───────────────────────────────────
+
+whatsapp: litellm  ## Start WhatsApp adapter on :8200
+	@if lsof -ti:8200 >/dev/null 2>&1; then \
+		echo "WhatsApp adapter already running on :8200"; \
+	else \
+		echo "Starting WhatsApp adapter on :8200..."; \
+		PYTHONPATH=$(REPO) $(PYTHON) -m uvicorn services.whatsapp.main:app --host 0.0.0.0 --port 8200 & \
+		sleep 2; \
+		curl -sf http://localhost:8200/health >/dev/null && echo "✓ WhatsApp adapter healthy" || echo "⚠ WhatsApp adapter not responding yet"; \
+	fi
+
+whatsapp-stop:  ## Stop WhatsApp adapter
+	@lsof -ti:8200 | xargs kill 2>/dev/null && echo "Stopped WhatsApp adapter" || echo "WhatsApp adapter not running"
+
 ## ── Phase 6: Service Orchestration ──────────────────────────────
 
-services: litellm telegram  ## Start all services
+services: litellm telegram whatsapp  ## Start all services
 	@echo "All services started"
 
-stop: litellm-stop telegram-stop  ## Stop all services
-	@lsof -ti:8200 | xargs kill 2>/dev/null || true
+stop: litellm-stop telegram-stop whatsapp-stop  ## Stop all services
 	@echo "All services stopped"
 
 ## ── Infra ───────────────────────────────────────────────────────
