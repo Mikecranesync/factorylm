@@ -1,0 +1,36 @@
+# FactoryLM LiteLLM Proxy Configuration
+# Run: make litellm  (or: bash scripts/start_litellm.sh)
+# Add more providers later as accounts are funded.
+
+model_list:
+  # --- Local: Free inference via Ollama (classification, intent) ---
+  - model_name: local-gemma
+    litellm_params:
+      model: ollama/gemma3:12b
+      api_base: http://localhost:11434
+
+  # --- Cloud: Groq free tier (reasoning, diagnosis, operator Q&A) ---
+  - model_name: groq-main
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+
+litellm_settings:
+  # Fallback: groq -> local-gemma (degraded but functional)
+  fallbacks:
+    - groq-main: [local-gemma]
+
+  num_retries: 2
+  retry_after: 5
+  request_timeout: 30
+  drop_params: true
+
+  # Cache identical requests
+  cache: true
+  cache_params:
+    type: local
+    ttl: 300
+
+general_settings:
+  master_key: sk-factorylm
+  database_url: null
