@@ -377,6 +377,14 @@ async def phase_4_consolidation(scene_id: int, ks: KnowledgeStore,
         json.dump(export, f, indent=2, default=str)
     logger.info("Exported knowledge to %s", export_path)
 
+    # If LLM was unavailable, note that raw data is still preserved
+    if not consolidation:
+        failsafe = REPO_ROOT / "data" / "learner" / "experiment_log.jsonl"
+        if failsafe.exists():
+            n_records = sum(1 for _ in open(failsafe))
+            logger.info("LLM unavailable — raw experiment data saved to %s (%d records). "
+                        "Re-run Phase 4 later when LLM is available.", failsafe, n_records)
+
     # Export JSONL training data
     jsonl_count = 0
     if training_config:
@@ -414,8 +422,15 @@ async def run_scene(scene_name: str, ks: KnowledgeStore,
     all_results = []
     remaining = max_experiments
 
+    def _check_cost():
+        if observer.cost_exceeded():
+            logger.warning("COST CEILING HIT: $%.4f — stopping experiments",
+                           observer.accumulated_cost)
+            return True
+        return False
+
     # Phase 1
-    if time.time() < deadline and remaining > 0:
+    if time.time() < deadline and remaining > 0 and not _check_cost():
         p1 = await phase_1_verification(
             scene_id, io_records, ks,
             max_experiments=remaining, settle_time=settle_time,
@@ -424,7 +439,7 @@ async def run_scene(scene_name: str, ks: KnowledgeStore,
         remaining -= len(p1)
 
     # Phase 2
-    if time.time() < deadline and remaining > 0:
+    if time.time() < deadline and remaining > 0 and not _check_cost():
         p2 = await phase_2_interactions(
             scene_id, io_records, ks, p1,
             max_experiments=min(remaining, 30),
@@ -433,7 +448,7 @@ async def run_scene(scene_name: str, ks: KnowledgeStore,
         remaining -= len(p2)
 
     # Phase 3
-    if time.time() < deadline and remaining > 0:
+    if time.time() < deadline and remaining > 0 and not _check_cost():
         p3 = await phase_3_curiosity(
             scene_id, io_records, ks,
             max_experiments=min(remaining, 20),
@@ -495,6 +510,9 @@ def main():
     parser.add_argument("--max-hours", type=float, default=None)
     parser.add_argument("--settle-time", type=float, default=None)
     parser.add_argument("--db", default=None, help="Path to knowledge.db")
+    parser.add_argument("--session-type", default=None,
+                        choices=["interactive_session", "overnight_batch", "cosmos_planning_session"],
+                        help="Session type for cost ceiling selection")
     parser.add_argument("--verbose", "-v", action="store_true")
 
     args = parser.parse_args()
@@ -523,6 +541,19 @@ def main():
     if conns.get("vllm_url"):
         observer.VLLM_URL = conns["vllm_url"]
 
+    # Wire inference config (free models only)
+    inference_cfg = config.get("inference", {})
+    session_type = (args.session_type
+                    or os.getenv("FACTORYLM_SESSION_TYPE", "interactive_session"))
+    if inference_cfg:
+        observer.configure(inference_cfg, session_type=session_type)
+        logger.info("Inference: vision=%s, text=%s, blocked=%s, session=%s, ceiling=$%.2f",
+                     observer.VISION_MODELS, observer.TEXT_MODELS, observer.BLOCKED_MODELS,
+                     observer._session_type, observer._max_cost)
+    else:
+        logger.info("No inference config — using defaults: vision=%s, text=%s",
+                     observer.VISION_MODELS, observer.TEXT_MODELS)
+
     # Resolve settings (CLI > config > defaults)
     scenes = (
         [s.strip() for s in args.scenes.split(",")]
@@ -543,6 +574,7 @@ def main():
     logger.info("Scenes: %s", scenes)
     logger.info("Max experiments/scene: %d, Max hours/scene: %.1f", max_exp, max_hrs)
     logger.info("Modbus: %s:%s | FIO API: %s", sm.MODBUS_HOST, sm.MODBUS_PORT, sm.FIO_API_BASE)
+    logger.info("Cost ceiling: $%.2f", observer._max_cost)
     logger.info("DB: %s", ks.db_path)
 
     # Run
@@ -557,6 +589,7 @@ def main():
         status = "ERROR" if "error" in r else "OK"
         print(f"  {r['scene']}: {status} — {r.get('experiments', 0)} experiments, "
               f"{r.get('verified', 0)} verified, {r.get('elapsed_min', 0)} min")
+    print(f"  Total inference cost: ${observer.accumulated_cost:.4f}")
     print("=" * 60)
 
     ks.close()

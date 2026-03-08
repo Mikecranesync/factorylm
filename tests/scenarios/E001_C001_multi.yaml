@@ -1,0 +1,12 @@
+scenario_id: E001_C001_multi
+description: Multi-fault — E-stop active with conveyor stopped (E001 takes priority)
+inject:
+  - {coil: 11, value: true}   # e_stop = active
+  - {coil: 13, value: true}   # fio_running = on
+expected_fault_code: E001
+expected_severity: emergency
+hold_seconds: 3
+timeout_seconds: 8
+cleanup:
+  - {coil: 11, value: false}
+  - {coil: 13, value: false}

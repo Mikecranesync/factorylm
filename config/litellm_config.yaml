@@ -3,6 +3,29 @@
 # Run: litellm --config config/litellm_config.yaml --port 4000
 
 model_list:
+  # --- TIER 0: Learner vision (Ollama, free, private) ---
+  - model_name: learner-vision
+    litellm_params:
+      model: ollama/llama3.2-vision
+      api_base: http://localhost:11434
+      timeout: 120
+    model_info:
+      tier: 0
+      privacy: LOCKED_LOCAL
+      cost_per_1k_tokens: 0.0
+      use_cases: [learner_scene_description, learner_change_detection, learner_verification]
+
+  # --- TIER 0: Groq text (free tier, 6000 tok/min) ---
+  - model_name: groq-main
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+    model_info:
+      tier: 0
+      privacy: NO_PLC_DATA
+      cost_per_1k_tokens: 0.0
+      use_cases: [learner_text_fallback]
+
   # --- Tier 1: Free local inference (Ollama) ---
   - model_name: local-gemma
     litellm_params:
@@ -34,8 +57,12 @@ model_list:
       api_key: os.environ/GROQ_API_KEY
 
 litellm_settings:
-  # Fallback chain: DeepSeek -> Haiku -> Groq
+  # Fallback chains
   fallbacks:
+    # Learner chains (free only)
+    - learner-vision: [local-gemma]
+    - local-gemma: [groq-main]
+    # Paid chains (Telegram bot, human-approved)
     - deepseek-main: [haiku-fallback, groq-emergency]
     - haiku-fallback: [groq-emergency]
 

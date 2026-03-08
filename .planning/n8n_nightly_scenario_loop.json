@@ -1,0 +1,231 @@
+{
+  "_comment": "n8n Nightly Scenario Loop — Import via n8n UI: Settings > Import from File. Requires env vars: DISCORD_WEBHOOK_URL. Runs on VPS (100.68.120.99) targeting PLC laptop (100.72.2.99) via Tailscale.",
+  "name": "FactoryLM Nightly Scenario Loop",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-1-schedule",
+      "name": "Schedule: 02:00 AM Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://100.72.2.99:8600/health",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "node-2-health",
+      "name": "Health Check: Factory Server",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.connected }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "node-3-check",
+      "name": "If: Server Connected?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /home/hharp/factorylm && FACTORYLM_SESSION_TYPE=overnight_batch python3 tests/scenario_runner.py --all --cycles 3 --export-parquet 2>&1",
+        "timeout": 600
+      },
+      "id": "node-4-run",
+      "name": "Run Scenario Runner",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "node-5-wait",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://100.72.2.99:8000/collections/fault_history/points/count",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "node-6-qdrant",
+      "name": "Qdrant: Fault History Count",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse scenario runner output and build Discord summary\nconst runOutput = $('Run Scenario Runner').first().json.stdout || '';\nconst qdrantCount = $('Qdrant: Fault History Count').first().json?.result?.count || 'N/A';\n\n// Extract SUMMARY line\nconst summaryMatch = runOutput.match(/SUMMARY: (\\d+)\\/(\\d+) passed/);\nconst passed = summaryMatch ? summaryMatch[1] : '?';\nconst total = summaryMatch ? summaryMatch[2] : '?';\n\n// Extract quality guard\nconst guardMatch = runOutput.match(/Quality Guard: (\\d+)\\/(\\d+) passed/);\nconst guardPassed = guardMatch ? guardMatch[1] : 'N/A';\nconst guardTotal = guardMatch ? guardMatch[2] : 'N/A';\n\n// Count drift flags\nconst driftCount = (runOutput.match(/QUALITY DRIFT/g) || []).length;\n\nconst summary = `**FactoryLM Overnight Run Complete**\\n` +\n  `Scenarios: ${passed}/${total} passed\\n` +\n  `Quality Guard: ${guardPassed}/${guardTotal}\\n` +\n  `Drift flags: ${driftCount}\\n` +\n  `Qdrant fault_history: ${qdrantCount} total\\n` +\n  `Timestamp: ${new Date().toISOString()}`;\n\nreturn [{ json: { content: summary } }];"
+      },
+      "id": "node-7-parse",
+      "name": "Build Discord Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_URL }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $json.content }}"
+            }
+          ]
+        }
+      },
+      "id": "node-8-discord",
+      "name": "Discord: Post Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1500, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:4000/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"model\": \"local-gemma\",\n  \"messages\": [\n    {\"role\": \"system\", \"content\": \"You are the FactoryLM ops assistant. Write a brief morning ops summary.\"},\n    {\"role\": \"user\", \"content\": \"Summarize this overnight run: {{ $('Build Discord Summary').first().json.content }}\"}\n  ],\n  \"max_tokens\": 256\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "node-9-brief",
+      "name": "LLM: Morning Brief",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1700, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_URL }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "**Morning Brief:**\n={{ $json.choices[0].message.content }}"
+            }
+          ]
+        }
+      },
+      "id": "node-10-brief-post",
+      "name": "Discord: Post Morning Brief",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1900, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_URL }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "**ALERT: Factory Server Offline**\nNightly scenario run aborted — factory_server at 100.72.2.99:8600 is not responding."
+            }
+          ]
+        }
+      },
+      "id": "node-11-alert",
+      "name": "Discord: Server Down Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 500],
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Schedule: 02:00 AM Daily": {
+      "main": [
+        [{"node": "Health Check: Factory Server", "type": "main", "index": 0}]
+      ]
+    },
+    "Health Check: Factory Server": {
+      "main": [
+        [{"node": "If: Server Connected?", "type": "main", "index": 0}]
+      ]
+    },
+    "If: Server Connected?": {
+      "main": [
+        [{"node": "Run Scenario Runner", "type": "main", "index": 0}],
+        [{"node": "Discord: Server Down Alert", "type": "main", "index": 0}]
+      ]
+    },
+    "Run Scenario Runner": {
+      "main": [
+        [{"node": "Wait 30s", "type": "main", "index": 0}]
+      ]
+    },
+    "Wait 30s": {
+      "main": [
+        [{"node": "Qdrant: Fault History Count", "type": "main", "index": 0}]
+      ]
+    },
+    "Qdrant: Fault History Count": {
+      "main": [
+        [{"node": "Build Discord Summary", "type": "main", "index": 0}]
+      ]
+    },
+    "Build Discord Summary": {
+      "main": [
+        [{"node": "Discord: Post Summary", "type": "main", "index": 0}]
+      ]
+    },
+    "Discord: Post Summary": {
+      "main": [
+        [{"node": "LLM: Morning Brief", "type": "main", "index": 0}]
+      ]
+    },
+    "LLM: Morning Brief": {
+      "main": [
+        [{"node": "Discord: Post Morning Brief", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "name": "Learner Drift Guard",
+  "description": "Post-experiment quality guard for the autonomous scene learner. Validates experiments against golden baselines, detects confidence drift (2-sigma warning, 3-sigma critical), and blocks paid model usage.",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "webhook_trigger",
+      "position": [100, 200],
+      "data": {
+        "label": "Experiment Result",
+        "description": "Receives experiment result JSON after each learner experiment completes",
+        "endpoint": "/learner/experiment-result",
+        "method": "POST"
+      }
+    },
+    {
+      "id": "quality_check_1",
+      "type": "python_function",
+      "position": [400, 200],
+      "data": {
+        "label": "Quality Check",
+        "description": "Run quality_guard.check_experiment() against golden baselines",
+        "code": "from services.learner.quality_guard import check_experiment\nresult = check_experiment(input_data)\nreturn result"
+      }
+    },
+    {
+      "id": "drift_check_1",
+      "type": "python_function",
+      "position": [400, 400],
+      "data": {
+        "label": "Drift Detection",
+        "description": "Check confidence against running baseline (2-sigma threshold)",
+        "code": "from services.learner.quality_guard import check_drift\nconfidence = input_data.get('confidence', 0)\nalert = check_drift(confidence)\nreturn {'drift_alert': alert, 'confidence': confidence}"
+      }
+    },
+    {
+      "id": "cost_gate_1",
+      "type": "python_function",
+      "position": [400, 600],
+      "data": {
+        "label": "Cost Gate",
+        "description": "Verify no paid model was used in this experiment",
+        "code": "provider = input_data.get('provider', '').lower()\npaid = any(p in provider for p in ['anthropic', 'sonnet', 'haiku', 'claude'])\nreturn {'paid_model_detected': paid, 'provider': provider}"
+      }
+    },
+    {
+      "id": "router_1",
+      "type": "conditional_router",
+      "position": [700, 400],
+      "data": {
+        "label": "Alert Router",
+        "description": "Route based on severity: log, warn, or block",
+        "conditions": [
+          {
+            "name": "critical",
+            "expression": "drift_alert.severity == 'critical' or paid_model_detected",
+            "target": "alert_critical"
+          },
+          {
+            "name": "warning",
+            "expression": "drift_alert.severity == 'warning' or not quality_passed",
+            "target": "alert_warning"
+          },
+          {
+            "name": "ok",
+            "expression": "true",
+            "target": "log_ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "alert_critical",
+      "type": "output",
+      "position": [1000, 200],
+      "data": {
+        "label": "CRITICAL: Block + Alert",
+        "description": "3-sigma drift or paid model detected. Log to drift.jsonl and send Telegram alert via Jarvis.",
+        "actions": [
+          "log_to_drift_jsonl",
+          "send_telegram_alert"
+        ]
+      }
+    },
+    {
+      "id": "alert_warning",
+      "type": "output",
+      "position": [1000, 400],
+      "data": {
+        "label": "WARNING: Log",
+        "description": "2-sigma drift or quality check failed. Log to drift.jsonl for review.",
+        "actions": [
+          "log_to_drift_jsonl"
+        ]
+      }
+    },
+    {
+      "id": "log_ok",
+      "type": "output",
+      "position": [1000, 600],
+      "data": {
+        "label": "OK: Pass Through",
+        "description": "Experiment passed all checks. No action needed."
+      }
+    }
+  ],
+  "edges": [
+    {"source": "trigger_1", "target": "quality_check_1"},
+    {"source": "trigger_1", "target": "drift_check_1"},
+    {"source": "trigger_1", "target": "cost_gate_1"},
+    {"source": "quality_check_1", "target": "router_1"},
+    {"source": "drift_check_1", "target": "router_1"},
+    {"source": "cost_gate_1", "target": "router_1"},
+    {"source": "router_1", "target": "alert_critical", "condition": "critical"},
+    {"source": "router_1", "target": "alert_warning", "condition": "warning"},
+    {"source": "router_1", "target": "log_ok", "condition": "ok"}
+  ]
+}

@@ -1,0 +1,12 @@
+scenario_id: C001_conveyor_stopped
+description: Entry conveyor stopped while Factory IO scene is running
+inject:
+  - {coil: 13, value: true}   # fio_running = on
+  - {coil: 11, value: false}  # e_stop = off
+  # conveyor_entry (DI 0) defaults to false -> triggers C001
+expected_fault_code: C001
+expected_severity: critical
+hold_seconds: 3
+timeout_seconds: 8
+cleanup:
+  - {coil: 13, value: false}

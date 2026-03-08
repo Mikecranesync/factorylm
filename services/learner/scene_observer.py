@@ -31,9 +31,48 @@ VLLM_URL = os.getenv("VLLM_URL", "http://localhost:8000/v1/chat/completions")
 # Prompt templates
 PROMPTS_PATH = Path(__file__).parent / "prompts" / "learner_prompts.yaml"
 
-# Vision model preference order
-VISION_MODELS = ["vllm-cosmos", "sonnet-vision"]
-TEXT_MODELS = ["deepseek-main", "local-gemma"]
+# Vision model preference order (FREE ONLY — TIER 0-1)
+VISION_MODELS = ["learner-vision", "local-gemma"]
+TEXT_MODELS = ["local-gemma", "groq-main"]
+BLOCKED_MODELS: set[str] = {
+    "sonnet-vision", "haiku-fallback", "deepseek-main",
+    "claude-sonnet", "claude-opus", "gpt-4", "gpt-4o",
+}
+
+# Cost tracking
+accumulated_cost: float = 0.0
+_max_cost: float = 0.10  # USD ceiling per run
+_session_type: str = "interactive_session"
+groq_fallback_count: int = 0
+
+
+def configure(inference_cfg: dict, session_type: str = ""):
+    """Wire inference config from learner.yaml. Called once at startup."""
+    global VISION_MODELS, TEXT_MODELS, BLOCKED_MODELS, _max_cost, _session_type
+    if inference_cfg.get("vision_model"):
+        VISION_MODELS = [inference_cfg["vision_model"]]
+        if inference_cfg.get("vision_fallback"):
+            VISION_MODELS.append(inference_cfg["vision_fallback"])
+    if inference_cfg.get("text_model"):
+        TEXT_MODELS = [inference_cfg["text_model"]]
+        if inference_cfg.get("text_fallback"):
+            TEXT_MODELS.append(inference_cfg["text_fallback"])
+    if inference_cfg.get("blocked_models"):
+        BLOCKED_MODELS = set(inference_cfg["blocked_models"])
+
+    # Session-type cost ceiling
+    if session_type:
+        _session_type = session_type
+    cost_ceilings = inference_cfg.get("cost_ceiling", {})
+    if cost_ceilings and _session_type in cost_ceilings:
+        _max_cost = float(cost_ceilings[_session_type])
+    elif inference_cfg.get("max_cost_per_run_usd"):
+        _max_cost = float(inference_cfg["max_cost_per_run_usd"])
+
+
+def cost_exceeded() -> bool:
+    """Check if accumulated cost exceeds the per-run ceiling."""
+    return accumulated_cost > _max_cost
 
 
 # ---------------------------------------------------------------------------
@@ -185,17 +224,21 @@ async def _call_litellm_vision(image_path: str, prompt: str,
         return {"error": f"LiteLLM vision connection failed ({model}): {exc}", "elapsed_s": elapsed}
     elapsed = time.time() - t_start
 
+    if resp.status_code == 429:
+        return {"error": f"Rate limited ({model})", "rate_limited": True, "elapsed_s": elapsed}
     if resp.status_code != 200:
         return {"error": f"LiteLLM HTTP {resp.status_code}: {resp.text[:300]}", "elapsed_s": elapsed}
 
     data = resp.json()
     content = data["choices"][0]["message"]["content"]
+    cost = float(resp.headers.get("x-litellm-response-cost", 0))
     return {
         "content": content,
         "reasoning": "",
         "raw": content,
         "provider": data.get("model", model),
         "elapsed_s": round(elapsed, 1),
+        "cost": cost,
     }
 
 
@@ -228,15 +271,19 @@ async def _call_litellm_text(prompt: str, system_prompt: str = "",
         return {"error": f"LiteLLM connection failed ({model}): {exc}", "elapsed_s": elapsed}
     elapsed = time.time() - t_start
 
+    if resp.status_code == 429:
+        return {"error": f"Rate limited ({model})", "rate_limited": True, "elapsed_s": elapsed}
     if resp.status_code != 200:
         return {"error": f"LiteLLM HTTP {resp.status_code}: {resp.text[:300]}", "elapsed_s": elapsed}
 
     data = resp.json()
     content = data["choices"][0]["message"]["content"]
+    cost = float(resp.headers.get("x-litellm-response-cost", 0))
     return {
         "content": content,
         "provider": data.get("model", model),
         "elapsed_s": round(elapsed, 1),
+        "cost": cost,
     }
 
 
@@ -244,34 +291,68 @@ async def ask_vision(image_path: str, prompt: str,
                      system_prompt: str = "") -> dict:
     """Ask a vision model about an image, with fallback chain.
 
-    Tries: vLLM Cosmos R2 → LiteLLM sonnet-vision
+    Iterates VISION_MODELS (all routed through LiteLLM), skips BLOCKED_MODELS.
+    On Groq 429, silently falls back to local-gemma.
+    Never raises — always returns dict with 'content' or 'error'.
     """
-    # Try vLLM first
-    result = await _call_vllm(image_path, prompt, system_prompt)
-    if "error" not in result:
-        return result
-    logger.warning("vLLM failed: %s — trying LiteLLM vision", result.get("error", ""))
+    global accumulated_cost, groq_fallback_count
+    try:
+        for model in VISION_MODELS:
+            if model in BLOCKED_MODELS:
+                logger.warning("Skipping blocked model: %s", model)
+                continue
+            result = await _call_litellm_vision(image_path, prompt, system_prompt, model=model)
+            if "error" not in result:
+                accumulated_cost += result.get("cost", 0.0)
+                return result
+            # Groq rate limit → silent fallback to local-gemma
+            if result.get("rate_limited") and "groq" in model.lower():
+                groq_fallback_count += 1
+                logger.warning("Groq rate limited (%d times) — falling back to local-gemma",
+                               groq_fallback_count)
+                fallback = await _call_litellm_vision(image_path, prompt, system_prompt, model="local-gemma")
+                if "error" not in fallback:
+                    accumulated_cost += fallback.get("cost", 0.0)
+                    return fallback
+            logger.warning("Vision model %s failed: %s", model, result.get("error", ""))
+    except Exception as exc:
+        logger.error("ask_vision unexpected error: %s", exc)
+        return {"content": "", "error": f"unexpected: {exc}"}
 
-    # Fallback to LiteLLM vision
-    result = await _call_litellm_vision(image_path, prompt, system_prompt)
-    if "error" not in result:
-        return result
-    logger.error("All vision providers failed: %s", result.get("error", ""))
-    return result
+    return {"content": "", "error": "All vision providers failed"}
 
 
 async def ask_text(prompt: str, system_prompt: str = "") -> dict:
     """Ask a text model, with fallback chain.
 
-    Tries: deepseek-main → local-gemma
+    Iterates TEXT_MODELS, skips BLOCKED_MODELS.
+    On Groq 429, silently falls back to local-gemma. Never raises.
     """
-    for model in TEXT_MODELS:
-        result = await _call_litellm_text(prompt, system_prompt, model)
-        if "error" not in result:
-            return result
-        logger.warning("Model %s failed: %s", model, result.get("error", ""))
+    global accumulated_cost, groq_fallback_count
+    try:
+        for model in TEXT_MODELS:
+            if model in BLOCKED_MODELS:
+                logger.warning("Skipping blocked text model: %s", model)
+                continue
+            result = await _call_litellm_text(prompt, system_prompt, model)
+            if "error" not in result:
+                accumulated_cost += result.get("cost", 0.0)
+                return result
+            # Groq rate limit → silent fallback to local-gemma
+            if result.get("rate_limited") and "groq" in model.lower():
+                groq_fallback_count += 1
+                logger.warning("Groq rate limited (%d times) — falling back to local-gemma",
+                               groq_fallback_count)
+                fallback = await _call_litellm_text(prompt, system_prompt, "local-gemma")
+                if "error" not in fallback:
+                    accumulated_cost += fallback.get("cost", 0.0)
+                    return fallback
+            logger.warning("Text model %s failed: %s", model, result.get("error", ""))
+    except Exception as exc:
+        logger.error("ask_text unexpected error: %s", exc)
+        return {"content": "", "error": f"unexpected: {exc}"}
 
-    return {"error": "All text providers failed", "content": ""}
+    return {"content": "", "error": "All text providers failed"}
 
 
 # ---------------------------------------------------------------------------

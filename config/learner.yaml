@@ -31,6 +31,28 @@ learner:
     - "emergency"
     - "safety"
 
+# Inference models — learner uses FREE models only (TIER 0-1)
+# Paid models (sonnet, haiku) are reserved for the Telegram bot
+inference:
+  vision_model: "learner-vision"       # Ollama llama3.2-vision (free, TIER 0)
+  vision_fallback: "local-gemma"       # Ollama gemma3:12b multimodal (free, TIER 0)
+  text_model: "local-gemma"            # Ollama gemma3:12b (free, TIER 0)
+  text_fallback: "groq-main"           # Groq free tier (TIER 0)
+  max_cost_per_run_usd: 0.10           # Backward compat default
+  cost_ceiling:                         # Session-type-aware ceilings
+    interactive_session: 0.10
+    overnight_batch: 2.00
+    cosmos_planning_session: 5.00
+    default: 0.10
+  session_type_detection:
+    overnight_batch_trigger: "scenario_runner"
+    cosmos_trigger: "vast"
+    default: "interactive_session"
+  blocked_models:                       # NEVER call these from learner
+    - "sonnet-vision"
+    - "haiku-fallback"
+    - "deepseek-main"
+
 # Connection defaults (override via env vars)
 connections:
   fio_api: "http://100.72.2.99:7410"  # Factory I/O web API (PLC laptop)

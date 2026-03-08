@@ -11,9 +11,11 @@ Experiment types:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from services.learner.knowledge_store import KnowledgeStore
@@ -22,6 +24,35 @@ from services.learner import scene_manager as sm
 from services.learner import scene_observer as observer
 
 logger = logging.getLogger("factorylm.learner.experiment")
+
+REPO_ROOT = Path(__file__).parent.parent.parent
+FAILSAFE_LOG = REPO_ROOT / "data" / "learner" / "experiment_log.jsonl"
+
+
+def _log_experiment_failsafe(result: "ExperimentResult"):
+    """Append raw experiment data to JSONL — survives DB corruption, LLM failures."""
+    try:
+        FAILSAFE_LOG.parent.mkdir(parents=True, exist_ok=True)
+        record = {
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "experiment_id": result.experiment_id,
+            "experiment_type": result.experiment_type,
+            "coil_name": result.coil_name,
+            "before_tags": result.before_tags,
+            "after_tags": result.after_tags,
+            "tag_delta": result.tag_delta,
+            "before_screenshot": result.before_screenshot,
+            "after_screenshot": result.after_screenshot,
+            "vision_delta": result.vision_delta,
+            "learning": result.learning,
+            "confidence": result.confidence,
+            "verified": result.verified,
+            "mismatch_note": result.mismatch_note,
+        }
+        with open(FAILSAFE_LOG, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, default=str, ensure_ascii=False) + "\n")
+    except Exception as exc:
+        logger.error("Failsafe JSONL write failed: %s", exc)
 
 
 @dataclass
@@ -166,7 +197,7 @@ async def run_single_coil_toggle(
     logger.info("Experiment complete: %s → %s (conf=%.1f, verified=%s)",
                 coil_name, learning[:60] if learning else "no learning", confidence, verified)
 
-    return ExperimentResult(
+    exp_result = ExperimentResult(
         experiment_id=exp_id,
         experiment_type="SingleCoilToggle",
         coil_name=coil_name,
@@ -181,6 +212,8 @@ async def run_single_coil_toggle(
         mismatch_note=mismatch_note,
         confidence=confidence,
     )
+    _log_experiment_failsafe(exp_result)
+    return exp_result
 
 
 # ---------------------------------------------------------------------------
@@ -261,13 +294,15 @@ async def run_register_sweep(
     sm.write_register(address, 0, tag_name=reg_name, current_tags=after_tags)
     await asyncio.sleep(0.5)
 
-    return ExperimentResult(
+    exp_result = ExperimentResult(
         experiment_id=exp_id, experiment_type="RegisterSweep",
         coil_name=reg_name, before_tags=before_tags, after_tags=after_tags,
         tag_delta=full_delta, before_screenshot=before_screenshot,
         after_screenshot=after_screenshot, vision_delta=vision_delta,
         learning=learning, verified=False, mismatch_note="", confidence=confidence,
     )
+    _log_experiment_failsafe(exp_result)
+    return exp_result
 
 
 # ---------------------------------------------------------------------------
@@ -332,13 +367,15 @@ async def run_multi_coil(
         sm.write_coil(addr, False, tag_name=name, current_tags=after_tags)
     await asyncio.sleep(0.5)
 
-    return ExperimentResult(
+    exp_result = ExperimentResult(
         experiment_id=exp_id, experiment_type="MultiCoilCombination",
         coil_name="|".join(names), before_tags=before_tags, after_tags=after_tags,
         tag_delta=tag_delta, before_screenshot=before_screenshot,
         after_screenshot=after_screenshot, vision_delta=vision_delta,
         learning=learning, verified=False, mismatch_note="", confidence=confidence,
     )
+    _log_experiment_failsafe(exp_result)
+    return exp_result
 
 
 # ---------------------------------------------------------------------------
