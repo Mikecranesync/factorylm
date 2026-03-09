@@ -102,3 +102,6 @@ _BUILDS/cosmos-demo-2026-02-05/
 # Manual backup folders
 scripts/openclaw/restore-feb8/
 _BUILDS/
+
+# Serena memories (local)
+.serena/memories/
