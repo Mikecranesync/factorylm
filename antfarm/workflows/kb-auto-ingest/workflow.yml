@@ -1,0 +1,194 @@
+id: kb-auto-ingest
+name: "KB Auto-Ingest Pipeline"
+version: 1
+description: >
+  Periodically scans kb/sources/ for new or changed documents (.md, .txt, .rst),
+  chunks them semantically, and ingests into the Mem0 brain (Neon pgvector +
+  Gemini embeddings). Uses SHA-256 hash dedup -- safe to re-run repeatedly.
+  Captures a summary record to brain after each successful run.
+  Mode: Jarvis-DevOps-Me (see docs/jarvis-devops-mode.md).
+
+agents:
+  - id: source-scanner
+    name: Source Scanner
+    role: scanning
+    description: >
+      Runs kb.ingest in dry-run mode to enumerate files in kb/sources/,
+      detect changes via SHA-256 hash comparison, and report what would
+      be ingested without writing anything.
+    timeoutSeconds: 30
+    workspace:
+      baseDir: agents/source-scanner
+      files:
+        AGENTS.md: agents/source-scanner/AGENTS.md
+        ingest_module: kb/ingest.py
+        chunker_module: kb/chunker.py
+
+  - id: ingestor
+    name: KB Ingestor
+    role: coding
+    description: >
+      Executes the actual ingestion pipeline -- chunks documents and writes
+      embeddings to Mem0 brain via Neon pgvector. Requires NEON_DATABASE_URL,
+      GEMINI_API_KEY, and GROQ_API_KEY environment variables (via Doppler).
+    timeoutSeconds: 300
+    workspace:
+      baseDir: agents/ingestor
+      files:
+        AGENTS.md: agents/ingestor/AGENTS.md
+        ingest_module: kb/ingest.py
+        chunker_module: kb/chunker.py
+        brain_config: services/brain/config.py
+
+  - id: brain-summarizer
+    name: Brain Summarizer
+    role: coding
+    description: >
+      Captures a summary record of the ingest run to Mem0 brain for
+      auditability. Enables queries like "when was the KB last updated?"
+      and "what was ingested recently?"
+    timeoutSeconds: 15
+    workspace:
+      baseDir: agents/brain-summarizer
+      files:
+        AGENTS.md: agents/brain-summarizer/AGENTS.md
+        brain_config: services/brain/config.py
+
+steps:
+  - id: scan_sources
+    agent: source-scanner
+    input: |
+      Scan kb/sources/ for documents that need ingestion.
+
+      Run the ingest tool in dry-run mode:
+        doppler run -p openclaw -c dev -- python -m kb.ingest --dry-run
+
+      This will:
+      1. Enumerate all .md, .txt, .rst files in kb/sources/
+      2. Compare SHA-256 hashes against kb/.ingest_state.json
+      3. Report files that would be ingested (new or changed)
+      4. Show chunk counts and metadata without writing anything
+
+      Parse the JSON output: {"files": N, "chunks": N, "skipped": N}
+
+      Also list the actual filenames found in kb/sources/ for the summary.
+
+      Output format:
+      FILES_FOUND: <total files in kb/sources/>
+      FILES_NEW_OR_CHANGED: <number that would be ingested>
+      FILES_SKIPPED: <number unchanged>
+      ESTIMATED_CHUNKS: <chunk count from dry-run>
+      FILE_LIST: <comma-separated filenames or "none">
+      HAS_WORK: true | false
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+    max_retries: 1
+
+  - id: run_ingest
+    agent: ingestor
+    condition: "{{HAS_WORK}} == 'true'"
+    input: |
+      Run the KB ingestion pipeline on all new/changed files.
+
+      Execute:
+        doppler run -p openclaw -c dev -- bash -c \
+          'export GEMINI_API_KEY=$(doppler secrets get GEMINI_API_KEY -p factorylm -c dev --plain) && python -m kb.ingest'
+
+      This will:
+      1. Scan kb/sources/ for .md, .txt, .rst files
+      2. Skip unchanged files (SHA-256 dedup via kb/.ingest_state.json)
+      3. Chunk each file semantically (1000 char chunks, 200 char overlap)
+      4. Write each chunk to Mem0 brain with metadata:
+         - source: "kb_ingest"
+         - file: source filename
+         - section: heading context
+         - equipment: vendor/product mentions
+         - tags: ["kb", "document"] + equipment tags
+      5. Update kb/.ingest_state.json with new hashes
+
+      Parse the JSON output: {"files": N, "chunks": N, "skipped": N}
+
+      Dry-run reported:
+        Files to ingest: {{FILES_NEW_OR_CHANGED}}
+        Estimated chunks: {{ESTIMATED_CHUNKS}}
+        File list: {{FILE_LIST}}
+
+      Output format:
+      FILES_INGESTED: <number>
+      CHUNKS_WRITTEN: <number>
+      FILES_SKIPPED: <number>
+      INGEST_RESULT: success | partial | error
+      ERROR_DETAIL: <error message or "none">
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+    max_retries: 2
+    on_fail:
+      escalate_to: human
+
+  - id: capture_summary
+    agent: brain-summarizer
+    condition: "{{HAS_WORK}} == 'true'"
+    input: |
+      Capture a summary of this KB ingest run to Mem0 brain.
+
+      Ingest results:
+        Files ingested: {{FILES_INGESTED}}
+        Chunks written: {{CHUNKS_WRITTEN}}
+        Files skipped: {{FILES_SKIPPED}}
+        File list: {{FILE_LIST}}
+        Result: {{INGEST_RESULT}}
+
+      Only capture if INGEST_RESULT is "success" or "partial".
+      Skip if INGEST_RESULT is "error" (nothing useful to record).
+
+      Content to capture:
+        "KB Ingest: {{FILES_INGESTED}} files, {{CHUNKS_WRITTEN}} chunks added to Mem0.
+        Files: {{FILE_LIST}}. Skipped: {{FILES_SKIPPED}} unchanged."
+
+      Brain capture via:
+        from services.brain.config import get_memory
+        mem = get_memory()
+        mem.add(content, user_id="mike", metadata={
+            "source": "kb_auto_ingest",
+            "tags": ["kb", "ingest", "pipeline", "audit"],
+            "files_ingested": "{{FILES_INGESTED}}",
+            "chunks_written": "{{CHUNKS_WRITTEN}}",
+            "trigger": "cron"
+        })
+
+      Requires: NEON_DATABASE_URL, GEMINI_API_KEY, GROQ_API_KEY
+
+      Output format:
+      CAPTURED: true | skipped
+      CAPTURE_REASON: <reason>
+      RESULT: pass
+      STATUS: done
+    expects: "STATUS: done"
+    max_retries: 1
+
+triggers:
+  - type: cron
+    schedule: "0 */6 * * *"
+    description: Every 6 hours (midnight, 6 AM, noon, 6 PM)
+  - type: command
+    pattern: "/kb ingest"
+    description: Manual trigger for on-demand KB ingestion
+
+integration:
+  env_defaults:
+    NEON_DATABASE_URL: "Doppler openclaw/dev"
+    GEMINI_API_KEY: "Doppler factorylm/dev"
+    GROQ_API_KEY: "Doppler openclaw/dev"
+  services:
+    brain:
+      module: services.brain.config
+      client: get_memory()
+      description: Mem0 pgvector on Neon for KB storage and audit
+  source_directory: kb/sources/
+  state_file: kb/.ingest_state.json
+  supported_extensions:
+    - .md
+    - .txt
+    - .rst
