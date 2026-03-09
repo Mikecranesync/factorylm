@@ -33,8 +33,13 @@ import sys
 import time
 
 # Fix Windows console encoding for Unicode output from R2
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+if sys.platform == "win32" and hasattr(sys.stdout, "buffer"):
+    if getattr(sys.stdout, "encoding", "").lower() != "utf-8":
+        try:
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
 from pathlib import Path
 from typing import Optional
 
