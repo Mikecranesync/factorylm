@@ -1,8 +1,8 @@
 # Migration Progress
 
-**Last Updated:** 2026-02-13  
-**Author:** Mike  
-**Status:** In progress — inventory phase
+**Last Updated:** 2026-03-08
+**Author:** Mike
+**Status:** In progress — VPS extraction underway
 
 ---
 
@@ -13,11 +13,21 @@
 - [ ] Hostinger: workspace/SOUL.md extracted
 - [ ] Hostinger: Rivet-PRO data extracted
 - [ ] Hostinger: ready for decommission
-- [ ] DigitalOcean: inventory complete
+- [x] DigitalOcean: inventory complete
 - [ ] DigitalOcean: configs backed up
 - [ ] DigitalOcean: workspace/SOUL.md extracted
 - [ ] DigitalOcean: Vector/Axiom config extracted
 - [ ] DigitalOcean: ready for decommission
+
+## Telegram Polling Migration (VPS → CHARLIE)
+
+- [x] Confirmed `telegram_bot.py` already uses `run_polling()` — no code changes needed
+- [x] Architecture docs updated (CLUSTER.md, ENDPOINT_MAP.md, JARVIS_NODES)
+- [x] VPS node deprecated in Mission Control backend
+- [x] Deploy bot on CHARLIE — @Tony_Macaroni_bot using MACARONI token + Groq LLM
+- [x] OpenClaw on VPS kept running (separate token, no conflict)
+- [ ] Verify end-to-end: Telegram message → @Tony_Macaroni_bot → CHARLIE → response
+- [ ] Monitor for 1 week before full VPS decommission
 
 ## Local Setup
 

@@ -1,5 +1,5 @@
 import { useWorkers, useScaleWorker, Worker } from '../hooks/useAPI'
-import { Cpu, Plus, Minus, RefreshCw, AlertCircle } from 'lucide-react'
+import { Cpu, Plus, Minus, RefreshCw } from 'lucide-react'
 import clsx from 'clsx'
 
 // Worker categories for organization

@@ -162,14 +162,22 @@ VFD control + telemetry + run logging. Express + TypeScript + SQLite.
 
 ---
 
-## 7. openclaw gateway — `:8340` (VPS `100.68.120.99`)
+## 7. openclaw gateway — `:8340` (VPS `100.68.120.99`) **⚠️ DEPRECATED**
 
-Telegram bot pipeline. Intent → skill → LLM → response.
+> **Replaced by:** Telegram polling bot on CHARLIE (`services/troubleshoot/adapters/telegram_bot.py`).
+> No public endpoint needed — bot pulls messages via `run_polling()`.
+> See `[TG-POLL]` below.
 
 | Tag | Method | Path | What it does |
 |-----|--------|------|-------------|
-| `[GW-MSG]` | POST | `/api/v1/message` | Body: `{text, user_id}`. Returns `{text, intent, latency_ms}`. Entry point for all Telegram messages |
-| `[GW-HEALTH]` | GET | `/` | Service info |
+| `[GW-MSG]` | POST | `/api/v1/message` | **DEPRECATED** — was Telegram webhook entry point |
+| `[GW-HEALTH]` | GET | `/` | **DEPRECATED** — service info |
+
+### 7b. Telegram Polling Bot (CHARLIE `100.82.246.52`)
+
+| Tag | Method | Path | What it does |
+|-----|--------|------|-------------|
+| `[TG-POLL]` | — | — | Polling-based Telegram bot. No inbound endpoint — pulls messages from Telegram API directly. Runs `services/troubleshoot/adapters/telegram_bot.py` |
 
 ---
 
@@ -229,7 +237,8 @@ OpenCV MJPEG server. 640x480 @ 30fps.
 
 | Host | IP | Services |
 |------|----|----------|
-| VPS (Jarvis) | `100.68.120.99` | `[GW-MSG]` :8340, `[RELAY-*]` :8400 |
+| VPS (Jarvis) | `100.68.120.99` | ~~`[GW-MSG]` :8340~~ (deprecated), `[RELAY-*]` :8400 |
+| CHARLIE (Mac Mini) | `100.82.246.52` | `[TG-POLL]` (polling), `[BRAIN-*]` :8500, Qdrant |
 | PLC Laptop | `100.72.2.99` | `[PLC-*]` :8001, `[MTX-*]` :8000, `[CONV-*]` :3001, `[CAM-STREAM]` :8081, `[JARVIS-*]` :8765 |
 | Travel Laptop | `100.83.251.23` | `[JARVIS-*]` :8765, dev work |
 | BRAVO (Mac Mini) | `192.168.1.11` | Ollama (local LLM) |

@@ -1,16 +1,20 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
+  MessageSquare,
   Users,
   Bot,
   Wrench,
   Play,
-  Activity
+  Activity,
+  Terminal
 } from 'lucide-react'
 import clsx from 'clsx'
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/', icon: MessageSquare, label: 'Chat Relay' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/terminal', icon: Terminal, label: 'Terminal' },
   { to: '/workers', icon: Users, label: 'Worker Swarm' },
   { to: '/ralph', icon: Play, label: 'Ralph Loop' },
   { to: '/agents', icon: Bot, label: 'Agents' },

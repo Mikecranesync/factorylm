@@ -1,5 +1,5 @@
 import { useAgents, useAgentControl, Agent } from '../hooks/useAPI'
-import { Bot, Play, Square, Cpu, Video, HardDrive, Cross } from 'lucide-react'
+import { Bot, Play, Square, Cpu, Video, HardDrive } from 'lucide-react'
 import clsx from 'clsx'
 
 const AGENT_ICONS: Record<string, React.ReactNode> = {
@@ -92,7 +92,11 @@ function AgentCard({
 
         {!isOnDemand && (
           <div className="flex items-center gap-2">
-            {isActive ? (
+            {agent.status === 'unknown' ? (
+              <span className="text-xs px-2 py-1 bg-gray-800 text-gray-500 rounded">
+                Not Connected
+              </span>
+            ) : isActive ? (
               <button
                 onClick={onStop}
                 disabled={isLoading}

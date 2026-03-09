@@ -1,5 +1,5 @@
 import { useCollectors, Collector } from '../hooks/useAPI'
-import { Radio, RefreshCw } from 'lucide-react'
+import { Radio } from 'lucide-react'
 import clsx from 'clsx'
 
 const COLLECTOR_COLORS: Record<string, string> = {
@@ -35,13 +35,17 @@ export default function CollectorStatus() {
             <div className="flex items-center justify-center gap-1 mt-2">
               <span className={clsx(
                 'w-2 h-2 rounded-full',
-                collector.status === 'active' ? 'bg-green-400' : 'bg-red-400'
+                collector.status === 'active' ? 'bg-green-400' :
+                collector.status === 'unknown' ? 'bg-gray-500' : 'bg-red-400'
               )} />
               <span className="text-xs">{collector.status}</span>
             </div>
           </div>
         ))}
       </div>
+      <p className="text-xs text-gray-600 mt-3 text-center">
+        Connect PLC collectors to see live status
+      </p>
     </div>
   )
 }
