@@ -168,6 +168,44 @@ For cluster topology, the 7 Laws, and ops procedures see **[CLUSTER.md](CLUSTER.
 
 ---
 
+## Active Focus Window (Revenue Priority)
+
+**Current objective:** V1 Solo Technician — Telegram bot answers from KB with citations.
+
+**IN SCOPE — touch freely:**
+- `services/troubleshoot/**` — Telegram polling bot + engine
+- `services/diagnosis/**` — RAG retrieval + LLM diagnosis
+- `services/brain/**` — Mem0 vector KB ingest/retrieval
+- `services/llm-router/**` — LLM provider failover
+- `kb/**` — Knowledge base ingestion + chunking
+- `brain/**` — KB schemas (Herodotus, Hammurabi)
+- `openclaw/**` — Message gateway
+- `services/telegram/**` — Telegram adapter
+- `diagnosis/**` — Fault rules + prompts
+- `tests/` — Any tests for the above
+- `docs/specs/factorylm-system-spec-v1.md` — Architecture spec
+- `CLAUDE.md` — Governance only
+- `CLUSTER.md` — Cluster ops only
+- `scripts/deploy-charlie-brain.sh` — Deployment
+
+**OUT OF SCOPE — do NOT modify without explicit human approval:**
+- `my-ralph` submodule
+- `.serena/**`
+- `.infra/**`
+- `demos/**`
+- `apps/mission-control/**` (read-only for monitoring, no feature work)
+- `apps/conveyor-lab/**`, `apps/cmms/**`, `apps/portal/**`, `apps/web/**`
+- `antfarm/**` — workflow automation (post-V1)
+- `cosmos/**`, `analytics/**`, `video/**`, `media/**`
+- `scripts/run_dtu_remote.py`, `scripts/scenario_runner_upload.py`
+- `tests/e2e/screenshots/**`
+
+If a change seems helpful but is outside the IN SCOPE list, **STOP and ask Mike.**
+
+**Focus rule:** Until the Telegram bot can answer from KB with citations AND be paid for by a stranger, nothing outside the money path gets touched.
+
+---
+
 ## VPS Change Protocol
 
 When making changes to OpenClaw on the VPS (100.68.120.99):
