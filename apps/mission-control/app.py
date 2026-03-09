@@ -8,6 +8,7 @@ Run: uvicorn app:app --host 0.0.0.0 --port 3000
 """
 
 import asyncio
+import json as _json
 import os
 import subprocess
 import yaml
@@ -32,6 +33,132 @@ async def utf8_json(request, call_next):
 def _ascii_safe(s: str) -> str:
     """Replace common Unicode chars with ASCII equivalents to avoid encoding issues."""
     return s.replace("\u2014", " -- ").replace("\u2013", " - ").replace("\u2018", "'").replace("\u2019", "'").replace("\u201c", '"').replace("\u201d", '"')
+
+
+# ---------------------------------------------------------------------------
+# Workflow graph helpers
+# ---------------------------------------------------------------------------
+
+ROLE_COLORS = {
+    "scanning": "#F5A623",
+    "analysis": "#4A90D9",
+    "coding": "#7ED321",
+    "verification": "#9B59B6",
+    "testing": "#50C8C8",
+    "monitoring": "#F5D623",
+    "pr": "#E74C8B",
+}
+DEFAULT_ROLE_COLOR = "#888888"
+
+
+def _load_workflow(workflow_id: str) -> dict | None:
+    """Load workflow YAML by ID, checking subdirectory and top-level patterns."""
+    antfarm = Path(ANTFARM_DIR)
+    subdir = antfarm / workflow_id / "workflow.yml"
+    if subdir.exists():
+        return yaml.safe_load(subdir.read_bytes().decode("utf-8"))
+    toplevel = antfarm / f"{workflow_id}.yaml"
+    if toplevel.exists():
+        return yaml.safe_load(toplevel.read_bytes().decode("utf-8"))
+    return None
+
+
+def _build_graph_data(wf: dict) -> dict:
+    """Extract vis-network nodes/edges from a parsed workflow YAML."""
+    agents = wf.get("agents", [])
+    steps = wf.get("steps", [])
+    recurring = wf.get("recurring_steps", [])
+    triggers = wf.get("triggers", [])
+
+    agent_map = {a["id"]: a for a in agents}
+
+    nodes = []
+    for a in agents:
+        role = a.get("role", "")
+        color = ROLE_COLORS.get(role, DEFAULT_ROLE_COLOR)
+        nodes.append({
+            "id": a["id"],
+            "label": a.get("name", a["id"]),
+            "role": role,
+            "description": _ascii_safe(a.get("description", "")),
+            "color": color,
+        })
+
+    edges = []
+    seen_agents = {a["id"] for a in agents}
+
+    for i in range(len(steps)):
+        step = steps[i]
+        agent_id = step.get("agent", "")
+        # Create node for unknown agents
+        if agent_id and agent_id not in seen_agents:
+            nodes.append({"id": agent_id, "label": agent_id, "role": "", "description": "Unknown agent", "color": DEFAULT_ROLE_COLOR})
+            seen_agents.add(agent_id)
+
+        if i > 0:
+            prev_agent = steps[i - 1].get("agent", "")
+            cur_agent = agent_id
+            if prev_agent and cur_agent:
+                edges.append({
+                    "from": prev_agent,
+                    "to": cur_agent,
+                    "label": step.get("id", f"step_{i}"),
+                    "dashes": bool(step.get("condition")),
+                })
+
+    # Recurring steps get self-loop edges
+    for rs in recurring:
+        agent_id = rs.get("agent", "")
+        if agent_id:
+            if agent_id not in seen_agents:
+                nodes.append({"id": agent_id, "label": agent_id, "role": "", "description": "Recurring agent", "color": DEFAULT_ROLE_COLOR})
+                seen_agents.add(agent_id)
+            edges.append({
+                "from": agent_id,
+                "to": agent_id,
+                "label": rs.get("id", "recurring"),
+                "dashes": False,
+            })
+
+    # Collect steps per agent for sidebar
+    agent_steps = {}
+    for s in steps:
+        aid = s.get("agent", "")
+        if aid:
+            agent_steps.setdefault(aid, []).append(s.get("id", ""))
+    for rs in recurring:
+        aid = rs.get("agent", "")
+        if aid:
+            agent_steps.setdefault(aid, []).append(rs.get("id", "") + " (recurring)")
+
+    trigger_labels = []
+    for t in triggers:
+        ttype = t.get("type", "unknown")
+        desc = t.get("description", "")
+        if ttype == "cron":
+            trigger_labels.append(f"cron: {t.get('schedule', '?')}")
+        elif ttype == "command":
+            trigger_labels.append(f"command: {t.get('pattern', '?')}")
+        elif ttype == "poll":
+            trigger_labels.append(f"poll: {t.get('interval_seconds', '?')}s")
+        elif desc:
+            trigger_labels.append(f"{ttype}: {_ascii_safe(desc)[:60]}")
+        else:
+            trigger_labels.append(ttype)
+
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "triggers": trigger_labels,
+        "agent_steps": agent_steps,
+        "meta": {
+            "name": _ascii_safe(wf.get("name", "Unknown")),
+            "version": wf.get("version", "?"),
+            "description": _ascii_safe((wf.get("description") or "")[:300]),
+            "agent_count": len(agents),
+            "step_count": len(steps) + len(recurring),
+        },
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -105,30 +232,41 @@ async def get_tags():
 
 @app.get("/api/workflows")
 async def get_workflows():
-    """List Antfarm workflows from disk."""
+    """List Antfarm workflows from disk (subdirectory + top-level YAMLs)."""
     workflows = []
     antfarm_path = Path(ANTFARM_DIR)
     if not antfarm_path.exists():
         return JSONResponse({"error": f"Antfarm directory not found: {ANTFARM_DIR}"})
 
-    for wf_file in sorted(antfarm_path.glob("*/workflow.yml")):
+    wf_files = []
+    # Subdirectory pattern: workflows/{name}/workflow.yml
+    for f in sorted(antfarm_path.glob("*/workflow.yml")):
+        wf_files.append((f, f.parent.name))
+    # Top-level pattern: workflows/{name}.yaml
+    for f in sorted(antfarm_path.glob("*.yaml")):
+        wf_files.append((f, f.stem))
+
+    for wf_file, fallback_id in wf_files:
         try:
             raw = wf_file.read_bytes().decode("utf-8")
             wf = yaml.safe_load(raw)
+            wf_id = wf.get("id", fallback_id)
             workflows.append({
-                "id": wf.get("id", wf_file.parent.name),
-                "name": _ascii_safe(wf.get("name", wf_file.parent.name)),
+                "id": wf_id,
+                "name": _ascii_safe(wf.get("name", fallback_id)),
                 "description": _ascii_safe((wf.get("description") or "")[:120]),
                 "agents": len(wf.get("agents", [])),
                 "steps": len(wf.get("steps", [])),
+                "graph_url": f"/workflows/{wf_id}/graph",
             })
         except Exception as e:
             workflows.append({
-                "id": wf_file.parent.name,
-                "name": wf_file.parent.name,
+                "id": fallback_id,
+                "name": fallback_id,
                 "description": f"Error reading: {e}",
                 "agents": 0,
                 "steps": 0,
+                "graph_url": f"/workflows/{fallback_id}/graph",
             })
     return workflows
 
@@ -147,6 +285,268 @@ async def get_logs():
         return {"lines": ["(journalctl not available — not running on VPS)"], "count": 0}
     except Exception as e:
         return {"lines": [f"Error: {e}"], "count": 0}
+
+
+# ---------------------------------------------------------------------------
+# Workflow Graph
+# ---------------------------------------------------------------------------
+
+@app.get("/workflows/{workflow_id}/graph", response_class=HTMLResponse)
+async def workflow_graph(workflow_id: str):
+    """Render a visual node graph of a workflow using vis-network.js."""
+    wf = _load_workflow(workflow_id)
+    if wf is None:
+        return HTMLResponse(
+            f"""<!DOCTYPE html><html><head><title>Not Found</title>
+            <style>body{{background:#0a0a0f;color:#e0e0e0;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;}}
+            a{{color:#00ff88;}}</style></head>
+            <body><h1>Workflow not found: {workflow_id}</h1><p><a href="/">Back to Dashboard</a></p></body></html>""",
+            status_code=404,
+        )
+
+    data = _build_graph_data(wf)
+    meta = data["meta"]
+    graph_json = _json.dumps(data, default=str)
+
+    return HTMLResponse(f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{meta['name']} -- Workflow Graph</title>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }}
+        .graph-header {{
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 14px 24px;
+            border-bottom: 2px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }}
+        .graph-header a {{
+            color: #00ff88;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }}
+        .graph-header a:hover {{ text-decoration: underline; }}
+        .graph-title {{ font-size: 18px; color: #fff; }}
+        .graph-title span {{ color: #00ff88; font-weight: 400; font-size: 13px; margin-left: 10px; }}
+        .graph-body {{
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }}
+        #graphCanvas {{
+            flex: 1;
+            background: #0e0e16;
+            border-right: 1px solid #2a2a3a;
+        }}
+        .sidebar {{
+            width: 320px;
+            background: #12121a;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }}
+        .sidebar h3 {{
+            color: #00ff88;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }}
+        .sidebar-section {{
+            margin-bottom: 20px;
+        }}
+        .sidebar-label {{
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }}
+        .sidebar-value {{
+            color: #e0e0e0;
+            font-size: 13px;
+            line-height: 1.5;
+        }}
+        .sidebar-role {{
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+        }}
+        .sidebar-steps {{
+            list-style: none;
+            padding: 0;
+        }}
+        .sidebar-steps li {{
+            background: #1a1a2e;
+            padding: 6px 12px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-family: 'SF Mono', Monaco, monospace;
+            color: #aaa;
+        }}
+        .graph-footer {{
+            background: #12121a;
+            padding: 10px 24px;
+            border-top: 1px solid #2a2a3a;
+            font-size: 12px;
+            color: #666;
+            flex-shrink: 0;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }}
+        .trigger-tag {{
+            background: #1a1a2e;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+            color: #aaa;
+        }}
+        .empty-sidebar {{
+            color: #555;
+            font-size: 13px;
+            font-style: italic;
+        }}
+        @media (max-width: 800px) {{
+            .sidebar {{ width: 100%; max-height: 40vh; }}
+            .graph-body {{ flex-direction: column; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="graph-header">
+        <a href="/">&larr; Dashboard</a>
+        <div class="graph-title">{meta['name']}<span>v{meta['version']} | {meta['agent_count']} agents | {meta['step_count']} steps</span></div>
+        <div></div>
+    </div>
+    <div class="graph-body">
+        <div id="graphCanvas"></div>
+        <div class="sidebar" id="sidebar">
+            <h3>Agent Details</h3>
+            <p class="empty-sidebar">Click a node to see agent details</p>
+            <div class="sidebar-section" style="margin-top:24px;">
+                <div class="sidebar-label">Workflow Description</div>
+                <div class="sidebar-value">{meta['description']}</div>
+            </div>
+        </div>
+    </div>
+    <div class="graph-footer">
+        <span>Triggers:</span>
+        {''.join(f'<span class="trigger-tag">{t}</span>' for t in data["triggers"]) or '<span class="trigger-tag">none</span>'}
+    </div>
+    <script>
+        const graphData = {graph_json};
+
+        const nodes = new vis.DataSet(graphData.nodes.map(n => ({{
+            id: n.id,
+            label: n.label,
+            shape: 'box',
+            color: {{
+                background: n.color,
+                border: n.color + 'cc',
+                highlight: {{ background: n.color, border: '#00ff88' }},
+                hover: {{ background: n.color, border: '#ffffff44' }},
+            }},
+            font: {{ color: '#fff', size: 14, face: 'system-ui, sans-serif', bold: {{ color: '#fff' }} }},
+            borderWidth: 2,
+            borderWidthSelected: 3,
+            shadow: {{ enabled: true, color: 'rgba(0,0,0,0.4)', size: 8, x: 2, y: 2 }},
+            margin: {{ top: 10, bottom: 10, left: 14, right: 14 }},
+        }})));
+
+        const edges = new vis.DataSet(graphData.edges.map((e, i) => ({{
+            id: i,
+            from: e.from,
+            to: e.to,
+            label: e.label,
+            arrows: {{ to: {{ enabled: true, scaleFactor: 0.8 }} }},
+            color: {{ color: '#555', highlight: '#00ff88', hover: '#888' }},
+            font: {{ color: '#888', size: 11, strokeWidth: 0, face: 'monospace' }},
+            smooth: {{ type: 'cubicBezier', forceDirection: 'vertical', roundness: 0.4 }},
+            dashes: e.dashes || false,
+            width: 2,
+        }})));
+
+        const container = document.getElementById('graphCanvas');
+        const network = new vis.Network(container, {{ nodes, edges }}, {{
+            layout: {{
+                hierarchical: {{
+                    direction: 'UD',
+                    sortMethod: 'directed',
+                    levelSeparation: 120,
+                    nodeSpacing: 180,
+                    treeSpacing: 200,
+                }},
+            }},
+            physics: false,
+            interaction: {{
+                hover: true,
+                tooltipDelay: 200,
+                zoomView: true,
+                dragView: true,
+            }},
+        }});
+
+        network.on('click', function(params) {{
+            const sidebar = document.getElementById('sidebar');
+            if (params.nodes.length === 0) {{
+                sidebar.innerHTML = `
+                    <h3>Agent Details</h3>
+                    <p class="empty-sidebar">Click a node to see agent details</p>
+                    <div class="sidebar-section" style="margin-top:24px;">
+                        <div class="sidebar-label">Workflow Description</div>
+                        <div class="sidebar-value">{meta['description'].replace(chr(39), '&#39;')}</div>
+                    </div>`;
+                return;
+            }}
+            const nodeId = params.nodes[0];
+            const agent = graphData.nodes.find(n => n.id === nodeId);
+            const steps = graphData.agent_steps[nodeId] || [];
+            if (!agent) return;
+
+            sidebar.innerHTML = `
+                <h3>Agent Details</h3>
+                <div class="sidebar-section">
+                    <div class="sidebar-label">Name</div>
+                    <div class="sidebar-value">${{agent.label}}</div>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-label">Role</div>
+                    <div><span class="sidebar-role" style="background:${{agent.color}}">${{agent.role || 'unspecified'}}</span></div>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-label">Description</div>
+                    <div class="sidebar-value">${{agent.description || 'No description'}}</div>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-label">Steps (${{steps.length}})</div>
+                    <ul class="sidebar-steps">
+                        ${{steps.map(s => '<li>' + s + '</li>').join('') || '<li>No steps assigned</li>'}}
+                    </ul>
+                </div>`;
+        }});
+    </script>
+</body>
+</html>""")
 
 
 # ---------------------------------------------------------------------------
@@ -277,7 +677,12 @@ async def dashboard():
             display: flex;
             justify-content: space-between;
             align-items: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            border: 1px solid transparent;
         }
+        .wf-item:hover { border-color: #00ff8844; }
         .wf-name { font-size: 13px; font-weight: 600; color: #fff; }
         .wf-desc { font-size: 11px; color: #666; margin-top: 3px; }
         .wf-meta { text-align: right; flex-shrink: 0; }
@@ -533,8 +938,9 @@ async def dashboard():
 
                 container.innerHTML = '';
                 for (const wf of workflows) {
-                    const item = document.createElement('div');
+                    const item = document.createElement('a');
                     item.className = 'wf-item';
+                    item.href = wf.graph_url || '#';
                     item.innerHTML = `
                         <div>
                             <div class="wf-name">${wf.name}</div>
