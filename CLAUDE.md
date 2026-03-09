@@ -220,3 +220,50 @@ When making changes to OpenClaw on the VPS (100.68.120.99):
 8. **Verify**: `journalctl -u openclaw -n 15 --no-pager`
 9. **Health check**: `curl -s http://localhost:8340/`
 10. **Write ops trace** in `docs/ops/traces/` in this monorepo for every VPS change
+
+---
+
+## PLC / Factory IO — Modbus Address Map
+
+### Coils (Boolean I/O)
+
+| Address | Name | Description |
+|---------|------|-------------|
+| 0 | motor_running | Motor run status |
+| 1 | motor_stopped | Motor stop status |
+| 2 | fault_alarm | Active fault indicator |
+| 3 | conveyor_running | Conveyor run status |
+| 4 | sensor_1 | Photoelectric sensor 1 |
+| 5 | sensor_2 | Photoelectric sensor 2 |
+| 6 | e_stop | Emergency stop (# SAFETY — never write without approval) |
+
+### Holding Registers (Analog Values)
+
+| Address | Name | Scale | Description |
+|---------|------|-------|-------------|
+| 100 | motor_speed | raw | Motor speed (0-100) |
+| 101 | motor_current | ÷10 | Motor current (25 = 2.5A) |
+| 102 | temperature | ÷10 | Temperature (650 = 65.0°C) |
+| 103 | pressure | raw | Pneumatic pressure PSI |
+| 104 | conveyor_speed | raw | Conveyor speed (0-100) |
+| 105 | error_code | raw | 0=none, 1=overload, 2=sensor, 3=comms, 4=overheat, 5=low_press, 6=jam, 7=estop |
+
+### Safety Rules for PLC Code
+
+- **NEVER** write to coil 6 (e_stop) without explicit approval in the current session
+- All generated Structured Text must include an e_stop check before any motion command
+- Use Micro 820 compatible types only (BOOL, INT, REAL, DINT)
+- Scale factors: motor_current ÷10, temperature ÷10
+
+### MCP Servers Available
+
+| Server | Command | Tools |
+|--------|---------|-------|
+| factorylm-brain | `python -m services.mcp.brain_server` | brain_search, brain_capture, brain_research, brain_ingest_file, brain_stats |
+| factorylm-gist | `python -m services.mcp.gist_server` | gist management |
+| factorylm-factory | `python -m services.mcp.factory_server` | factory_read_state, factory_inject_fault, factory_list_scenarios, factory_clear_faults, factory_write_coil, factory_write_register, factory_watch_tags, factory_connection_info |
+
+### Arrested Development Phase
+
+**Active until further notice.** See `.planning/ARRESTED_DEVELOPMENT.md`.
+No new features. Every session: "Does this build the foundation or add to it?"

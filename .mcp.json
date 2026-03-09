@@ -10,6 +10,14 @@
       "args": ["scripts/start-brain-mcp.sh"],
       "cwd": "C:\\Users\\hharp\\Desktop\\factorylm-monorepo"
     },
+    "factorylm-factory": {
+      "command": "python",
+      "args": ["-m", "services.mcp.factory_server"],
+      "env": {
+        "PLC_HOST": "192.168.1.100",
+        "MODBUS_PORT": "502"
+      }
+    },
     "filesystem": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:/"]
