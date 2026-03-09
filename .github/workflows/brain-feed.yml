@@ -6,15 +6,15 @@ on:
 jobs:
   brain-ingest:
     runs-on: ubuntu-latest
+    continue-on-error: true  # NEVER block pushes for brain ingestion
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      - name: Send commit to Open Brain
-        if: env.BRAIN_INGEST_URL != ''
+      - name: Build payload
+        id: payload
         env:
-          BRAIN_INGEST_URL: ${{ secrets.BRAIN_INGEST_URL }}
           COMMIT_MSG: ${{ github.event.head_commit.message }}
           COMMIT_AUTHOR: ${{ github.event.head_commit.author.name }}
           COMMIT_REPO: ${{ github.repository }}
@@ -23,7 +23,7 @@ jobs:
         run: |
           FILES=$(git diff-tree --no-commit-id -r --name-only HEAD | tr '\n' ', ')
           FIRST_LINE=$(echo "$COMMIT_MSG" | head -1)
-
+          mkdir -p /tmp/brain-dlq
           jq -n \
             --arg content "Git commit in $COMMIT_REPO on $COMMIT_BRANCH by $COMMIT_AUTHOR: $FIRST_LINE | Changed files: $FILES" \
             --arg sha "$COMMIT_SHA" \
@@ -36,6 +36,32 @@ jobs:
               source: "github_commit",
               tags: ["git", "commit", $repo],
               metadata: { sha: $sha, repo: $repo, branch: $branch, author: $author, files: $files }
-            }' | curl -sf -X POST "$BRAIN_INGEST_URL" \
-              -H "Content-Type: application/json" \
-              -d @- || echo "Brain ingest unavailable (server may be offline)"
+            }' > /tmp/brain-dlq/payload.json
+
+      - name: Send to Open Brain
+        id: send
+        if: ${{ secrets.BRAIN_INGEST_URL != '' }}
+        env:
+          BRAIN_INGEST_URL: ${{ secrets.BRAIN_INGEST_URL }}
+        run: |
+          HTTP_CODE=$(curl -s -o /tmp/brain-dlq/response.txt -w '%{http_code}' \
+            --connect-timeout 5 --max-time 10 \
+            -X POST "$BRAIN_INGEST_URL" \
+            -H "Content-Type: application/json" \
+            -d @/tmp/brain-dlq/payload.json || echo "000")
+          echo "http_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+          if [ "$HTTP_CODE" = "000" ]; then
+            echo "::warning::Brain ingest unreachable (timeout/network error)"
+          elif [ "$HTTP_CODE" -ge 400 ] 2>/dev/null; then
+            echo "::warning::Brain ingest returned HTTP $HTTP_CODE"
+          else
+            echo "Brain ingest OK (HTTP $HTTP_CODE)"
+          fi
+
+      - name: Save dead letter on failure
+        if: always() && (steps.send.outputs.http_code == '000' || steps.send.outcome == 'skipped')
+        uses: actions/upload-artifact@v4
+        with:
+          name: brain-dlq-${{ github.sha }}
+          path: /tmp/brain-dlq/
+          retention-days: 7
