@@ -12,6 +12,8 @@ import sys
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +22,11 @@ _monorepo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 if _monorepo not in sys.path:
     sys.path.insert(0, _monorepo)
 
-app = FastMCP("factorylm-brain")
+app = FastMCP(
+    "factorylm-brain",
+    host=os.environ.get("MCP_HOST", "127.0.0.1"),
+    port=int(os.environ.get("MCP_PORT", "8000")),
+)
 
 _memory = None
 _setup_error = None
@@ -55,6 +61,16 @@ def _get_memory():
                 "Check that NEON_DATABASE_URL, GEMINI_API_KEY, GROQ_API_KEY are set correctly."
             ) from e
     return _memory
+
+
+# ---------------------------------------------------------------------------
+# Health (public, no auth required)
+# ---------------------------------------------------------------------------
+
+
+@app.custom_route("/health", methods=["GET"])
+async def health(request: Request) -> JSONResponse:
+    return JSONResponse({"status": "ok", "service": "brain-mcp"})
 
 
 # ---------------------------------------------------------------------------
@@ -249,4 +265,31 @@ def brain_stats() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run()
+    transport = os.environ.get("MCP_TRANSPORT", "stdio")
+
+    if transport == "streamable-http":
+        import asyncio
+        import uvicorn
+
+        starlette_app = app.streamable_http_app()
+
+        access_key = os.environ.get("BRAIN_ACCESS_KEY")
+        if access_key:
+            @starlette_app.middleware("http")
+            async def bearer_auth(request, call_next):
+                if request.url.path == "/health":
+                    return await call_next(request)
+                auth_header = request.headers.get("authorization", "")
+                if auth_header != f"Bearer {access_key}":
+                    return JSONResponse({"error": "unauthorized"}, status_code=401)
+                return await call_next(request)
+
+        config = uvicorn.Config(
+            starlette_app,
+            host=app.settings.host,
+            port=app.settings.port,
+            log_level=app.settings.log_level.lower(),
+        )
+        asyncio.run(uvicorn.Server(config).serve())
+    else:
+        app.run(transport=transport)

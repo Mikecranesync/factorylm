@@ -7,3 +7,5 @@ groq
 eval_type_backport
 chromadb
 langchain-text-splitters
+mcp[cli]
+httpx
