@@ -3,16 +3,12 @@
     "factorylm-gist": {
       "command": "python",
       "args": ["-m", "services.mcp.gist_server"],
-      "cwd": "C:\\Users\\hharp\\Desktop\\factorylm-monorepo"
+      "cwd": "/Users/charlienode/factorylm"
     },
-    "factorylm-brain": {
-      "command": "bash",
-      "args": ["-c", "export $(doppler secrets get NEON_DATABASE_URL GROQ_API_KEY -p openclaw -c dev --format env-no-quotes) && export GEMINI_API_KEY=$(doppler secrets get GEMINI_API_KEY -p factorylm -c dev --plain) && python -m services.mcp.brain_server"],
-      "cwd": "C:\\Users\\hharp\\Desktop\\factorylm-monorepo"
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:/"]
+    "open-brain": {
+      "command": "/Users/charlienode/.local/bin/doppler",
+      "args": ["run", "-p", "factorylm", "-c", "dev", "--", "/Users/charlienode/brain-venv/bin/python3", "-m", "services.mcp.brain_server"],
+      "cwd": "/Users/charlienode/factorylm"
     }
   }
 }

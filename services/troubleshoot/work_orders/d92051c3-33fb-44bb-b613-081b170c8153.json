@@ -1,0 +1,89 @@
+{
+  "session_id": "d92051c3-33fb-44bb-b613-081b170c8153",
+  "user_id": "tg_8445149012",
+  "created_at": "2026-03-09T02:04:04.211313+00:00",
+  "completed_at": "2026-03-09T02:04:36.639797+00:00",
+  "workflow_id": "mechanical_bolted_joint",
+  "path_taken": [
+    "welcome",
+    "route_mechanical",
+    "mechanical_start",
+    "check_bolt_condition",
+    "assess_bolt_loosening",
+    "advice_retorque_few"
+  ],
+  "data": {},
+  "evidence_photos": [],
+  "events": [
+    {
+      "type": "session_start",
+      "ts": 1773021844.211322
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773021844.2113438,
+      "node_id": "welcome",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773021857.714132,
+      "button_id": "controls"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773021861.868012,
+      "button_id": "electrical"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773021864.9756758,
+      "button_id": "mechanical"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773021864.975709,
+      "node_id": "route_mechanical",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773021864.975722,
+      "node_id": "mechanical_start",
+      "workflow_id": "mechanical_bolted_joint"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773021866.003849,
+      "button_id": "loose_bolts"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773021866.00388,
+      "node_id": "check_bolt_condition",
+      "workflow_id": "mechanical_bolted_joint"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773021868.5602298,
+      "button_id": "backing_out"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773021868.560261,
+      "node_id": "assess_bolt_loosening",
+      "workflow_id": "mechanical_bolted_joint"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773021876.639765,
+      "button_id": "few_bolts"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773021876.639797,
+      "node_id": "advice_retorque_few",
+      "workflow_id": "mechanical_bolted_joint"
+    }
+  ]
+}

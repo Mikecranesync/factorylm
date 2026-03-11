@@ -1,0 +1,83 @@
+{
+  "session_id": "e71f61e0-75a2-4f5d-af40-5790cc523f4d",
+  "user_id": "tg_8445149012",
+  "created_at": "2026-03-08T21:47:29.644670+00:00",
+  "completed_at": "2026-03-08T21:49:08.312149+00:00",
+  "workflow_id": "photo_triage",
+  "path_taken": [
+    "welcome",
+    "take_photo",
+    "classify_photo",
+    "electrical_start",
+    "check_wiring"
+  ],
+  "data": {
+    "photo": "/Users/charlienode/factorylm/services/troubleshoot/photos/e71f61e0-75a2-4f5d-af40-5790cc523f4d_1.jpg",
+    "vision_result": {
+      "category": "electrical",
+      "confidence": 0.8,
+      "description": "Wiring and connections appear to be in order, but there may be a potential issue with the connections or the device itself, indicated by the labels and the setup"
+    }
+  },
+  "evidence_photos": [
+    "/Users/charlienode/factorylm/services/troubleshoot/photos/e71f61e0-75a2-4f5d-af40-5790cc523f4d_1.jpg"
+  ],
+  "events": [
+    {
+      "type": "session_start",
+      "ts": 1773006449.644674
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773006449.644694,
+      "node_id": "welcome",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773006458.4101918,
+      "button_id": "send_photo"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773006458.410218,
+      "node_id": "take_photo",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "photo_received",
+      "ts": 1773006540.208585,
+      "path": "/Users/charlienode/factorylm/services/troubleshoot/photos/e71f61e0-75a2-4f5d-af40-5790cc523f4d_1.jpg"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773006540.2086148,
+      "node_id": "classify_photo",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "vision_result",
+      "ts": 1773006542.13579,
+      "category": "electrical",
+      "confidence": 0.8,
+      "description": "Wiring and connections appear to be in order, but there may be a potential issue with the connections or the device itself, indicated by the labels and the setup"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773006542.135817,
+      "node_id": "electrical_start",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773006548.312112,
+      "button_id": "wiring"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773006548.3121479,
+      "node_id": "check_wiring",
+      "workflow_id": "photo_triage"
+    }
+  ]
+}

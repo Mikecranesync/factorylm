@@ -1,0 +1,77 @@
+{
+  "session_id": "13962e01-6526-4e3c-9091-b2b9cd63b822",
+  "user_id": "tg_8445149012",
+  "created_at": "2026-03-09T03:39:42.566830+00:00",
+  "completed_at": "2026-03-09T08:00:06.184282+00:00",
+  "workflow_id": "photo_triage",
+  "path_taken": [
+    "welcome",
+    "take_photo",
+    "welcome",
+    "take_photo"
+  ],
+  "data": {},
+  "evidence_photos": [
+    "/Users/charlienode/factorylm/services/troubleshoot/photos/13962e01-6526-4e3c-9091-b2b9cd63b822_1.jpg"
+  ],
+  "events": [
+    {
+      "type": "session_start",
+      "ts": 1773027582.566834
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773027582.566856,
+      "node_id": "welcome",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773027585.436861,
+      "button_id": "send_photo"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773027585.436926,
+      "node_id": "take_photo",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773027587.483178,
+      "button_id": "__skip_photo__"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773027587.483205,
+      "node_id": "welcome",
+      "workflow_id": "photo_triage"
+    },
+    {
+      "type": "photo_received",
+      "ts": 1773027596.4991622,
+      "path": "/Users/charlienode/factorylm/services/troubleshoot/photos/13962e01-6526-4e3c-9091-b2b9cd63b822_1.jpg"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773043187.515584,
+      "button_id": "controls"
+    },
+    {
+      "type": "text_received",
+      "ts": 1773043193.0818582,
+      "text": "Hello"
+    },
+    {
+      "type": "button_pressed",
+      "ts": 1773043206.184242,
+      "button_id": "send_photo"
+    },
+    {
+      "type": "node_reached",
+      "ts": 1773043206.184281,
+      "node_id": "take_photo",
+      "workflow_id": "photo_triage"
+    }
+  ]
+}
