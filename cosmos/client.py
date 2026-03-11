@@ -9,7 +9,9 @@ import datetime
 import json
 import logging
 import os
+import time
 from pathlib import Path
+from typing import List, Optional
 
 import httpx
 
@@ -21,7 +23,11 @@ logger = logging.getLogger(__name__)
 class CosmosClient:
     """HTTP client for NVIDIA Cosmos Reason 2 API with Llama fallback."""
 
-    def __init__(self, config_path: str | None = None) -> None:
+    # Circuit breaker constants
+    CIRCUIT_THRESHOLD = 3
+    CIRCUIT_COOLDOWN = 300  # seconds
+
+    def __init__(self, config_path: Optional[str] = None) -> None:
         cfg_file = Path(config_path) if config_path else Path("config/cosmos.yaml")
         self.api_key: str = os.getenv("NVIDIA_COSMOS_API_KEY", "")
         self.api_base_url: str = "https://integrate.api.nvidia.com/v1"
@@ -29,6 +35,10 @@ class CosmosClient:
         self.fallback_model: str = "meta/llama-3.1-70b-instruct"
         self._config: dict = {}
         self._use_fallback: bool = False  # Track if we should use fallback
+
+        # Circuit breaker state
+        self._consecutive_failures: int = 0
+        self._circuit_open_until: float = 0.0
 
         if cfg_file.exists():
             try:
@@ -50,7 +60,7 @@ class CosmosClient:
         incident_id: str,
         node_id: str,
         tags: dict,
-        images: list[str] | None = None,
+        images: Optional[List[str]] = None,
         video_url: str = "",
         context: str = "",
     ) -> CosmosInsight:
@@ -72,16 +82,30 @@ class CosmosClient:
         )
         return self._analyze_incident_stub(incident_id, node_id, tags, video_url)
 
+    def _circuit_open(self) -> bool:
+        """Return True if the circuit breaker is open (too many recent failures)."""
+        if self._consecutive_failures >= self.CIRCUIT_THRESHOLD:
+            if time.monotonic() < self._circuit_open_until:
+                return True
+            # Cooldown expired — allow a retry (half-open)
+            self._consecutive_failures = 0
+        return False
+
     def _analyze_incident_real(
         self,
         incident_id: str,
         node_id: str,
         tags: dict,
-        images: list[str] | None,
+        images: Optional[List[str]],
         video_url: str,
         context: str,
     ) -> CosmosInsight:
         """Make real API call to NVIDIA Cosmos Reason 2 or fallback model."""
+        # Circuit breaker — skip HTTP if too many recent failures
+        if self._circuit_open():
+            logger.warning("Cosmos circuit breaker OPEN — returning stub")
+            return self._analyze_incident_stub(incident_id, node_id, tags, video_url)
+
         current_model = self.fallback_model if self._use_fallback else self.model
         logger.info(
             "CosmosClient.analyze_incident REAL API call for incident=%s node=%s model=%s",
@@ -144,6 +168,7 @@ Format your response as JSON with keys: summary, root_cause, confidence, reasoni
                 timeout=30.0,
             )
             response.raise_for_status()
+            self._consecutive_failures = 0  # Reset on success
             result = response.json()
 
             # Parse the response
@@ -181,6 +206,16 @@ Format your response as JSON with keys: summary, root_cause, confidence, reasoni
                 cosmos_model=current_model,
             )
 
+        except (httpx.ConnectError, httpx.ConnectTimeout) as e:
+            self._consecutive_failures += 1
+            if self._consecutive_failures >= self.CIRCUIT_THRESHOLD:
+                self._circuit_open_until = time.monotonic() + self.CIRCUIT_COOLDOWN
+                logger.warning(
+                    "Cosmos circuit breaker OPEN after %d failures (cooldown %ds)",
+                    self._consecutive_failures, self.CIRCUIT_COOLDOWN,
+                )
+            logger.error("Cosmos connection failed: %s", e)
+            return self._analyze_incident_stub(incident_id, node_id, tags, video_url)
         except httpx.HTTPStatusError as e:
             logger.error("Cosmos API HTTP error: %s - %s", e.response.status_code, e.response.text)
             # If 404 and not already using fallback, try fallback model
@@ -190,6 +225,9 @@ Format your response as JSON with keys: summary, root_cause, confidence, reasoni
                 return self._analyze_incident_real(incident_id, node_id, tags, images, video_url, context)
             return self._analyze_incident_stub(incident_id, node_id, tags, video_url)
         except Exception as e:
+            self._consecutive_failures += 1
+            if self._consecutive_failures >= self.CIRCUIT_THRESHOLD:
+                self._circuit_open_until = time.monotonic() + self.CIRCUIT_COOLDOWN
             logger.exception("Cosmos API error: %s", e)
             return self._analyze_incident_stub(incident_id, node_id, tags, video_url)
 

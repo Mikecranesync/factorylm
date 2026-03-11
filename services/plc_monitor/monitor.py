@@ -25,7 +25,7 @@ class PLCMonitor:
         self.twin_reader = TwinReader(config.factoryio_host, config.factoryio_port)
         self.twin_comparator = TwinComparator(threshold=config.twin_divergence_threshold)
         self._http = httpx.AsyncClient(timeout=10.0)
-        self._seen_incident_ids: set[int] = set()
+        self._seen_incident_ids: set = set()
         self._running = False
 
         # Stats
@@ -105,29 +105,19 @@ class PLCMonitor:
                 continue
             self._seen_incident_ids.add(inc_id)
 
-            logger.info("New incident #%s — analyzing with Cosmos", inc_id)
+            logger.info("New incident #%s — alerting immediately", inc_id)
             self.incidents_processed += 1
 
-            # Run synchronous Cosmos analysis in executor
-            loop = asyncio.get_running_loop()
-            insight = await loop.run_in_executor(
-                None,
-                partial(
-                    self.cosmos.analyze_incident,
-                    incident_id=str(inc_id),
-                    node_id=incident.get("node_id", "unknown"),
-                    tags=incident.get("tags", {}),
-                ),
-            )
-
-            # Post insight back to Matrix API
-            await self._post_insight(insight)
-
-            # Send Telegram alert
+            # Send IMMEDIATE Telegram alert (no Cosmos wait)
             if self.alerter.enabled:
-                sent = await self.alerter.send_incident_alert(incident, insight)
+                sent = await self.alerter.send_raw_incident_alert(incident)
                 if sent:
                     self.alerts_sent += 1
+
+            # Fire background enrichment (Cosmos analysis + follow-up)
+            asyncio.create_task(
+                self._enrich_incident(incident, str(inc_id))
+            )
 
     async def _post_insight(self, insight: CosmosInsight) -> None:
         """POST a CosmosInsight back to Matrix API."""
@@ -148,6 +138,47 @@ class PLCMonitor:
             logger.info("Insight posted for incident %s", insight.incident_id)
         except Exception as e:
             logger.warning("Failed to post insight: %s", e)
+
+    async def _enrich_incident(self, incident: dict, inc_id: str) -> None:
+        """Background: run Cosmos analysis, post insight, send follow-up."""
+        try:
+            loop = asyncio.get_running_loop()
+            insight = await loop.run_in_executor(
+                None,
+                partial(
+                    self.cosmos.analyze_incident,
+                    incident_id=inc_id,
+                    node_id=incident.get("node_id", "unknown"),
+                    tags=incident.get("tags", {}),
+                ),
+            )
+            await self._post_insight(insight)
+            if self.alerter.enabled:
+                await self.alerter.send_enrichment_followup(inc_id, insight)
+        except Exception:
+            logger.exception("Background enrichment failed for incident %s", inc_id)
+
+    async def _enrich_divergence(
+        self, divergence_id: str, real_tags: dict, context: str
+    ) -> None:
+        """Background: run Cosmos analysis for twin divergence."""
+        try:
+            loop = asyncio.get_running_loop()
+            insight = await loop.run_in_executor(
+                None,
+                partial(
+                    self.cosmos.analyze_incident,
+                    incident_id=divergence_id,
+                    node_id="twin-comparator",
+                    tags=real_tags,
+                    context=context,
+                ),
+            )
+            await self._post_insight(insight)
+            if self.alerter.enabled:
+                await self.alerter.send_enrichment_followup(divergence_id, insight)
+        except Exception:
+            logger.exception("Background enrichment failed for %s", divergence_id)
 
     # ------------------------------------------------------------------
     # Loop 2: Twin comparator
@@ -225,36 +256,26 @@ class PLCMonitor:
             return
 
         self.divergences_detected += 1
+        divergence_id = f"twin-divergence-{self.divergences_detected}"
         logger.warning("Twin divergence detected: %s", diff.summary)
 
-        # Analyze divergence with Cosmos
-        context = (
-            f"Digital twin divergence detected. Drift score: {diff.drift_score:.2f}. "
-            f"Mismatches: {diff.summary}"
-        )
-        insight = await loop.run_in_executor(
-            None,
-            partial(
-                self.cosmos.analyze_incident,
-                incident_id=f"twin-divergence-{self.divergences_detected}",
-                node_id="twin-comparator",
-                tags=real_tags,
-                context=context,
-            ),
-        )
-
-        # Post insight to Matrix API
-        await self._post_insight(insight)
-
-        # Send Telegram divergence alert
+        # Send IMMEDIATE divergence alert (no Cosmos wait)
         if self.alerter.enabled:
             sent = await self.alerter.send_divergence_alert(
                 drift_score=diff.drift_score,
                 mismatches=diff.mismatches,
-                insight=insight,
             )
             if sent:
                 self.alerts_sent += 1
+
+        # Fire background enrichment
+        context = (
+            f"Digital twin divergence detected. Drift score: {diff.drift_score:.2f}. "
+            f"Mismatches: {diff.summary}"
+        )
+        asyncio.create_task(
+            self._enrich_divergence(divergence_id, real_tags, context)
+        )
 
     def get_stats(self) -> dict:
         """Return current monitor stats for health endpoint."""

@@ -1,6 +1,7 @@
 """Telegram Bot API alerter — sends fault and divergence alerts to Mike."""
 
 import logging
+from typing import Optional
 
 import httpx
 
@@ -22,6 +23,46 @@ class TelegramAlerter:
     @property
     def enabled(self) -> bool:
         return bool(self.bot_token and self.chat_id)
+
+    async def send_raw_incident_alert(self, incident: dict) -> bool:
+        """Send immediate PLC fault alert using only incident data (no Cosmos)."""
+        if not self.enabled:
+            logger.warning("Telegram alerter not configured, skipping raw alert")
+            return False
+
+        text = (
+            "\U0001f534 <b>PLC FAULT ALERT</b>\n"
+            "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n"
+            f"Incident: <b>#{_escape_html(str(incident.get('id', '?')))}</b>\n"
+            f"Error: {_escape_html(str(incident.get('error_message', incident.get('description', '?'))))}\n"
+            f"Node: {_escape_html(str(incident.get('node_id', '?')))}\n"
+            "\n"
+            "<i>AI analysis pending...</i>"
+        )
+        return await self._send(text)
+
+    async def send_enrichment_followup(
+        self, incident_id: str, insight: CosmosInsight
+    ) -> bool:
+        """Send follow-up message with Cosmos AI analysis for a prior alert."""
+        if not self.enabled:
+            return False
+
+        checks = ""
+        for check in insight.suggested_checks[:5]:
+            checks += f"  \u2192 {_escape_html(check)}\n"
+
+        text = (
+            f"\U0001f7e2 <b>AI Analysis</b> — Incident #{_escape_html(incident_id)}\n"
+            f"Model: {_escape_html(insight.cosmos_model)}\n"
+            f"Summary: {_escape_html(insight.summary)}\n"
+            f"Root Cause: {_escape_html(insight.root_cause)}\n"
+            f"Confidence: {int(insight.confidence * 100)}%\n"
+            "\n"
+            "<b>Suggested Checks:</b>\n"
+            f"{checks}"
+        )
+        return await self._send(text)
 
     async def send_incident_alert(
         self,
@@ -58,8 +99,8 @@ class TelegramAlerter:
     async def send_divergence_alert(
         self,
         drift_score: float,
-        mismatches: list[dict],
-        insight: CosmosInsight | None = None,
+        mismatches: list,
+        insight: Optional[CosmosInsight] = None,
     ) -> bool:
         """Send a digital twin divergence alert."""
         if not self.enabled:
