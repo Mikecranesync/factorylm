@@ -48,12 +48,57 @@ PLC LOGS:        /cluster/plc-logs/
 MODELS:          /cluster/models/
 GITHUB REPO:     /cluster/repos/FactoryLM-Architecture/
 
+## KANBAN BOARD (all nodes — check every session)
+
+**Board:** https://github.com/users/Mikecranesync/projects/4
+**Project ID:** 4 | **Owner:** Mikecranesync
+**Field IDs:** Status = `PVTSSF_lAHODSgiRM4BSa9ezg_9d4k` | Todo = `f75ad846` | In Progress = `47fc9ee4` | Done = `98236657`
+
+### On Session Start — show open work
+```bash
+gh project item-list 4 --owner Mikecranesync --format json --limit 100 | python3 -c "
+import sys, json
+items = json.load(sys.stdin)['items']
+for s in ['In Progress', 'Todo']:
+    hits = [i for i in items if i.get('status') == s]
+    if hits:
+        print(f'\n## {s} ({len(hits)})')
+        for i in hits: print(f'  {i[\"title\"]}')
+"
+```
+
+### On Every Commit — keep board in sync
+```bash
+# Add new issue to board
+gh project item-add 4 --owner Mikecranesync --url <issue-url>
+
+# Move to In Progress
+gh project item-edit --project-id PVT_kwHODSgiRM4BSa9e --id <item-id> \
+  --field-id PVTSSF_lAHODSgiRM4BSa9ezg_9d4k --single-select-option-id 47fc9ee4
+
+# Move to Done
+gh project item-edit --project-id PVT_kwHODSgiRM4BSa9e --id <item-id> \
+  --field-id PVTSSF_lAHODSgiRM4BSa9ezg_9d4k --single-select-option-id 98236657
+
+# Get item IDs
+gh project item-list 4 --owner Mikecranesync --format json --limit 100 | \
+  python3 -c "import sys,json; [print(i['id'], i.get('status',''), i['title'][:60]) for i in json.load(sys.stdin)['items']]"
+```
+
+### Rules
+- Every new GitHub issue → add to board immediately
+- Every issue closed by a commit → move to Done
+- Never leave board stale
+
+---
+
 ## STARTUP — RUN EVERY SESSION
 1. git pull /cluster/repos/FactoryLM-Architecture
 2. Read /cluster/betterclaw/memory/latest.md
 3. Check /cluster/betterclaw/task_queue/ for open Task.md files
 4. Read /cluster/betterclaw/rules/ — all rules are active
-5. Post session start to #alpha-status Discord
+5. **Check KANBAN board** (see above) — know what's In Progress before touching code
+6. Post session start to #alpha-status Discord
 
 ## SHUTDOWN — RUN EVERY SESSION
 1. Write LESSON-<DATE>.md to /cluster/betterclaw/logs/
