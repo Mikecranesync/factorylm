@@ -12,7 +12,8 @@ import os
 import sys
 import json
 import re
-from datetime import datetime, timedelta
+import subprocess
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 from pathlib import Path
 import logging
@@ -34,6 +35,24 @@ SHORTS_DIR = f"{CONTENT_DIR}/shorts"
 # Ensure directories exist
 for d in [CONTENT_DIR, SCRIPTS_DIR, SHORTS_DIR]:
     os.makedirs(d, exist_ok=True)
+
+# Threshold for auto-triggering Shorts pipeline
+SHORTS_AUTO_TRIGGER_SCORE = 8
+
+# Map event type → series key (for shorts_pipeline + thumbnail_generator)
+EVENT_TO_SERIES = {
+    "first_successful_deployment": "live_diagnosis",
+    "bug_fixed_by_ai": "before_it_breaks",
+    "plc_first_inference": "inside_machine",
+    "new_agent_deployed": "tech_stories",
+    "customer_feedback": "price_shock",
+    "milestone_reached": "tech_stories",
+    "plc_fault_detected": "before_it_breaks",
+    "conveyor_jam_detected": "before_it_breaks",
+    "vfd_fault": "before_it_breaks",
+    "air_gap_demo": "off_the_grid",
+    "cost_comparison": "price_shock",
+}
 
 # Content value scores
 CONTENT_SCORES = {
@@ -111,10 +130,15 @@ class ContentCaptureAgent(BaseAgent):
         if event["content_score"] >= 7:
             idea = self.generate_video_idea(event)
             event["video_idea"] = idea
-            
+
             with open(IDEAS_LOG, "a") as f:
                 f.write(json.dumps({"event": event, "idea": idea}) + "\n")
-        
+
+        # Auto-trigger Shorts pipeline for score >= 8
+        if event["content_score"] >= SHORTS_AUTO_TRIGGER_SCORE:
+            short_result = self.generate_short_from_event(event)
+            event["shorts_queued"] = short_result
+
         return event
     
     def generate_video_idea(self, event: Dict) -> Dict:
@@ -245,6 +269,119 @@ Make it engaging, show real progress, be authentic."""
                         pass
         return events
     
+    def _next_publish_slot(self) -> str:
+        """Return next Mon/Wed/Fri 9AM EST as ISO 8601 string."""
+        est_offset = timedelta(hours=-4)
+        now = datetime.now(timezone.utc) + est_offset
+        candidate = now.replace(hour=9, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        while candidate.weekday() not in (0, 2, 4):
+            candidate += timedelta(days=1)
+        return candidate.strftime("%Y-%m-%dT09:00:00-04:00")
+
+    def _post_telegram_queue(self, message: str) -> None:
+        """Post to Telegram #content-queue channel."""
+        bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+        chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
+        if not bot_token or not chat_id:
+            logger.warning("Telegram not configured — skipping content-queue notification")
+            return
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                json={"chat_id": chat_id, "text": message, "parse_mode": "Markdown"},
+                timeout=10,
+            )
+        except Exception as e:
+            logger.warning("Telegram post failed: %s", e)
+
+    def generate_short_from_event(self, event: Dict, input_mp4: Optional[str] = None) -> Dict:
+        """
+        Auto-trigger the Shorts production pipeline when content score >= 8.
+
+        Selects the appropriate series based on event type, generates a hook
+        text from the event data, runs shorts_pipeline.py, schedules upload
+        for the next Mon/Wed/Fri 9AM EST slot, and posts a draft notification
+        to Telegram #content-queue.
+
+        Args:
+            event: Event dict from log_milestone (must have type, data, content_score)
+            input_mp4: Path to source montage MP4. If None, looks for the most
+                       recent MP4 in SHORTS_DIR.
+
+        Returns:
+            Dict with output_path, series, schedule_time, status
+        """
+        score = event.get("content_score", 0)
+        if score < SHORTS_AUTO_TRIGGER_SCORE:
+            return {"status": "skipped", "reason": f"score {score} < threshold {SHORTS_AUTO_TRIGGER_SCORE}"}
+
+        event_type = event.get("type", "milestone_reached")
+        series = EVENT_TO_SERIES.get(event_type, "tech_stories")
+
+        # Derive hook text from event data
+        hook_text = event.get("data", {}).get("hook_text", "")
+        if not hook_text:
+            title = event.get("data", {}).get("title", "")
+            if title:
+                # Use first 5 words of title
+                hook_text = " ".join(title.split()[:5])
+            else:
+                hook_text = event_type.replace("_", " ").title()[:40]
+
+        # Find source MP4
+        if not input_mp4:
+            candidates = sorted(Path(SHORTS_DIR).glob("*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True)
+            if not candidates:
+                return {"status": "error", "reason": "No source MP4 found in SHORTS_DIR"}
+            input_mp4 = str(candidates[0])
+            logger.info("Using most recent MP4: %s", input_mp4)
+
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        output_path = str(Path(SHORTS_DIR) / f"short_{timestamp}_{event_type}.mp4")
+
+        # Locate shorts_pipeline.py relative to this file
+        pipeline_script = Path(__file__).parent.parent / "tools" / "shorts_pipeline.py"
+        if not pipeline_script.exists():
+            return {"status": "error", "reason": f"shorts_pipeline.py not found at {pipeline_script}"}
+
+        cmd = [
+            sys.executable, str(pipeline_script),
+            "--input", input_mp4,
+            "--hook", hook_text,
+            "--output", output_path,
+        ]
+
+        logger.info("Auto-triggering Shorts pipeline: score=%d series=%s hook='%s'", score, series, hook_text)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+
+        if result.returncode != 0:
+            logger.error("Shorts pipeline failed: %s", result.stderr[-500:])
+            return {"status": "error", "reason": result.stderr[-300:]}
+
+        schedule_time = self._next_publish_slot()
+
+        # Notify #content-queue
+        msg = (
+            f"*New Short queued for review* ✅\n"
+            f"Series: `{series}`\n"
+            f"Hook: _{hook_text}_\n"
+            f"Source event: `{event_type}` (score {score}/10)\n"
+            f"File: `{output_path}`\n"
+            f"Scheduled: {schedule_time}\n\n"
+            f"Review against REVIEW\\_CHECKLIST.md before approving upload."
+        )
+        self._post_telegram_queue(msg)
+
+        return {
+            "status": "queued",
+            "output_path": output_path,
+            "series": series,
+            "hook_text": hook_text,
+            "schedule_time": schedule_time,
+            "event_type": event_type,
+            "content_score": score,
+        }
+
     def get_stats(self) -> Dict:
         """Get content capture stats."""
         events = self.get_recent_events(days=30)
@@ -305,6 +442,22 @@ def weekly_summary(self) -> Dict:
 def stats(self) -> Dict:
     """Get content stats."""
     return capture.get_stats()
+
+
+@app.task(bind=True, name='content.generate_short_from_event')
+@with_token_tracking('content')
+def generate_short_from_event(self, event_type: str, data: Dict, input_mp4: Optional[str] = None) -> Dict:
+    """
+    Manually trigger the Shorts pipeline for a given event.
+    Auto-triggered by log_milestone when content_score >= 8.
+    """
+    event = {
+        "type": event_type,
+        "data": data,
+        "day": capture.day_count,
+        "content_score": capture.score_content_value(event_type),
+    }
+    return capture.generate_short_from_event(event, input_mp4=input_mp4)
 
 
 @app.task(bind=True, name='content.health')
