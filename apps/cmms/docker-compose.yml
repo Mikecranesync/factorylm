@@ -49,7 +49,7 @@ services:
     image: intelloop/atlas-cmms-frontend
     container_name: cmms-frontend
     environment:
-      API_URL: http://165.245.138.91:8082
+      API_URL: ${PUBLIC_API_URL:-http://localhost:8082}
       GOOGLE_KEY: ""
       GOOGLE_TRACKING_ID: ""
       MUI_X_LICENSE: ""
