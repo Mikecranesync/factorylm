@@ -30,5 +30,9 @@ class Settings(BaseSettings):
     # Set True to skip background task startup (useful in unit tests)
     plc_use_mock: bool = False
 
+    # CMMS sync via GitHub Gist — disabled by default (set token to enable)
+    cmms_enabled: bool = False
+    cmms_github_token: str = ""   # GitHub PAT with gist scope (via Doppler)
+
 
 settings = Settings()

@@ -16,6 +16,8 @@ Routes (cumulative by week):
   Week 5: /api/mes/downtime-reasons
           /api/mes/lines/{id}/downtime (GET/POST)
           NLP classifier: free-text → reason_code
+  Week 6: /api/mes/cmms/sync/{id} (POST/GET) — CMMS Gist push + status
+          /api/mes/cmms/ingest (POST) — import CMMS WO into MES
 """
 
 import asyncio
@@ -26,6 +28,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
+from backend.routes.cmms import router as cmms_router
 from backend.routes.downtime import router as downtime_router
 from backend.routes.health import router as health_router
 from backend.routes.lines import router as lines_router
@@ -91,6 +94,7 @@ app.include_router(lines_router,        prefix=settings.api_prefix)
 app.include_router(oee_router,          prefix=settings.api_prefix)
 app.include_router(work_orders_router,  prefix=settings.api_prefix)
 app.include_router(downtime_router,     prefix=settings.api_prefix)
+app.include_router(cmms_router,         prefix=settings.api_prefix)
 
 
 if __name__ == "__main__":
