@@ -1,9 +1,15 @@
 """FactoryLM MES API — FastAPI entry point.
 
-Week 1: /health only.
-Week 2+: lines, work_orders, downtime, oee routes added here.
+Lifespan:
+  startup  → seed state cache, launch background state poller
+  shutdown → signal poller to stop cleanly
+
+Routes (cumulative by week):
+  Week 1: /api/health
+  Week 2: /api/mes/lines,  /api/mes/lines/{id}/state
 """
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -12,6 +18,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
 from backend.routes.health import router as health_router
+from backend.routes.lines import router as lines_router
+from backend.services import state_poller
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -19,9 +27,28 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("MES service starting — DB: %s", settings.database_url.split("@")[-1])
+    db_host = settings.database_url.split("@")[-1]
+    logger.info("MES service starting — DB: %s  PLC: %s", db_host, settings.plc_modbus_url)
+
+    poller_task = None
+    if not settings.plc_use_mock:
+        poller_task = asyncio.create_task(
+            state_poller.run(poll_interval_sec=settings.plc_poll_interval_sec),
+            name="state_poller",
+        )
+        logger.info("State poller started (interval=%ds)", settings.plc_poll_interval_sec)
+    else:
+        logger.info("PLC mock mode — state poller disabled")
+
     yield
-    logger.info("MES service stopping")
+
+    logger.info("MES service shutting down")
+    if poller_task:
+        state_poller.stop()
+        try:
+            await asyncio.wait_for(poller_task, timeout=8.0)
+        except asyncio.TimeoutError:
+            poller_task.cancel()
 
 
 app = FastAPI(
@@ -39,6 +66,7 @@ app.add_middleware(
 )
 
 app.include_router(health_router, prefix=settings.api_prefix)
+app.include_router(lines_router, prefix=settings.api_prefix)
 
 
 if __name__ == "__main__":
