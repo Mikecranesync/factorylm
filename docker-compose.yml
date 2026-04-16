@@ -77,5 +77,46 @@ services:
       - modbus-sim
     restart: unless-stopped
 
+  # ── MES PostgreSQL database ───────────────────────────────────────
+  mes-db:
+    image: postgres:16-alpine
+    container_name: factorylm-mes-db
+    ports:
+      - "5434:5432"      # 5434 avoids conflict with any local Postgres or SSH tunnels
+    environment:
+      POSTGRES_USER: mes
+      POSTGRES_PASSWORD: meslocal
+      POSTGRES_DB: mes_core
+    volumes:
+      - mes-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mes -d mes_core"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # ── MES API service ───────────────────────────────────────────────
+  mes:
+    build:
+      context: .
+      dockerfile: infra/scada/mes.Dockerfile
+    container_name: factorylm-mes
+    ports:
+      - "8300:8300"
+    environment:
+      FACTORYLM_DATABASE_URL: "postgresql://mes:meslocal@mes-db:5432/mes_core"
+      FACTORYLM_PLC_USE_MOCK: "true"
+    depends_on:
+      mes-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8300/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
 volumes:
   node-red-data:
+  mes-db-data:
