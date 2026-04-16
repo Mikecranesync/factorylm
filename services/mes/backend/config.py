@@ -18,8 +18,13 @@ class Settings(BaseSettings):
     # Format: postgresql://user:password@host:port/dbname
     database_url: str = "postgresql://mes:meslocal@localhost:5434/mes_core"
 
-    # PLC defaults (overridden per-line from DB)
+    # plc-modbus service URL — MES calls this over HTTP (never raw Modbus TCP)
+    plc_modbus_url: str = "http://plc-modbus:8001"
+
+    # Polling interval in seconds (default 5, set lower in tests)
     plc_poll_interval_sec: int = 5
+
+    # Set True to skip poller startup (useful in unit tests)
     plc_use_mock: bool = False
 
 

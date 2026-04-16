@@ -106,9 +106,12 @@ services:
       - "8300:8300"
     environment:
       FACTORYLM_DATABASE_URL: "postgresql://mes:meslocal@mes-db:5432/mes_core"
-      FACTORYLM_PLC_USE_MOCK: "true"
+      FACTORYLM_PLC_MODBUS_URL: "http://plc-modbus:8001"
+      FACTORYLM_PLC_USE_MOCK: "false"
     depends_on:
       mes-db:
+        condition: service_healthy
+      plc-modbus:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8300/api/health')"]
