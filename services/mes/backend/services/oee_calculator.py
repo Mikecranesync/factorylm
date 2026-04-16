@@ -3,7 +3,8 @@
 Computes Availability, Performance, Quality, OEE, and TEEP from:
   - ItemCount delta (HR100) via plc-modbus HTTP
   - RUNNING-state duration from machine_states table
-  - Active work order's ideal_cycle_sec (default 1.0 until Week 4)
+  - Active work order's ideal_cycle_sec (from products table, default 1.0)
+  - Schedule utilisation (from schedules table — Week 4)
 
 Writes one oee_snapshots row per line per tick.
 Raises an in-process alert when a line's OEE < 0.60 for 30+ consecutive
@@ -14,7 +15,9 @@ Formula:
   Performance  = (ideal_cycle_sec * total_count) / run_time_sec  (clamped 0-1)
   Quality      = good_count / total_count                 (clamped 0-1)
   OEE          = A * P * Q
-  TEEP         = OEE  (utilisation = 1.0 until schedule wired in Week 4)
+  TEEP         = OEE * utilisation
+  Utilisation  = 1.0 if line is within a scheduled shift, else 0.0
+                 Falls back to 1.0 when no schedules exist (Week 3 compat)
 """
 
 import asyncio
@@ -63,11 +66,18 @@ def compute_oee(
     total_count: int,
     good_count: int,
     ideal_cycle_sec: float,
+    utilisation: float = 1.0,
 ) -> dict:
     """Return dict with availability, performance, quality, oee, teep.
 
     All outputs clamped to [0.0, 1.0].
     Division-by-zero safe — returns 0.0 on any degenerate input.
+
+    Args:
+        utilisation: Fraction of this period covered by a shift schedule.
+                     1.0 = fully scheduled (or no schedule defined).
+                     0.0 = outside any schedule.
+                     TEEP = OEE * utilisation.
     """
     if planned_time_sec <= 0:
         return dict(availability=0.0, performance=0.0, quality=0.0, oee=0.0, teep=0.0)
@@ -81,8 +91,8 @@ def compute_oee(
 
     quality = _clamp(good_count / total_count) if total_count > 0 else 0.0
 
-    oee = availability * performance * quality
-    teep = oee  # utilisation = 1.0 until Week 4 adds schedule
+    oee  = availability * performance * quality
+    teep = _clamp(oee * _clamp(utilisation))
 
     return dict(
         availability=round(availability, 4),
@@ -131,6 +141,35 @@ def _active_ideal_cycle(db: Session, line_id: str) -> float:
         {"lid": line_id},
     ).fetchone()
     return float(row[0]) if row else DEFAULT_IDEAL_CYCLE_SEC
+
+
+def _active_utilisation(db: Session, line_id: str) -> float:
+    """Return schedule utilisation for the current tick window.
+
+    - If no schedules exist for this line at all → 1.0 (Week 3 compat).
+    - If schedules exist but none cover NOW → 0.0 (outside scheduled time).
+    - If a schedule covers NOW → 1.0 (line is within its shift).
+    """
+    # Check whether any schedules exist for this line
+    has_schedules = db.execute(
+        text("SELECT 1 FROM schedules WHERE line_id = :lid LIMIT 1"),
+        {"lid": line_id},
+    ).fetchone()
+    if not has_schedules:
+        return 1.0  # no schedule defined — preserve Week 3 behaviour
+
+    # Check if NOW falls inside an active schedule entry
+    in_schedule = db.execute(
+        text("""
+            SELECT 1 FROM schedules
+            WHERE line_id     = :lid
+              AND planned_start <= NOW()
+              AND planned_end   >= NOW()
+            LIMIT 1
+        """),
+        {"lid": line_id},
+    ).fetchone()
+    return 1.0 if in_schedule else 0.0
 
 
 def _active_work_order_id(db: Session, line_id: str) -> Optional[str]:
@@ -212,9 +251,10 @@ async def _tick_line(line: Line) -> None:
     def _db_work():
         db = SessionLocal()
         try:
-            run_time_sec = _run_time_in_window(db, line_id, TICK_SEC)
+            run_time_sec    = _run_time_in_window(db, line_id, TICK_SEC)
             ideal_cycle_sec = _active_ideal_cycle(db, line_id)
-            wo_id = _active_work_order_id(db, line_id)
+            wo_id           = _active_work_order_id(db, line_id)
+            utilisation     = _active_utilisation(db, line_id)
 
             metrics = compute_oee(
                 run_time_sec=run_time_sec,
@@ -222,6 +262,7 @@ async def _tick_line(line: Line) -> None:
                 total_count=total_count,
                 good_count=good_count,
                 ideal_cycle_sec=ideal_cycle_sec,
+                utilisation=utilisation,
             )
             _write_snapshot(db, line_id, wo_id, run_time_sec, planned_time_sec,
                             total_count, good_count, ideal_cycle_sec, metrics)

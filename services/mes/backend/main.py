@@ -9,6 +9,10 @@ Routes (cumulative by week):
   Week 2: /api/mes/lines,  /api/mes/lines/{id}/state
   Week 3: /api/mes/lines/{id}/oee,  /api/mes/lines/{id}/oee/history
           /api/mes/oee/summary,     /api/mes/kpis
+  Week 4: /api/mes/products,        /api/mes/products (POST/GET)
+          /api/mes/work-orders (POST/GET),  /api/mes/work-orders/{id} (GET)
+          /api/mes/work-orders/{id}/status (PATCH)
+          Schedule-aware TEEP via schedules table
 """
 
 import asyncio
@@ -22,6 +26,7 @@ from backend.config import settings
 from backend.routes.health import router as health_router
 from backend.routes.lines import router as lines_router
 from backend.routes.oee import router as oee_router
+from backend.routes.work_orders import router as work_orders_router
 from backend.services import oee_calculator, state_poller
 
 logging.basicConfig(level=logging.INFO)
@@ -77,9 +82,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health_router, prefix=settings.api_prefix)
-app.include_router(lines_router, prefix=settings.api_prefix)
-app.include_router(oee_router,   prefix=settings.api_prefix)
+app.include_router(health_router,       prefix=settings.api_prefix)
+app.include_router(lines_router,        prefix=settings.api_prefix)
+app.include_router(oee_router,          prefix=settings.api_prefix)
+app.include_router(work_orders_router,  prefix=settings.api_prefix)
 
 
 if __name__ == "__main__":
