@@ -13,6 +13,9 @@ Routes (cumulative by week):
           /api/mes/work-orders (POST/GET),  /api/mes/work-orders/{id} (GET)
           /api/mes/work-orders/{id}/status (PATCH)
           Schedule-aware TEEP via schedules table
+  Week 5: /api/mes/downtime-reasons
+          /api/mes/lines/{id}/downtime (GET/POST)
+          NLP classifier: free-text → reason_code
 """
 
 import asyncio
@@ -23,6 +26,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
+from backend.routes.downtime import router as downtime_router
 from backend.routes.health import router as health_router
 from backend.routes.lines import router as lines_router
 from backend.routes.oee import router as oee_router
@@ -86,6 +90,7 @@ app.include_router(health_router,       prefix=settings.api_prefix)
 app.include_router(lines_router,        prefix=settings.api_prefix)
 app.include_router(oee_router,          prefix=settings.api_prefix)
 app.include_router(work_orders_router,  prefix=settings.api_prefix)
+app.include_router(downtime_router,     prefix=settings.api_prefix)
 
 
 if __name__ == "__main__":
