@@ -136,3 +136,41 @@
         path: "{{ ansible_env.HOME }}/.claude"
         state: directory
         mode: "0755"
+
+    # =====================================================================
+    # Cluster SSH + Claude Code permission sync (added 2026-04-24)
+    # Makes every Mac mini Tailscale-first and lets Claude Code run ssh /
+    # tailscale / rsync without a permission prompt on each session.
+    # =====================================================================
+
+    # --- Ensure ~/.ssh exists with correct perms ---
+    - name: Ensure ~/.ssh directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.ssh"
+        state: directory
+        mode: "0700"
+
+    # --- Deploy cluster-canonical SSH config (Tailscale-first) ---
+    - name: Deploy cluster-canonical SSH config
+      ansible.builtin.template:
+        src: templates/ssh_config.j2
+        dest: "{{ ansible_env.HOME }}/.ssh/config"
+        mode: "0600"
+        backup: true
+
+    # --- Drop the Claude Code permission-merger helper ---
+    - name: Install Claude Code permission-merger helper
+      ansible.builtin.copy:
+        src: files/merge_claude_permissions.py
+        dest: "{{ ansible_env.HOME }}/.claude/merge_claude_permissions.py"
+        mode: "0755"
+
+    # --- Merge canonical permission entries into ~/.claude/settings.json ---
+    # Idempotent: marker file at ~/.claude/.permissions-merged-v<N> short-circuits.
+    - name: Merge canonical Claude Code permissions (ssh/tailscale/rsync/etc.)
+      ansible.builtin.command:
+        cmd: "/usr/bin/env python3 {{ ansible_env.HOME }}/.claude/merge_claude_permissions.py"
+      args:
+        creates: "{{ ansible_env.HOME }}/.claude/.permissions-merged-v1"
+      register: claude_perms_merge
+      changed_when: "'merged:' in (claude_perms_merge.stdout | default(''))"
