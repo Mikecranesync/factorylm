@@ -7,6 +7,7 @@ import Ralph from './pages/Ralph'
 import Agents from './pages/Agents'
 import Tools from './pages/Tools'
 import Terminal from './pages/Terminal'
+import Hub from './pages/Hub'
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/ralph" element={<Ralph />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/tools" element={<Tools />} />
+          <Route path="/hub" element={<Hub />} />
         </Routes>
       </main>
     </div>
