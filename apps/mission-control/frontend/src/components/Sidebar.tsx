@@ -7,7 +7,8 @@ import {
   Wrench,
   Play,
   Activity,
-  Terminal
+  Terminal,
+  Cpu
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -19,6 +20,7 @@ const navItems = [
   { to: '/ralph', icon: Play, label: 'Ralph Loop' },
   { to: '/agents', icon: Bot, label: 'Agents' },
   { to: '/tools', icon: Wrench, label: 'Tools' },
+  { to: '/hub', icon: Cpu, label: 'Ladder Logic' },
 ]
 
 export default function Sidebar() {
