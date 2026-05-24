@@ -171,16 +171,9 @@ def brain_ingest_file(file_path: str, source: str = "repo", tags: list[str] = []
     except RuntimeError as e:
         return {"error": str(e)}
 
-<<<<<<< HEAD
     from kb.chunker import chunk_file
 
     chunks = chunk_file(file_path, extra_metadata={"tags": tags})
-=======
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
-    # Chunk large files by paragraphs
-    chunks = [c.strip() for c in content.split("\n\n") if c.strip() and len(c.strip()) > 50]
->>>>>>> 433ffad (feat(brain): graceful fallback + Open Brain startup protocol)
 
     if not chunks:
         with open(file_path, "r", encoding="utf-8") as f:
