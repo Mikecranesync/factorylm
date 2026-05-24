@@ -25,8 +25,9 @@ app = FastMCP("factorylm-brain")
 _memory = None
 _setup_error = None
 
-# Check env vars on import so we can give a helpful message
-_REQUIRED_VARS = ["NEON_DATABASE_URL", "GEMINI_API_KEY", "GROQ_API_KEY"]
+# Check env vars on import so we can give a helpful message.
+# Embeddings now use local Ollama (no API key required); see services/brain/config.py.
+_REQUIRED_VARS = ["NEON_DATABASE_URL", "GROQ_API_KEY"]
 _missing = [v for v in _REQUIRED_VARS if not os.environ.get(v)]
 if _missing:
     _setup_error = (
@@ -34,8 +35,8 @@ if _missing:
         "To set up: install Doppler CLI (doppler.com), then run the brain MCP server via "
         ".mcp.json which uses Doppler to inject secrets. "
         "Needed: NEON_DATABASE_URL (Doppler openclaw/dev), "
-        "GEMINI_API_KEY (Doppler factorylm/dev), "
         "GROQ_API_KEY (Doppler openclaw/dev). "
+        "Embeddings via local Ollama (nomic-embed-text on http://localhost:11434) — no API key. "
         "See CLAUDE.md 'Open Brain — Startup Protocol' for details."
     )
     logger.warning("Brain MCP: %s", _setup_error)
@@ -52,7 +53,8 @@ def _get_memory():
         except Exception as e:
             raise RuntimeError(
                 f"Brain failed to initialize: {e}. "
-                "Check that NEON_DATABASE_URL, GEMINI_API_KEY, GROQ_API_KEY are set correctly."
+                "Check that NEON_DATABASE_URL and GROQ_API_KEY are set, and that "
+                "Ollama is running locally with nomic-embed-text pulled."
             ) from e
     return _memory
 

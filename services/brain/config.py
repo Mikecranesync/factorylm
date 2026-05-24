@@ -1,7 +1,17 @@
 """Mem0 configuration for Open Brain.
 
-Wires up pgvector (Neon), Gemini embeddings, and Groq LLM (for fact extraction).
+Wires up pgvector (Neon), Ollama embeddings, and Groq LLM (for fact extraction).
 Gemini free-tier JSON mode has very low rate limits, so we use Groq for LLM calls.
+
+Embeddings: Ollama nomic-embed-text (768d) running locally on CHARLIE.
+Switched from Gemini gemini-embedding-001 on 2026-05-23 because the Gemini key
+kept expiring. Both produce 768d vectors so the pgvector schema is unchanged,
+but the vector spaces are different — the 5,493 memories embedded before this
+switch will return lower-relevance results on cross-space queries until they
+are re-embedded with `tools/brain_backfill.py`.
+
+Aligns with MIRA's knowledge_entries KB (also nomic-embed-text) for future
+vector-space unification.
 """
 
 from __future__ import annotations
@@ -19,14 +29,14 @@ def get_memory() -> Memory:
             "config": {
                 "connection_string": os.environ["NEON_DATABASE_URL"],
                 "collection_name": "brain_memories",
-                "embedding_model_dims": 768,  # Gemini gemini-embedding-001 (output_dimensionality=768)
+                "embedding_model_dims": 768,  # nomic-embed-text (also 768d, matches prior Gemini schema)
             },
         },
         "embedder": {
-            "provider": "gemini",
+            "provider": "ollama",
             "config": {
-                "model": "models/gemini-embedding-001",
-                "api_key": os.environ.get("GEMINI_API_KEY"),
+                "model": "nomic-embed-text",
+                "ollama_base_url": os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434"),
             },
         },
         "llm": {
