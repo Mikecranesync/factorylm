@@ -4,11 +4,17 @@ Jarvis Node Client - Call remote Windows laptops from VPS
 Used by Clawdbot to control Windows laptops via Telegram
 """
 
+import os
 import requests
 import base64
 from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
+
+# Bearer token sent on every request. Nodes refuse to run unauthenticated, so a
+# missing token here will surface as 401/503 from the node. Set JARVIS_TOKEN in the
+# environment (same value provisioned on the nodes via Doppler factorylm/prd).
+JARVIS_TOKEN = os.getenv("JARVIS_TOKEN", "")
 
 # Node registry
 NODES = {
@@ -48,7 +54,13 @@ class JarvisNodeClient:
         """Make HTTP request to node"""
         url = f"{self.base_url}{endpoint}"
         kwargs.setdefault("timeout", 30)
-        
+
+        # Authenticate every request. Merge into any caller-supplied headers.
+        headers = dict(kwargs.pop("headers", {}) or {})
+        if JARVIS_TOKEN:
+            headers["Authorization"] = f"Bearer {JARVIS_TOKEN}"
+        kwargs["headers"] = headers
+
         try:
             resp = requests.request(method, url, **kwargs)
             resp.raise_for_status()
