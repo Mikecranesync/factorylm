@@ -14,6 +14,7 @@ Run with: uvicorn jarvis_node:app --host 0.0.0.0 --port 8765
 
 import os
 import sys
+import secrets
 import base64
 import socket
 import subprocess
@@ -23,8 +24,9 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 from collections import deque
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 # Optional imports with fallbacks
@@ -44,6 +46,14 @@ except ImportError:
 # Configuration
 MACHINE_NAME = os.getenv("JARVIS_MACHINE_NAME", socket.gethostname())
 PORT = int(os.getenv("JARVIS_PORT", "8765"))
+
+# Bearer token guarding every data-bearing endpoint. "/" and "/health" stay public
+# so liveness/healthchecks respond without auth; everything else (/shell, /files,
+# /screenshot, /notify, /messages, ...) requires `Authorization: Bearer <JARVIS_TOKEN>`.
+# Fail-closed: if JARVIS_TOKEN is unset, protected endpoints return 503 rather than
+# running wide open. Provisioned in Doppler factorylm/prd; injected by run-node.sh.
+JARVIS_TOKEN = os.getenv("JARVIS_TOKEN", "")
+PUBLIC_PATHS = {"/", "/health"}
 WORKSPACE = Path(os.getenv("JARVIS_WORKSPACE", Path.home() / "jarvis-workspace"))
 
 # Ensure workspace exists
@@ -111,6 +121,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def require_bearer_token(request: Request, call_next):
+    """Bearer-token gate. Every path except PUBLIC_PATHS (and CORS preflight)
+    requires `Authorization: Bearer <JARVIS_TOKEN>`. Fail-closed when unset."""
+    if request.method != "OPTIONS" and request.url.path not in PUBLIC_PATHS:
+        if not JARVIS_TOKEN:
+            return JSONResponse(
+                {"detail": "JARVIS_TOKEN not configured on this node"}, status_code=503
+            )
+        provided = request.headers.get("authorization", "")
+        if not secrets.compare_digest(provided, f"Bearer {JARVIS_TOKEN}"):
+            return JSONResponse(
+                {"detail": "missing or invalid bearer token"}, status_code=401
+            )
+    return await call_next(request)
 
 # ============================================================================
 # Health & Info Endpoints
