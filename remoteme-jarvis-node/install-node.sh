@@ -14,7 +14,11 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PORT="${JARVIS_PORT:-8765}"
 LABEL="com.factorylm.jarvis-node"
 
-echo "==> Jarvis Node installer   (repo: $DIR)"
+# Cluster node name (ALPHA/BRAVO/CHARLIE/PLC/TRAVEL/PI). First arg, else env, else
+# a cleaned short hostname. Baked into the service env so the node self-identifies.
+NODE_NAME="${1:-${JARVIS_MACHINE_NAME:-$(hostname -s 2>/dev/null || hostname)}}"
+
+echo "==> Jarvis Node installer   (repo: $DIR, node: $NODE_NAME)"
 
 # 1. Dependencies
 PY="$(command -v python3 || command -v python)"
@@ -42,6 +46,8 @@ case "$OS" in
   <key>Label</key><string>$LABEL</string>
   <key>ProgramArguments</key>
     <array><string>$DIR/run-node.sh</string></array>
+  <key>EnvironmentVariables</key>
+    <dict><key>JARVIS_MACHINE_NAME</key><string>$NODE_NAME</string></dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
   <key>StandardOutPath</key><string>$HOME/Library/Logs/jarvis-node.log</string>
@@ -62,9 +68,10 @@ Description=Jarvis Node (FastAPI remote-control MCP, tailnet-only)
 After=network-online.target
 
 [Service]
+Environment=JARVIS_MACHINE_NAME=$NODE_NAME
 ExecStart=$DIR/run-node.sh
 Restart=always
-RestartSec=3
+RestartSec=5
 
 [Install]
 WantedBy=default.target

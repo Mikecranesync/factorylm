@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import subprocess
 import httpx
 from pathlib import Path
@@ -29,6 +30,10 @@ from openclaw.skills.base import Skill, SkillContext
 from openclaw.types import Intent
 
 logger = logging.getLogger(__name__)
+
+# Bearer token for authed Jarvis nodes (set JARVIS_TOKEN in the env, e.g. via
+# Doppler factorylm/prd). Sent on every remote node request; nodes 401 without it.
+JARVIS_TOKEN = os.getenv("JARVIS_TOKEN", "")
 
 # Jarvis node registry
 JARVIS_NODES = {
@@ -82,11 +87,12 @@ class JarvisDevService:
         node_info = JARVIS_NODES[node]
         url = f"http://{node_info['host']}:{node_info['port']}/shell"
 
+        headers = {"Authorization": f"Bearer {JARVIS_TOKEN}"} if JARVIS_TOKEN else {}
         try:
             resp = await self.http.post(url, json={
                 "command": command,
                 "timeout": timeout
-            })
+            }, headers=headers)
             if resp.status_code == 200:
                 data = resp.json()
                 return {
