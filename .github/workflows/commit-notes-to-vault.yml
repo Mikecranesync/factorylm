@@ -80,5 +80,8 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "auto: commit notes from factorylm $(date -u +%Y-%m-%d)"
-            git push
+            git push || {
+              echo "::warning::Vault push failed; FactoryLM_OS may be archived or read-only. Skipping non-blocking note export."
+              exit 0
+            }
           fi
