@@ -6,6 +6,28 @@
 
 ## Session Actions Log
 
+### Session: 2026-06-25 - Conveyor Lab Documentation and Build Gate
+
+**Actions Completed:**
+
+1. **Reviewed `docs/conveyor-lab-and-hub-issues` branch**
+   - Branch added `ISSUES_AND_DOC_GAPS.md` with Conveyor Lab documentation gaps and Hub follow-ups
+   - No open PR existed yet for the `pull/new` URL
+
+2. **Fixed Conveyor Lab build issue**
+   - Backend TypeScript build failed because run summaries used run status `completed` where summary outcome expected `success`
+   - Mapped completed runs to summary outcome `success` while preserving persisted run status `completed`
+
+3. **Documented Conveyor Lab**
+   - Added contributor, development, architecture, API, Modbus map, troubleshooting, security, support, roadmap, style, changelog, code of conduct, and license docs
+   - Updated repo architecture and config docs with Conveyor Lab entrypoints, env vars, and build commands
+
+4. **Added CI coverage**
+   - Added `.github/workflows/conveyor-lab.yml` to build backend and frontend on relevant PRs and main pushes
+
+**Follow-up:**
+- Dashboard and MIRA Hub lint issues from `ISSUES_AND_DOC_GAPS.md` live outside this FactoryLM branch scope and need separate implementation work.
+
 ### Session: 2026-02-12 (Evening) - Bot Fix + Hetzner VPS
 
 **Actions Completed:**

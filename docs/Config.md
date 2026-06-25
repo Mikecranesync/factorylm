@@ -75,6 +75,11 @@ All env vars follow this pattern: `SERVICE_PROVIDER_PURPOSE`
 | `VPS_LEGACY_HOST` | deploy scripts | Hostinger VPS IP (until decommissioned) | factorylm-infra |
 | `PLC_HOST` | plc-modbus | PLC IP address (default: 192.168.1.100) | factorylm-plc |
 | `PLC_PORT` | plc-modbus | Modbus TCP port (default: 502) | factorylm-plc |
+| `PORT` | conveyor-lab backend | HTTP API port (default: 8888) | local shell / future Doppler |
+| `MODBUS_HOST` | conveyor-lab backend | Factory I/O host (default: 100.83.251.23) | local shell / future Doppler |
+| `MODBUS_PORT` | conveyor-lab backend | Factory I/O Modbus TCP port (default: 502) | local shell / future Doppler |
+| `MODBUS_UNIT_ID` | conveyor-lab backend | Factory I/O Modbus unit id (default: 1) | local shell / future Doppler |
+| `FACTORYIO_AUTO_CONNECT` | conveyor-lab backend | Set `false` to force simulator mode | local shell / future Doppler |
 
 ### Accounts (Non-Secret but Tracked)
 
@@ -137,6 +142,23 @@ REGISTRATION_URL=                        # User registration endpoint
 ```
 
 **Test command:** None yet (single-file bot, no tests)
+
+### `apps/conveyor-lab/` — Factory I/O Conveyor HMI
+
+```bash
+# Backend
+PORT=8888
+MODBUS_HOST=100.83.251.23
+MODBUS_PORT=502
+MODBUS_UNIT_ID=1
+FACTORYIO_AUTO_CONNECT=true
+TELEGRAM_BOT_TOKEN=          # Required for production Telegram Mini App auth
+NODE_ENV=development
+```
+
+`FACTORYIO_AUTO_CONNECT=false` forces simulator mode for local UI and API work. `TELEGRAM_BOT_TOKEN` can stay empty in development because the backend has a dev auth fallback, but it is required for production Mini App validation.
+
+**Test command:** `cd apps/conveyor-lab/backend && npm run build && cd ../frontend && npm run build`
 
 ### `scripts/honeycomb/` — OpenTelemetry Tracing
 

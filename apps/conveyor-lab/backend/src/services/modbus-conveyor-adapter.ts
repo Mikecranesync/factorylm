@@ -8,7 +8,7 @@
  */
 
 import { EventEmitter } from 'events';
-import type { VFDStatus, Direction, RunState, TelemetryPoint } from '../types/index.js';
+import type { VFDStatus, Direction, RunState, RunSummary, Run, TelemetryPoint } from '../types/index.js';
 import { FAULT_CODES } from '../types/index.js';
 import { ModbusClient } from './modbus-client.js';
 import { MODBUS_MAP, MODBUS_CONFIG } from '../config/modbus-config.js';
@@ -286,6 +286,9 @@ export class ModbusConveyorAdapter extends EventEmitter {
     const currents = telemetry.map((t) => t.motorCurrent);
     const faults = telemetry.filter((t) => t.faultCode > 0);
 
+    const summaryOutcome: RunSummary['outcome'] = outcome === 'completed' ? 'success' : outcome;
+    const runStatus: Run['status'] = outcome === 'completed' ? 'completed' : outcome === 'stopped' ? 'stopped' : 'faulted';
+
     const summary = {
       durationSeconds: Math.round((Date.now() - this.runStartTime) / 1000),
       avgSpeedHz: speeds.length > 0 ? speeds.reduce((a, b) => a + b, 0) / speeds.length : 0,
@@ -293,14 +296,10 @@ export class ModbusConveyorAdapter extends EventEmitter {
       avgCurrentAmps: currents.length > 0 ? currents.reduce((a, b) => a + b, 0) / currents.length : 0,
       maxCurrentAmps: currents.length > 0 ? Math.max(...currents) : 0,
       faultCount: faults.length,
-      outcome,
+      outcome: summaryOutcome,
     };
 
-    runRepo.updateStatus(
-      runId,
-      outcome === 'completed' ? 'completed' : outcome === 'stopped' ? 'stopped' : 'faulted',
-      summary
-    );
+    runRepo.updateStatus(runId, runStatus, summary);
 
     console.log(`[ModbusAdapter] Run ${runId} completed with outcome: ${outcome}`);
     this.state.activeRunId = null;
