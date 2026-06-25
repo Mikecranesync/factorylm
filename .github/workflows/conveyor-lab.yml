@@ -1,0 +1,44 @@
+name: Conveyor Lab
+
+on:
+  pull_request:
+    paths:
+      - "apps/conveyor-lab/**"
+      - ".github/workflows/conveyor-lab.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/conveyor-lab/**"
+      - ".github/workflows/conveyor-lab.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Backend and frontend build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install backend dependencies
+        working-directory: apps/conveyor-lab/backend
+        run: npm ci
+
+      - name: Build backend
+        working-directory: apps/conveyor-lab/backend
+        run: npm run build
+
+      - name: Install frontend dependencies
+        working-directory: apps/conveyor-lab/frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: apps/conveyor-lab/frontend
+        run: npm run build

@@ -32,6 +32,7 @@ The repo is a **monorepo** managed by Turborepo, containing apps, services, shar
 | `plc-client-factoryio/` — FactoryIO simulator | Python | ⚠️ **Partial** | Micro820 + FactoryIO + mock PLC clients |
 | `apps/cmms/` — CMMS web app | Java + React/TS | ⚠️ **Forked, not rebranded** | Spring Boot API + React frontend, from grash-cmms |
 | `apps/portal/` — Jarvis brain portal | Node.js | ⚠️ **VPS-specific** | Express server reading `/root/jarvis-workspace/brain` |
+| `apps/conveyor-lab/` — Factory I/O conveyor HMI | Node.js + React/TS | ⚠️ **Working lab app** | Express API, Vite frontend, Factory I/O Modbus adapter, simulator fallback |
 | `apps/dashboard/` | — | 🔴 **Placeholder** | README only |
 | `apps/web/` | — | 🔴 **Stub** | Empty `src/components/` |
 | `services/api/` | — | 🔴 **Placeholder** | README only |
@@ -131,6 +132,7 @@ FactoryLM/
 │   │   ├── api/                  # Java Spring Boot (pom.xml, 650 .java files)
 │   │   └── frontend/             # React 18 + MUI + TypeScript (169 .ts files)
 │   ├── portal/                    # Jarvis brain portal (Express.js, VPS-specific) ⚠️
+│   ├── conveyor-lab/              # Factory I/O conveyor HMI + bench API ⚠️
 │   ├── dashboard/                 # Placeholder (README only) 🔴
 │   └── web/                       # Stub (empty src/components/) 🔴
 │
@@ -184,6 +186,8 @@ FactoryLM/
 | My-Ralph API | `python -m uvicorn api.main:app --reload` (in `My-Ralph/`) | 8000 | ✅ Working |
 | CMMS API | `./mvnw spring-boot:run` (in `apps/cmms/api/`) | ? | ⚠️ Forked, untested in this repo |
 | Jarvis Portal | `node server.js` (in `apps/portal/`) | 3001 | ⚠️ VPS-specific (reads `/root/jarvis-workspace`) |
+| Conveyor Lab backend | `npm run dev` (in `apps/conveyor-lab/backend/`) | 8888 | ⚠️ Lab app, Factory I/O or simulator |
+| Conveyor Lab frontend | `npm run dev` (in `apps/conveyor-lab/frontend/`) | 3001 | ⚠️ Lab HMI |
 
 ### Bots
 
@@ -214,6 +218,8 @@ FactoryLM/
 | My-Ralph tests | `cd My-Ralph && npm test` | 321 |
 | plc-client tests | `cd plc-client && pytest` | ? |
 | plc-client-factoryio tests | `cd plc-client-factoryio && pytest` | ? |
+| Conveyor Lab backend build | `cd apps/conveyor-lab/backend && npm run build` | TypeScript build |
+| Conveyor Lab frontend build | `cd apps/conveyor-lab/frontend && npm run build` | TypeScript + Vite build |
 
 ---
 
@@ -226,6 +232,7 @@ FactoryLM/
 | **DeepSeek** | `core/` | LLM provider |
 | **Google Gemini** | `services/plc-copilot/` | Vision AI for equipment photo ID |
 | **Telegram** | `services/plc-copilot/`, OpenClaw | Bot interface |
+| **Factory I/O** | `apps/conveyor-lab/` | Conveyor bench simulator over Modbus TCP |
 | **Atlas CMMS** | `services/plc-copilot/` | Work order + asset management API |
 | **Axiom** | OpenClaw bots (VPS) | Log aggregation (Vector shippers) |
 | **Honeycomb** | OpenClaw bots (all instances) | Distributed tracing (OTel SDK) |

@@ -21,7 +21,7 @@ A web-based industrial HMI (Human Machine Interface) that acts as a **second scr
 ### 1. Start the Backend
 ```bash
 cd apps/conveyor-lab/backend
-npm install
+npm ci
 npm run dev
 ```
 Backend starts at **http://localhost:8888**
@@ -29,7 +29,7 @@ Backend starts at **http://localhost:8888**
 ### 2. Start the Frontend
 ```bash
 cd apps/conveyor-lab/frontend
-npm install
+npm ci
 npm run dev
 ```
 Frontend starts at **http://localhost:3001**
@@ -254,6 +254,8 @@ ws.onmessage = (event) => {
 - Ensure backend is running on port 8888
 - Check browser console for CORS errors
 
+For more setup help, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+
 ### Voice Recognition Not Working
 - Use Chrome or Edge browser
 - Grant microphone permissions when prompted
@@ -270,6 +272,7 @@ MODBUS_HOST=100.83.251.23    # Factory I/O IP address
 MODBUS_PORT=502              # Modbus TCP port
 MODBUS_UNIT_ID=1             # Modbus unit ID
 FACTORYIO_AUTO_CONNECT=true  # Auto-detect Factory I/O
+TELEGRAM_BOT_TOKEN=          # Required for production Telegram Mini App auth
 ```
 
 ### Modbus Register Map
@@ -287,6 +290,21 @@ export const MODBUS_MAP = {
   },
 };
 ```
+
+See [MODBUS_MAP.md](MODBUS_MAP.md) for the complete current address map.
+
+---
+
+## Project Docs
+
+- [DEVELOPMENT.md](DEVELOPMENT.md) - local development and verification
+- [ARCHITECTURE.md](ARCHITECTURE.md) - runtime shape and safety boundary
+- [API.md](API.md) - REST and WebSocket API reference
+- [MODBUS_MAP.md](MODBUS_MAP.md) - Factory I/O address mapping
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - common setup failures
+- [SECURITY.md](SECURITY.md) - secrets, auth, and hardware safety
+- [ROADMAP.md](ROADMAP.md) - planned hardening and integration work
+- [STYLE.md](STYLE.md) - UI, TypeScript, and docs conventions
 
 ---
 
