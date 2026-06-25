@@ -10,7 +10,7 @@
  * - Cosmos model analysis integration (TODO)
  *
  * Environment variables:
- * - PORT: HTTP port (default: 3001)
+ * - PORT: HTTP port (default: 8888)
  * - TELEGRAM_BOT_TOKEN: For validating Mini App init data
  * - DB_PATH: SQLite database path
  * - NODE_ENV: 'development' or 'production'
@@ -25,7 +25,7 @@ import runsRoutes from './routes/runs.js';
 import { telemetryWebSocket } from './services/websocket.js';
 import { initializeConveyor, getConnectionMode } from './services/conveyor.js';
 
-const PORT = parseInt(process.env.PORT || '3001', 10);
+const PORT = parseInt(process.env.PORT || '8888', 10);
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Initialize Express app
