@@ -9,6 +9,7 @@ import com.grash.repository.SuperAccountRelationRepository;
 import com.grash.security.CurrentUser;
 import com.grash.security.JwtTokenProvider;
 import com.grash.service.EmailService2;
+import com.grash.service.HubSsoService;
 import com.grash.service.UserService;
 import com.grash.service.VerificationTokenService;
 import io.swagger.annotations.*;
@@ -42,6 +43,7 @@ public class AuthController {
     private final SuperAccountRelationRepository superAccountRelationRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService2 emailService2;
+    private final HubSsoService hubSsoService;
     @Value("${frontend.url}")
     private String frontendUrl;
 
@@ -61,6 +63,24 @@ public class AuthController {
         AuthResponse authResponse = new AuthResponse(userService.signin(userLoginRequest.getEmail().toLowerCase(),
                 userLoginRequest.getPassword(), userLoginRequest.getType()));
         return new ResponseEntity<>(authResponse, HttpStatus.OK);
+    }
+
+    @PostMapping(
+            path = "/sso/hub",
+            produces = {
+                    MediaType.APPLICATION_JSON_VALUE
+            }
+    )
+    @ApiOperation(value = "Exchange a trusted FactoryLM Hub SSO assertion for an Atlas JWT")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Atlas access token minted"),
+            @ApiResponse(code = 403, message = "Invalid assertion or user is not provisioned"),
+            @ApiResponse(code = 503, message = "Hub SSO is not configured")
+    })
+    public ResponseEntity<AuthResponse> hubSso(
+            @ApiParam("HubSsoRequest") @Valid @RequestBody HubSsoRequest hubSsoRequest) {
+        return new ResponseEntity<>(new AuthResponse(hubSsoService.exchangeAssertion(hubSsoRequest.getAssertion())),
+                HttpStatus.OK);
     }
 
     @PostMapping(

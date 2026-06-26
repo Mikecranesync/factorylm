@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react';
 
 import SuspenseLoader from 'src/components/SuspenseLoader';
-import Guest from 'src/components/Guest';
 
 const Loader = (Component) => (props) =>
   (
@@ -21,11 +20,7 @@ const OauthFailure = Loader(
 const oauthRoutes = [
   {
     path: 'success',
-    element: (
-      <Guest>
-        <OauthSuccess />{' '}
-      </Guest>
-    )
+    element: <OauthSuccess />
   },
   { path: 'failure', element: <OauthFailure /> }
 ];

@@ -52,6 +52,12 @@ cd apps/cmms/api
 ./mvnw spring-boot:run
 ```
 
+## Hub SSO
+Atlas can accept a signed FactoryLM Hub assertion at `POST /auth/sso/hub`.
+Set the same `HUB_SSO_SECRET` in Hub and the CMMS API, with optional
+`HUB_SSO_ISSUER` and `HUB_SSO_AUDIENCE` overrides. The endpoint only mints an
+Atlas token for an existing, enabled Atlas user with the asserted email.
+
 ## Rebrand Tasks
 - [ ] Update logo: Atlas → FactoryLM
 - [ ] Update colors to brand palette
