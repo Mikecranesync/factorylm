@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
@@ -58,6 +59,21 @@ class HubSsoServiceTest {
     }
 
     @Test
+    void exchangeAssertionAcceptsHubSignedUtf8SecretThatLooksBase64() {
+        String secret = "c2hhcmVkLXNlY3JldC1ieXRlcy0xMjM0NTY=";
+        String email = "carlos@synthetic.test";
+        ReflectionTestUtils.setField(service, "hubSsoSecret", secret);
+
+        OwnUser user = enabledClientUser(email);
+        when(userRepository.findByEmailIgnoreCase(email)).thenReturn(Optional.of(user));
+        when(jwtTokenProvider.createToken(email, Collections.singletonList(RoleType.ROLE_CLIENT))).thenReturn("atlas.jwt");
+
+        assertEquals("atlas.jwt", service.exchangeAssertion(validAssertion(email, secret)));
+        verify(userRepository).findByEmailIgnoreCase(email);
+        verify(jwtTokenProvider).createToken(email, Collections.singletonList(RoleType.ROLE_CLIENT));
+    }
+
+    @Test
     void exchangeAssertionRejectsUnknownUser() {
         when(userRepository.findByEmailIgnoreCase("missing@example.com")).thenReturn(Optional.empty());
 
@@ -99,13 +115,17 @@ class HubSsoServiceTest {
     }
 
     private String validAssertion(String email) {
+        return validAssertion(email, SECRET);
+    }
+
+    private String validAssertion(String email, String secret) {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("email", email)
                 .setIssuer(ISSUER)
                 .setAudience(AUDIENCE)
                 .setExpiration(new Date(System.currentTimeMillis() + 60000))
-                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .signWith(SignatureAlgorithm.HS256, secret.getBytes(StandardCharsets.UTF_8))
                 .compact();
     }
 
