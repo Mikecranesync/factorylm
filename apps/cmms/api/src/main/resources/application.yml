@@ -119,6 +119,11 @@ oauth2:
   success-redirect-url: ${PUBLIC_FRONT_URL}/oauth2/success
   failure-redirect-url: ${PUBLIC_FRONT_URL}/oauth2/failure
   provider: ${OAUTH2_PROVIDER}
+hub:
+  sso:
+    secret: ${HUB_SSO_SECRET:}
+    issuer: ${HUB_SSO_ISSUER:factorylm-hub}
+    audience: ${HUB_SSO_AUDIENCE:atlas-cmms}
 license-key: ${LICENSE_KEY:}
 license-fingerprint-required: ${LICENSE_FINGERPRINT_REQUIRED:true}
 white-labeling:
