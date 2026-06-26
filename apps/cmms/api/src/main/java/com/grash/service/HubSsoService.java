@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 @Service
@@ -52,7 +53,7 @@ public class HubSsoService {
     private Claims parseClaims(String assertion) {
         try {
             return Jwts.parser()
-                    .setSigningKey(hubSsoSecret)
+                    .setSigningKey(hubSsoSecret.getBytes(StandardCharsets.UTF_8))
                     .requireIssuer(hubSsoIssuer)
                     .requireAudience(hubSsoAudience)
                     .parseClaimsJws(assertion)
