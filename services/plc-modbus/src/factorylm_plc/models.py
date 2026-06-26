@@ -6,7 +6,7 @@ Provides dataclasses for representing machine state with LLM-ready formatting.
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 
 @dataclass
@@ -61,6 +61,34 @@ ERROR_CODES: Dict[int, str] = {
     4: "Sensor failure",
     5: "Communication loss",
 }
+
+
+@dataclass
+class TagSnapshot:
+    """Point-in-time PLC reading returned by ModbusTagSource."""
+
+    timestamp: str
+    node_id: str
+    motor_running: bool
+    motor_speed: int
+    motor_current: float
+    temperature: float
+    pressure: int
+    conveyor_running: bool
+    conveyor_speed: int
+    sensor_1: bool
+    sensor_2: bool
+    fault_alarm: bool
+    e_stop: bool
+    error_code: int
+    error_message: str
+    coils: list[int] = field(default_factory=list)
+    io: Dict[str, Any] = field(default_factory=dict)
+    e_stop_ok: bool = False
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert snapshot to a JSON-serializable dictionary."""
+        return asdict(self)
 
 
 @dataclass
