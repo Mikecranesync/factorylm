@@ -22,13 +22,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
     private String frontendUrl;
     @Value("${security.cors.enabled}")
     private boolean enableCors;
+    @Value("${security.cors.allowed-origins:}")
+    private String corsAllowedOrigins;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         if (enableCors) {
             registry.addMapping("/**")
-                    .allowedOrigins(frontendUrl)
+                    .allowedOrigins(CorsOriginResolver.resolve(frontendUrl, corsAllowedOrigins))
                     .allowedMethods("HEAD", "OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE")
+                    .allowedHeaders("*")
                     .maxAge(MAX_AGE_SECS);
         } else registry.addMapping("/**").allowedMethods("*");
     }
