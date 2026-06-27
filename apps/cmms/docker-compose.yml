@@ -27,6 +27,7 @@ services:
       DB_PWD: ${POSTGRES_PWD}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8082}
       PUBLIC_FRONT_URL: ${PUBLIC_FRONT_URL}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3003,https://cmms.factorylm.com}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       MINIO_ENDPOINT: http://minio:9000
       MINIO_BUCKET: atlas-bucket
@@ -52,10 +53,10 @@ services:
     image: intelloop/atlas-cmms-frontend
     container_name: cmms-frontend
     environment:
-      API_URL: http://165.245.138.91:8082
+      API_URL: ${PUBLIC_API_URL:-http://localhost:8082}
       GOOGLE_KEY: ""
       GOOGLE_TRACKING_ID: ""
-      MUI_X_LICENSE: ""
+      MUI_X_LICENSE: ${MUI_X_LICENSE:-}
       INVITATION_VIA_EMAIL: "false"
       CLOUD_VERSION: "false"
       NODE_ENV: production

@@ -16,7 +16,9 @@ import { muiLicense, zendeskKey } from './config';
 import { ZendeskProvider } from 'react-use-zendesk';
 import { LicenseInfo } from '@mui/x-data-grid-pro';
 
-LicenseInfo.setLicenseKey(muiLicense);
+if (muiLicense?.trim()) {
+  LicenseInfo.setLicenseKey(muiLicense);
+}
 
 ReactDOM.render(
   <HelmetProvider>

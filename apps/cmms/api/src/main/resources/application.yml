@@ -81,6 +81,7 @@ security:
   invitation-via-email: ${INVITATION_VIA_EMAIL}
   cors:
     enabled: ${ENABLE_CORS:true}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}
 frontend:
   url: ${PUBLIC_FRONT_URL}
 mail:
