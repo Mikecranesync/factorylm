@@ -1,0 +1,197 @@
+[
+  {
+    "t": 0,
+    "duration_s": 10,
+    "narration": "Welcome to Mission Control — FactoryLM's central command interface for your industrial automation cluster. Here's everything it can do."
+  },
+  {
+    "t": 10,
+    "duration_s": 8,
+    "narration": "Chat Relay is the core of Mission Control. It routes natural language prompts directly to Claude Code running on any Jarvis node in your cluster."
+  },
+  {
+    "t": 18,
+    "duration_s": 11,
+    "narration": "This dropdown lets you target a specific machine — Alpha, Bravo, Charlie, or the VPS."
+  },
+  {
+    "t": 29,
+    "duration_s": 5,
+    "narration": "Choose how long to wait for a response: one, three, five, or ten minutes."
+  },
+  {
+    "t": 34,
+    "duration_s": 7,
+    "narration": "Type your prompt in this field — exactly what you'd type into Claude Code at the terminal. Control-Enter dispatches it."
+  },
+  {
+    "t": 41,
+    "duration_s": 7,
+    "narration": "Results appear in the message history below — expandable cards with stdout, stderr, exit code, and elapsed time."
+  },
+  {
+    "t": 48,
+    "duration_s": 6,
+    "narration": "The status indicator at the top right shows which Jarvis nodes are reachable in real time."
+  },
+  {
+    "t": 54,
+    "duration_s": 8,
+    "narration": "The Dashboard is your live system snapshot — everything happening across the cluster on a single screen."
+  },
+  {
+    "t": 62,
+    "duration_s": 7,
+    "narration": "Four stat cards show current workflow count, active worker pool size, agent count, and Ralph's live status."
+  },
+  {
+    "t": 69,
+    "duration_s": 10,
+    "narration": "The Human-in-the-Loop queue is where autonomous actions wait before executing. Each item is color-coded by risk — green for safe, yellow for caution, red for destructive."
+  },
+  {
+    "t": 79,
+    "duration_s": 8,
+    "narration": "Action types include deployments, git pushes, force-pushes, deletes, PLC writes, and repo resurrections. You approve or reject each one individually."
+  },
+  {
+    "t": 87,
+    "duration_s": 6,
+    "narration": "The right column shows every Jarvis node in the cluster and its current health status."
+  },
+  {
+    "t": 93,
+    "duration_s": 7,
+    "narration": "Below that, PLC collector status — S7, Allen-Bradley, and Modbus — shows whether live industrial telemetry is flowing."
+  },
+  {
+    "t": 100,
+    "duration_s": 8,
+    "narration": "Quick Actions let you fire common shell commands with one click. Each is tagged with a risk level so you know what you're touching before you hit it."
+  },
+  {
+    "t": 108,
+    "duration_s": 7,
+    "narration": "The Terminal tab gives you a direct remote shell into any Jarvis node without leaving the browser."
+  },
+  {
+    "t": 115,
+    "duration_s": 13,
+    "narration": "Pick your target node from the dropdown, then set a command timeout from ten seconds to two minutes."
+  },
+  {
+    "t": 128,
+    "duration_s": 5,
+    "narration": "The same Quick Actions grid is here for one-click access to preset commands."
+  },
+  {
+    "t": 133,
+    "duration_s": 7,
+    "narration": "Worker Swarm manages the Celery task pool that powers every autonomous operation in the cluster."
+  },
+  {
+    "t": 140,
+    "duration_s": 8,
+    "narration": "Workers are organized into eight categories: Core Operations, Knowledge, Analysis, Integration, PLC, Content, Development, and Security — twenty-five workers total."
+  },
+  {
+    "t": 148,
+    "duration_s": 6,
+    "narration": "Each card shows the worker's formatted name and live status — active, running, idle, or offline."
+  },
+  {
+    "t": 154,
+    "duration_s": 7,
+    "narration": "The plus and minus buttons grow or shrink the pool for any worker by one instance. Scale up under load, scale down to save resources."
+  },
+  {
+    "t": 161,
+    "duration_s": 7,
+    "narration": "Ralph is Mission Control's autonomous code evolution engine — it iterates on a codebase continuously, proposing and applying improvements in a loop."
+  },
+  {
+    "t": 168,
+    "duration_s": 6,
+    "narration": "The status badge tells you whether Ralph is running, paused, stopped, or has tripped an error state."
+  },
+  {
+    "t": 174,
+    "duration_s": 7,
+    "narration": "Stats track total iterations completed, the current session identifier, and the circuit breaker state."
+  },
+  {
+    "t": 181,
+    "duration_s": 7,
+    "narration": "You can start Ralph on any project path, then pause or stop mid-loop without losing state. Pause is non-destructive — it resumes exactly where it left off."
+  },
+  {
+    "t": 188,
+    "duration_s": 8,
+    "narration": "The circuit breaker auto-halts Ralph when failure count exceeds a configured threshold. The health bar shows your current failure ratio at a glance."
+  },
+  {
+    "t": 196,
+    "duration_s": 7,
+    "narration": "The safety warning is there for a reason — Ralph makes real changes to real code. Always point it at a feature branch, not main."
+  },
+  {
+    "t": 203,
+    "duration_s": 6,
+    "narration": "The Agents tab manages the four high-level autonomous agents that coordinate the entire worker layer."
+  },
+  {
+    "t": 209,
+    "duration_s": 10,
+    "narration": "Ralph handles code evolution. Cosmos runs the video production pipeline. MediaOffload handles media archival and compression. And Jesus H Christ is the repo resurrection specialist. Each agent can be started or stopped independently."
+  },
+  {
+    "t": 219,
+    "duration_s": 6,
+    "narration": "The Tools tab is where the monetized services live — starting with Jesus H Christ, Repo Resurrection."
+  },
+  {
+    "t": 225,
+    "duration_s": 15,
+    "narration": "JHC takes dead or abandoned GitHub repositories and brings them back to life — updated dependencies, repaired CI, and a working test suite."
+  },
+  {
+    "t": 240,
+    "duration_s": 6,
+    "narration": "To resurrect a specific repo, paste the URL and choose your aggression level."
+  },
+  {
+    "t": 246,
+    "duration_s": 10,
+    "narration": "Gentle is documentation-only work at ninety-nine dollars. Moderate handles dependencies and CI at two-ninety-nine. Full aggressive refactor — the complete overhaul — is nine-ninety-nine."
+  },
+  {
+    "t": 256,
+    "duration_s": 6,
+    "narration": "These checkboxes let you fine-tune what JHC is allowed to touch — dependency upgrades and CI configuration are controlled separately."
+  },
+  {
+    "t": 262,
+    "duration_s": 7,
+    "narration": "Every resurrection queues an approval action in the HIL queue first. Nothing touches your codebase until you say so."
+  },
+  {
+    "t": 269,
+    "duration_s": 8,
+    "narration": "Git Forensics runs static analysis on any local repository — full history reports and hotspot detection to find which files change most and why."
+  },
+  {
+    "t": 277,
+    "duration_s": 7,
+    "narration": "Finally, the Ladder Logic tab embeds a live reference view of the Micro 820 PLC's control program."
+  },
+  {
+    "t": 284,
+    "duration_s": 7,
+    "narration": "This is a direct window into the PLC logic — rungs, coils, and contacts — running live alongside your factory hardware."
+  },
+  {
+    "t": 291,
+    "duration_s": 0,
+    "narration": "That's Mission Control — eight tabs, forty-plus autonomous capabilities, one unified command surface for the entire FactoryLM cluster."
+  }
+]

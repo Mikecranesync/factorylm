@@ -1,0 +1,9 @@
+demo/auth.json
+demo/raw/
+demo/audio/
+demo/final_demo.mp4
+demo/tabs/*/raw/
+demo/tabs/*/audio/
+demo/tabs/**/*.mp4
+demo/tabs/**/*.webm
+node_modules/

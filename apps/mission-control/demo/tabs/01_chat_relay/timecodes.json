@@ -1,0 +1,37 @@
+[
+  {
+    "t": 0,
+    "duration_s": 8,
+    "narration": "Chat Relay puts every Claude Code node in your cluster at your fingertips — one browser tab, any machine, any project, from anywhere in the world."
+  },
+  {
+    "t": 8,
+    "duration_s": 13,
+    "narration": "This dropdown lists every Jarvis node in your cluster — Alpha, Bravo, Charlie, or the cloud VPS. Pick one and every prompt routes directly to that machine."
+  },
+  {
+    "t": 21,
+    "duration_s": 6,
+    "narration": "Set a timeout that matches the work — one minute for quick questions, up to ten for deep refactors."
+  },
+  {
+    "t": 27,
+    "duration_s": 8,
+    "narration": "Type any prompt you would normally write at the terminal. Control-Enter dispatches it to the selected node."
+  },
+  {
+    "t": 35,
+    "duration_s": 8,
+    "narration": "Results come back as expandable message cards — stdout, stderr, exit code, and elapsed time all visible at a glance."
+  },
+  {
+    "t": 43,
+    "duration_s": 7,
+    "narration": "The node status indicators show live cluster health in real time — green means that machine is reachable and ready right now."
+  },
+  {
+    "t": 50,
+    "duration_s": 0,
+    "narration": "No SSH client, no VPN, no terminal emulator — just your browser and the full power of Claude Code running on your own hardware."
+  }
+]
