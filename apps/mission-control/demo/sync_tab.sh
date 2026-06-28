@@ -38,16 +38,25 @@ fi
 NAME="${SLUG#*_}"
 OUT="$TAB_DIR/${NAME}.mp4"
 
+# Output length follows the AUDIO (narration), not the recorded video. tpad clones
+# the last video frame so a longer narration is never truncated; -t trims to the
+# audio length so a shorter narration leaves no dangling silent video. This makes
+# A/V drift ~0 for any TTS provider (incl. a voice swap that changes audio length).
+# loudnorm normalizes the voice to -16 LUFS / -1 dBTP (rubric dimension 2).
+ADUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$AUDIO_FILE")
+
 echo "Video : $WEBM"
-echo "Audio : $AUDIO_FILE"
+echo "Audio : $AUDIO_FILE (${ADUR}s — drives output length)"
 echo "Output: $OUT"
 
 ffmpeg -y \
   -i "$WEBM" \
   -i "$AUDIO_FILE" \
+  -filter_complex "[0:v]tpad=stop_mode=clone:stop_duration=3600[vp];[1:a]loudnorm=I=-16:TP=-1:LRA=11[ap]" \
+  -map "[vp]" -map "[ap]" \
   -c:v libx264 -preset fast -crf 18 \
   -c:a aac -b:a 192k \
-  -shortest \
+  -t "$ADUR" \
   "$OUT"
 
 echo ""

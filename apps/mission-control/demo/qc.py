@@ -313,7 +313,13 @@ def main() -> int:
         rec["resolution"] = probe_resolution(path)
         words = script_word_count(slug)
         rec["script_words"] = words
-        rec["wpm"] = round(words / (adur / 60.0), 1) if (adur and adur > 0) else None
+        # WPM = true speaking rate, measured from the narration source (audio/full_narration.mp3)
+        # NOT the final mp4 audio — once an intro/outro is added the mp4 audio includes silence,
+        # which would understate WPM. Fall back to the mp4 audio only if the narration is absent.
+        nar = os.path.join(TABS_DIR, slug, "audio", "full_narration.mp3")
+        speak_s = (probe_duration(nar, "a:0") if os.path.exists(nar) else None) or adur
+        rec["narration_s"] = round(speak_s, 2) if speak_s else None
+        rec["wpm"] = round(words / (speak_s / 60.0), 1) if (speak_s and speak_s > 0) else None
         rec["loudness"] = measure_loudness(path)
         rec["sting"] = detect_sting(path, vdur)
         rec["captions"] = parse_captions(slug)

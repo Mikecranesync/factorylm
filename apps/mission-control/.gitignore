@@ -10,3 +10,4 @@ node_modules/
 
 # Promo QC artifacts (frames, report)
 demo/qc/
+demo/tabs/*/brand/
