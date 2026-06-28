@@ -1,0 +1,22 @@
+[
+  {
+    "t": 0,
+    "duration_s": 10,
+    "narration": "Namespace is your single source of truth for what exists — an ISA-95 hierarchy of every site, area, line, and asset."
+  },
+  {
+    "t": 10,
+    "duration_s": 11,
+    "narration": "Enterprise rolls down into Celestial Park and the Home Garage, into the Conveyor Lab, the Stardust Racers, and your knowledge base — eighteen entities in all."
+  },
+  {
+    "t": 21,
+    "duration_s": 10,
+    "narration": "Create folders, upload documents, expand the whole tree in a click. Everything MIRA reasons about hangs off this structure."
+  },
+  {
+    "t": 31,
+    "duration_s": 0,
+    "narration": "One namespace. Your entire operation, organized."
+  }
+]

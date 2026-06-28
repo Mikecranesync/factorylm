@@ -1,0 +1,27 @@
+[
+  {
+    "t": 0,
+    "duration_s": 7,
+    "narration": "The Assets registry is every machine you maintain, on one screen."
+  },
+  {
+    "t": 7,
+    "duration_s": 13,
+    "narration": "Five assets here — the Stardust Racers running operational, a Micro820 and GS10-drive bench conveyor, and the Garage Conveyor down in Lake Wales — each with its own ID and live status."
+  },
+  {
+    "t": 20,
+    "duration_s": 8,
+    "narration": "Filter by operational, warning, critical, or idle to find exactly what needs attention."
+  },
+  {
+    "t": 28,
+    "duration_s": 11,
+    "narration": "Add a new asset, export to CSV, or print QR labels — so any tech can scan a machine and pull up its full history."
+  },
+  {
+    "t": 39,
+    "duration_s": 0,
+    "narration": "Your whole fleet, accounted for."
+  }
+]

@@ -19,14 +19,14 @@ DEMO_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROVIDER=${TTS_PROVIDER:-macos}
 
 TABS=(
-  "01_chat_relay"
-  "02_dashboard"
-  "03_terminal"
-  "04_worker_swarm"
-  "05_ralph_loop"
-  "06_agents"
-  "07_tools"
-  "08_hub"
+  "01_command_board"
+  "02_command_center"
+  "03_namespace"
+  "04_knowledge"
+  "05_channels"
+  "06_assets"
+  "07_workorders"
+  "08_scan"
 )
 
 if [ ! -f "$DEMO_DIR/auth.json" ]; then

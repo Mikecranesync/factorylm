@@ -1,0 +1,27 @@
+[
+  {
+    "t": 0,
+    "duration_s": 9,
+    "narration": "Work Orders is the CMMS at the heart of FactoryLM — every job tracked from open to done."
+  },
+  {
+    "t": 9,
+    "duration_s": 11,
+    "narration": "Filter across all, open, in progress, and completed. Four are open right now on the Stardust Racers, tagged high and medium priority."
+  },
+  {
+    "t": 20,
+    "duration_s": 11,
+    "narration": "Each order carries its ID, status, assignee, and due date — and because it's wired to MIRA, the diagnosis and the fix travel with it."
+  },
+  {
+    "t": 31,
+    "duration_s": 6,
+    "narration": "Export the whole list to CSV anytime."
+  },
+  {
+    "t": 37,
+    "duration_s": 0,
+    "narration": "Maintenance work, under control."
+  }
+]

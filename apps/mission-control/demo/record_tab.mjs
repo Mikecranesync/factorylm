@@ -28,15 +28,19 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const HUB_URL = process.env.HUB_URL || 'https://app.factorylm.com'
 const AUTH_PATH = join(__dirname, 'auth.json')
 
+// Real routes verified live 2026-06-28 via demo/discover_nav.mjs. The old
+// mission-control tabs (Dashboard/Terminal/…) no longer exist — the app is now
+// the MIRA/CMMS Hub. Navigation goes by route (see main), not sidebar label,
+// so a future sidebar reshuffle won't silently land every tab on the default board.
 const TAB_META = {
-  '01_chat_relay':   { label: 'Chat Relay',   route: '/' },
-  '02_dashboard':    { label: 'Dashboard',    route: '/dashboard' },
-  '03_terminal':     { label: 'Terminal',     route: '/terminal' },
-  '04_worker_swarm': { label: 'Worker Swarm', route: '/workers' },
-  '05_ralph_loop':   { label: 'Ralph Loop',   route: '/ralph' },
-  '06_agents':       { label: 'Agents',       route: '/agents' },
-  '07_tools':        { label: 'Tools',        route: '/tools' },
-  '08_hub':          { label: 'Ladder Logic', route: '/hub' },
+  '01_command_board':  { label: 'Command Board',  route: '/feed/' },
+  '02_command_center': { label: 'Command Center', route: '/command-center/' },
+  '03_namespace':      { label: 'Namespace',      route: '/namespace/' },
+  '04_knowledge':      { label: 'Knowledge',      route: '/knowledge/' },
+  '05_channels':       { label: 'Channels',       route: '/channels/' },
+  '06_assets':         { label: 'Assets',         route: '/assets/' },
+  '07_workorders':     { label: 'Work Orders',    route: '/workorders/' },
+  '08_scan':           { label: 'Scan',           route: '/scan/' },
 }
 
 // ---------------------------------------------------------------------------
@@ -145,8 +149,11 @@ async function executeAction(page, action) {
 
   if (action.startsWith('SCROLL:')) {
     const delta = parseInt(action.slice(7), 10)
-    await page.evaluate((dy) => window.scrollBy({ top: dy, behavior: 'smooth' }), delta)
-    await page.waitForTimeout(400)
+    // mouse.wheel scrolls the element under the cursor — works for the app's
+    // inner scroll containers, which window.scrollBy() does NOT move.
+    await page.mouse.move(960, 540)
+    await page.mouse.wheel(0, delta)
+    await page.waitForTimeout(600)
     return
   }
 
@@ -182,17 +189,13 @@ const ctx = await browser.newContext({
 
 const page = await ctx.newPage()
 
-// Navigate to Hub root, then to the correct tab
-await page.goto(HUB_URL, { waitUntil: 'domcontentloaded' })
-await page.waitForTimeout(2000)
-
-// Navigate to this tab via sidebar click
-try {
-  await page.click(`a:has-text("${label}")`, { timeout: 5000 })
-  await page.waitForTimeout(1500)
-} catch (_) {
-  console.warn(`  WARN: Could not click sidebar link for "${label}" — proceeding from root`)
-}
+// Navigate directly to this tab's real route. Direct goto is robust against
+// sidebar redesigns — the old label-click approach silently left every tab on
+// the default board once the sidebar labels changed.
+const targetUrl = HUB_URL.replace(/\/$/, '') + route
+console.log(`Nav       : ${targetUrl}`)
+await page.goto(targetUrl, { waitUntil: 'domcontentloaded' })
+await page.waitForTimeout(3000) // let the SPA + data settle before narration starts
 
 const timecodes = []
 

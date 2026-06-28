@@ -7,3 +7,6 @@ demo/tabs/*/audio/
 demo/tabs/**/*.mp4
 demo/tabs/**/*.webm
 node_modules/
+
+# Promo QC artifacts (frames, report)
+demo/qc/

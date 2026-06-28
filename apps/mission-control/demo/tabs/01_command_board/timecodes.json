@@ -1,0 +1,27 @@
+[
+  {
+    "t": 0,
+    "duration_s": 9,
+    "narration": "This is the FactoryLM Command Board — the single live view of your maintenance operation, with every open item front and center."
+  },
+  {
+    "t": 9,
+    "duration_s": 11,
+    "narration": "At the top, the L5 Proposal flywheel tracks your namespace readiness — assets indexed, documents reviewed, verified edges — guiding you to verify knowledge until MIRA can cite it."
+  },
+  {
+    "t": 20,
+    "duration_s": 11,
+    "narration": "Four live counters summarize the day: open work orders, overdue PMs, total work orders, and the preventive maintenance MIRA auto-extracted from your manuals."
+  },
+  {
+    "t": 31,
+    "duration_s": 9,
+    "narration": "Below, every open issue streams in as a card — here, four work orders on the Stardust Racers, each with its priority, age, and one tap to open it or ask MIRA."
+  },
+  {
+    "t": 40,
+    "duration_s": 0,
+    "narration": "One board. Every pending decision. Always live."
+  }
+]

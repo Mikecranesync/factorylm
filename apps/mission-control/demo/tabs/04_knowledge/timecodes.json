@@ -1,0 +1,27 @@
+[
+  {
+    "t": 0,
+    "duration_s": 9,
+    "narration": "The Knowledge graph turns scattered manuals and asset data into connected, queryable intelligence."
+  },
+  {
+    "t": 9,
+    "duration_s": 10,
+    "narration": "Nineteen nodes — areas, assets, components, equipment, lines, and sites — linked by verified and proposed relationships."
+  },
+  {
+    "t": 19,
+    "duration_s": 11,
+    "narration": "Solid edges are human-verified. Dashed edges are proposed by MIRA — suggestions you review and confirm, so every answer traces back to grounded knowledge."
+  },
+  {
+    "t": 30,
+    "duration_s": 10,
+    "narration": "Switch to Manuals or the Map, and work through MIRA's suggestions to keep the graph growing."
+  },
+  {
+    "t": 40,
+    "duration_s": 0,
+    "narration": "Knowledge that compounds with every machine."
+  }
+]

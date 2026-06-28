@@ -1,0 +1,27 @@
+[
+  {
+    "t": 0,
+    "duration_s": 9,
+    "narration": "The Command Center is where your physical plant comes online — live HMI dashboards streamed straight from the factory floor."
+  },
+  {
+    "t": 9,
+    "duration_s": 10,
+    "narration": "The One-Board Status bar rolls up every cell from your unified namespace cache — running, blocked, faulted, or stale — at a glance."
+  },
+  {
+    "t": 19,
+    "duration_s": 11,
+    "narration": "On the left, live views map to namespace nodes — like the Conveyor fault-detective dashboard at enterprise, home garage, conveyor lab, conveyor one."
+  },
+  {
+    "t": 30,
+    "duration_s": 11,
+    "narration": "Pair an Ignition gateway with MIRA Connect and real-time telemetry lands here automatically — no proprietary software, no local install, just the browser."
+  },
+  {
+    "t": 41,
+    "duration_s": 0,
+    "narration": "Your control room, in the cloud."
+  }
+]

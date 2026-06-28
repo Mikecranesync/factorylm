@@ -1,0 +1,27 @@
+[
+  {
+    "t": 0,
+    "duration_s": 7,
+    "narration": "Channels connect MIRA to wherever your techs already work."
+  },
+  {
+    "t": 7,
+    "duration_s": 14,
+    "narration": "Over Telegram, field techs send photos, voice notes, and diagnostic questions straight to MIRA. Slack and Microsoft Teams push alerts, work-order updates, and requests to the whole team. WhatsApp is on the way."
+  },
+  {
+    "t": 21,
+    "duration_s": 12,
+    "narration": "CMMS connectors sync work orders, assets, and parts both ways — MaintainX, and Atlas CMMS already live and syncing in real time, with Limble and UpKeep coming soon."
+  },
+  {
+    "t": 33,
+    "duration_s": 10,
+    "narration": "And document sources — Google Workspace, Microsoft 365, Dropbox — feed your manuals and schematics straight into MIRA's knowledge base."
+  },
+  {
+    "t": 43,
+    "duration_s": 0,
+    "narration": "Every channel. One assistant."
+  }
+]

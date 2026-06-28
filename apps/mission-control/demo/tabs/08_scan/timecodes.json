@@ -1,0 +1,22 @@
+[
+  {
+    "t": 0,
+    "duration_s": 7,
+    "narration": "MIRA Scan turns your phone into an instant asset-onboarding tool."
+  },
+  {
+    "t": 7,
+    "duration_s": 11,
+    "narration": "Point the camera at a nameplate — or upload a photo — and MIRA reads the make, model, serial number, and electrical specs right off the label."
+  },
+  {
+    "t": 18,
+    "duration_s": 9,
+    "narration": "No typing, no transcription errors. The asset is created and linked into your namespace in seconds."
+  },
+  {
+    "t": 27,
+    "duration_s": 0,
+    "narration": "Scan a plate. Onboard a machine. That fast."
+  }
+]
