@@ -6,7 +6,7 @@ Provides dataclasses for representing machine state with LLM-ready formatting.
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 @dataclass
@@ -85,6 +85,12 @@ class TagSnapshot:
     coils: list[int] = field(default_factory=list)
     io: Dict[str, Any] = field(default_factory=dict)
     e_stop_ok: bool = False
+    # Communication health as its OWN signal, independent of `error_code`.
+    # `None` = this source has no link indicator, so consumers fall back to the
+    # documented error-code proxy (see machine_snapshot.comm_ok_from). A source
+    # that CAN observe the link directly sets this, and then a renumbering of
+    # ERROR_CODES cannot silently change what "comms are down" means (#207).
+    comm_ok: Optional[bool] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert snapshot to a JSON-serializable dictionary."""

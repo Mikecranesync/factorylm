@@ -120,12 +120,21 @@ class TestMachineStateDerivation:
 
     def test_comm_loss_still_beats_e_stop(self):
         """With the link down the bridge cannot vouch for E-stop either —
-        comm_down stays dominant."""
+        comm_down stays dominant, and the E-stop is reported as LAST-KNOWN.
+
+        Updated for #207. This test previously asserted `e_stop_active`, which
+        contradicted the reasoning in its own docstring: if the bridge cannot
+        vouch for the E-stop, the envelope must not claim it is *currently*
+        active. Claiming an engaged E-stop that may have been released since
+        comms dropped is the direction that can lead a technician to believe a
+        machine is safed when it isn't.
+        """
         state, conditions = machine_state_from_snapshot(
             _snapshot(e_stop=True, error_code=5, fault_alarm=True)
         )
         assert state == "comm_down"
-        assert "e_stop_active" in conditions
+        assert "e_stop_active" not in conditions
+        assert "e_stop_active_last_known" in conditions
 
 
 class TestEnvelopeBuilder:
@@ -387,4 +396,77 @@ class TestObservationOnly:
             {"tag_path": "conv_simple.motor_run", "value": True, "quality": "good",
              "observed_at": "2026-08-02T10:00:00Z", "write_command": 1}
         )
+        assert any("forbidden" in v for v in validate_envelope(env))
+
+
+# ── Issue #207: state semantics ──────────────────────────────────────────────
+
+
+class TestCommHealthIsItsOwnSignal:
+    """Comm health must not BE error code 5 (#207 item 1)."""
+
+    def test_explicit_comm_ok_false_wins_over_a_clean_error_code(self):
+        snap = _snapshot(error_code=0, comm_ok=False)
+        state, conditions = machine_state_from_snapshot(snap)
+        assert state == "comm_down"
+        assert "communication_loss" in conditions
+
+    def test_explicit_comm_ok_true_wins_over_error_code_5(self):
+        """A source with a real link indicator says the link is UP; code 5 is
+        then an ordinary fault, not a comms verdict."""
+        snap = _snapshot(error_code=5, comm_ok=True)
+        state, _ = machine_state_from_snapshot(snap)
+        assert state == "faulted"
+
+    def test_error_code_5_remains_the_fallback_when_no_signal_is_supplied(self):
+        snap = _snapshot(error_code=5)
+        state, _ = machine_state_from_snapshot(snap)
+        assert state == "comm_down"
+
+    def test_renumbering_error_codes_cannot_change_machine_state(self):
+        """The proxy reads the CODE FOR communication loss, not the literal 5."""
+        from factorylm_plc import machine_snapshot as ms
+
+        assert ms.comm_ok_from(_snapshot(error_code=ms.COMM_LOSS_ERROR_CODE)) is False
+
+
+class TestNeverAssertACurrentEstopWithoutEvidence:
+    """#207 item 2 — the safety-relevant one."""
+
+    def test_comm_down_does_not_assert_a_current_estop(self):
+        snap = _snapshot(error_code=5, e_stop=True)
+        state, conditions = machine_state_from_snapshot(snap)
+        assert state == "comm_down"
+        assert "e_stop_active" not in conditions, (
+            "asserting a CURRENT E-stop across a dead link can lead a technician "
+            "to believe a machine is safed when it may have been released"
+        )
+        assert "e_stop_active_last_known" in conditions
+
+    def test_estop_is_asserted_normally_when_comms_are_good(self):
+        """Counterfactual — the guard must not suppress a real, observed E-stop."""
+        snap = _snapshot(error_code=0, e_stop=True)
+        state, conditions = machine_state_from_snapshot(snap)
+        assert state == "estopped"
+        assert "e_stop_active" in conditions
+        assert "e_stop_active_last_known" not in conditions
+
+
+class TestForbiddenFieldMatchingIsBoundaryAware:
+    """#207 item 3 — substring denylist false-positives on controller_*."""
+
+    def test_ordinary_plc_provenance_keys_are_not_rejected(self):
+        env = _envelope()
+        env["provenance"]["controller_model"] = "Micro820"
+        env["provenance"]["control_panel_id"] = "CP-1"
+        assert validate_envelope(env) == []
+
+    def test_a_genuine_command_field_is_still_rejected(self):
+        env = _envelope()
+        env["provenance"]["command"] = "start"
+        assert any("forbidden" in v for v in validate_envelope(env))
+
+    def test_a_genuine_write_field_is_still_rejected_at_depth(self):
+        env = _envelope()
+        env["tags"][0]["setpoint_write"] = 42
         assert any("forbidden" in v for v in validate_envelope(env))
