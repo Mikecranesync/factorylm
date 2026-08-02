@@ -1,0 +1,22 @@
+name: PLC Modbus Tests
+
+on:
+  pull_request:
+    paths:
+      - "services/plc-modbus/**"
+      - ".github/workflows/plc-modbus-tests.yml"
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/plc-modbus
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev,backend]"
+      - run: pytest tests/unit -q
