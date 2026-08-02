@@ -5,6 +5,12 @@ on:
     paths:
       - "services/plc-modbus/**"
       - ".github/workflows/plc-modbus-tests.yml"
+      # The shared cross-repo fixture boundary (#208). Without this line a PR
+      # that edits ONLY a file under contracts/machine_snapshot/ never triggers
+      # this job — which is exactly the one-sided edit the checksum guard in
+      # tests/unit/test_machine_snapshot_fixture_integrity.py exists to catch.
+      # The guard would sit silent for its own purpose.
+      - "contracts/machine_snapshot/**"
 
 jobs:
   unit:
