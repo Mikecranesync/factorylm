@@ -41,7 +41,11 @@ LLM-controlled industrial automation using Allen-Bradley Micro 820 PLC with Fact
 | Address | Variable | Description |
 |---------|----------|-------------|
 | **100** | ItemCount | Items that reached SensorEnd |
-| 101-105 | (unused) | Available registers |
+| **101** | ConveyorHz | Conveyor VFD frequency, Hz |
+| **102** | MotorCurrentX10 | Motor current x10, amps = value / 10 |
+| **103** | MotorTempX10 | Motor temperature x10, degC = value / 10 |
+| **104** | VFDStatus | VFD status: 0 idle, 1 running, 2 fault |
+| **105** | ErrorCode | Active error code |
 
 ## Physical Control State Tables
 
@@ -106,4 +110,5 @@ curl -X POST http://100.72.2.99:8001/api/plc/write-coil -H "Content-Type: applic
 - **2026-01-24:** Initial integration complete. PLC recovered, Modbus working.
 - **2026-01-25:** FastAPI backend with network scanner. Systematic I/O mapping completed. Real-time monitor and logger tools created. White paper documented.
 - **2026-01-25 (PM):** Added ST case study (Appendix C) and Raspberry Pi edge device (Appendix D) to whitepaper. Created factorylm-edge directory with Modbus TCP server code for Pi.
-- **2026-02-18:** "From A to B" Factory I/O scene integration. Remapped coils 0-4 for scene (Conveyor, Emitter, SensorStart, SensorEnd, RunCommand). Register 100 = ItemCount. Backend port → 8001. ST program + CCW setup docs in `scenes/`.
+- **2026-02-18:** "From A to B" Factory I/O scene integration. Remapped coils 0-4 for scene (Conveyor, Emitter, SensorStart, SensorEnd, RunCommand). Register 100 = ItemCount (registers 101-105 later carry named VFD telemetry — see register table). Backend port → 8001. ST program + CCW setup docs in `scenes/`.
+- **2026-08-02:** #161 repair — `RegisterData` model now matches `REGISTER_NAMES` (named VFD fields ConveyorHz/MotorCurrentX10/MotorTempX10/VFDStatus/ErrorCode survive serialization); register table above updated to document 101-105.

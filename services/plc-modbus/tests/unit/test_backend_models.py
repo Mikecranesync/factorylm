@@ -16,7 +16,13 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from backend.models.plc_models import RegisterData  # noqa: E402
+from backend.models.plc_models import (  # noqa: E402
+    CoilData,
+    InputData,
+    IOResponse,
+    OutputData,
+    RegisterData,
+)
 
 _PLC_CONNECTION = os.path.join(
     os.path.dirname(__file__), "..", "..", "backend", "services", "plc_connection.py"
@@ -69,3 +75,29 @@ class TestRegisterDataMatchesSource:
             assert not field.startswith("register_"), (
                 "placeholder field %r reintroduced — this is the #161 bug" % field
             )
+
+    def test_io_response_serializes_named_vfd_fields(self):
+        """#161 acceptance at the API boundary: the serialized IOResponse —
+        what /api/plc/io actually returns — keeps every named VFD register
+        nonzero when the PLC reports real data. Built from the exact
+        `registers` dict shape read_io()/mock mode produce; no
+        plc_connection import (that would drag in pymodbus)."""
+        registers = {
+            "ItemCount": 42,
+            "ConveyorHz": 583,
+            "MotorCurrentX10": 27,
+            "MotorTempX10": 415,
+            "VFDStatus": 1,
+            "ErrorCode": 3,
+        }
+        response = IOResponse(
+            coils=CoilData(Conveyor=True, RunCommand=True),
+            inputs=InputData(DI_02=True),
+            outputs=OutputData(),
+            registers=RegisterData(**registers),
+            timestamp="2026-08-02T10:00:00Z",
+        )
+        serialized = response.model_dump()["registers"]
+        assert serialized == registers
+        for name in ("ConveyorHz", "MotorCurrentX10", "MotorTempX10", "VFDStatus", "ErrorCode"):
+            assert serialized[name] != 0, "%s zeroed in serialized IOResponse" % name
