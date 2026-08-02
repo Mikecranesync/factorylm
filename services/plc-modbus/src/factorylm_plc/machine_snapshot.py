@@ -53,7 +53,59 @@ COMM_LOSS_ERROR_CODE = 5
 # Fields that would make the payload something other than pure observation.
 # validate_envelope rejects any of these at any depth (PRD: "No command,
 # write, actuator, or control field is permitted").
-FORBIDDEN_FIELD_TOKENS = ("command", "write", "actuate", "setpoint_write", "control")
+#
+# Matched on whole `_`-separated SEGMENTS, never as substrings (#207). A
+# substring test rejected ordinary PLC provenance -- `controller_model`,
+# `controller_serial`, `control_panel_id` all contain "control" -- while adding
+# nothing: a real command field is named `command`/`write`/`setpoint_write`, not
+# hidden inside `controller_`. That false-positive became live the moment MIRA
+# PR #3059 started writing snapshot fields into per-tag `metadata`.
+# Unambiguous command VERBS: any whole segment of a key matching one of these
+# makes the field a command, wherever it appears (`command`, `command_word`,
+# `setpoint_write`, `write_enable`, `actuator_state`).
+FORBIDDEN_FIELD_TOKENS = ("command", "write", "actuate", "actuator")
+
+# `control` is deliberately NOT a bare verb: `control_panel_id`,
+# `controller_model`, `controller_serial` are ordinary provenance. Only these
+# compound forms are the control-word shapes that would make the payload
+# actionable.
+FORBIDDEN_FIELD_NAMES = ("control_word", "control_bit", "control_register", "control_command")
+
+
+def _has_forbidden_segment(key: str) -> bool:
+    """True when `key` names a command field.
+
+    Matched on whole `_`-separated SEGMENTS, never as substrings (#207). The
+    substring test this replaces rejected ordinary PLC provenance --
+    `controller_model`, `control_panel_id` -- while adding nothing, because a
+    real command field is named for the verb (`command`, `setpoint_write`), not
+    hidden inside `controller_`. That false-positive went live the moment MIRA
+    PR #3059 began writing snapshot fields into per-tag `metadata`.
+    """
+    slug = _slug(str(key))
+    if slug in FORBIDDEN_FIELD_NAMES:
+        return True
+    return any(seg in FORBIDDEN_FIELD_TOKENS for seg in slug.split("_"))
+
+
+def comm_ok_from(snapshot: TagSnapshot) -> bool:
+    """THE one definition of communication health (#207).
+
+    Comms health is its own fact, not a value of the error register. When the
+    source supplies `TagSnapshot.comm_ok` (a real link indicator) that is
+    authoritative. Only when it is absent do we fall back to the historical
+    proxy -- `error_code == COMM_LOSS_ERROR_CODE` -- which is the ONLY signal
+    the Micro820 bridge exposes today.
+
+    Keeping the proxy behind one named function is the point: both this module
+    and `modbus_tag_source.canonical_tags_from_snapshot` call it, so the two
+    can never disagree about whether the link is up, and swapping in a real
+    indicator later is a one-line change in one place instead of a semantic
+    drift across two files.
+    """
+    if snapshot.comm_ok is not None:
+        return bool(snapshot.comm_ok)
+    return int(snapshot.error_code) != COMM_LOSS_ERROR_CODE
 
 
 def _slug(text: str) -> str:
@@ -73,15 +125,23 @@ def machine_state_from_snapshot(snapshot: TagSnapshot) -> Tuple[str, List[str]]:
     """
     conditions: List[str] = []
     code = int(snapshot.error_code)
+    comms_up = comm_ok_from(snapshot)
 
-    if bool(snapshot.e_stop):
-        conditions.append("e_stop_active")
-
-    if code == COMM_LOSS_ERROR_CODE:
+    if not comms_up:
+        # The E-stop reading crossed the same dead link as every other
+        # measurement, so it is last-known, NOT observed. `_tag_quality` already
+        # reasons this way for tag values; the condition list must agree.
+        # Asserting a CURRENT E-stop here is the dangerous direction: it can
+        # lead a technician to believe a machine is safed when it may have been
+        # released since comms dropped. Report it as last-known so the consumer
+        # can render the uncertainty instead of a false certainty (#207).
+        if bool(snapshot.e_stop):
+            conditions.append("e_stop_active_last_known")
         conditions.append(_slug(ERROR_CODES[COMM_LOSS_ERROR_CODE]))
         return "comm_down", conditions
 
     if bool(snapshot.e_stop):
+        conditions.append("e_stop_active")
         return "estopped", conditions
 
     if bool(snapshot.fault_alarm) or code != 0:
@@ -245,7 +305,7 @@ def validate_envelope(envelope: Any) -> List[str]:
         if isinstance(obj, dict):
             for key, val in obj.items():
                 lowered = str(key).lower()
-                if any(tok in lowered for tok in FORBIDDEN_FIELD_TOKENS):
+                if _has_forbidden_segment(lowered):
                     violations.append(
                         "forbidden command/write field %r at %s — the payload "
                         "is observation-only" % (key, path)

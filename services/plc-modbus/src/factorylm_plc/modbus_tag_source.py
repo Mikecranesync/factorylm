@@ -137,6 +137,19 @@ def canonical_tag_name(raw_name: str) -> str | None:
     return None
 
 
+def _comm_ok_from(snapshot):
+    """Delegate to THE one definition of comm health (#207).
+
+    Imported lazily: `machine_snapshot` imports this module for
+    `REQUIRED_CANONICAL_TAGS` / `canonical_tags_from_snapshot`, so a top-level
+    import here would be circular. The point is that `conv_simple.comm_ok` and
+    `machine_state` can never disagree about whether the link is up.
+    """
+    from .machine_snapshot import comm_ok_from
+
+    return comm_ok_from(snapshot)
+
+
 def canonical_tags_from_snapshot(snapshot: TagSnapshot) -> dict[str, bool | int | float]:
     """Project a Micro820 snapshot into the Hub one-board canonical tags."""
     io = snapshot.io or {}
@@ -148,7 +161,7 @@ def canonical_tags_from_snapshot(snapshot: TagSnapshot) -> dict[str, bool | int 
         "conv_simple.vfd_speed_hz": int(speed_hz),
         "conv_simple.vfd_current_amps": float(snapshot.motor_current),
         "conv_simple.fault_code": int(snapshot.error_code),
-        "conv_simple.comm_ok": int(snapshot.error_code) != 5,
+        "conv_simple.comm_ok": _comm_ok_from(snapshot),
         "conv_simple.height_sensor_mm": int(io.get("height_sensor_mm", 0)),
         "conv_simple.sort_divert_active": bool(io.get("sort_divert_active", False)),
     }
