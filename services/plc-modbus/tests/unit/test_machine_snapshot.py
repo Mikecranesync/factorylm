@@ -177,6 +177,100 @@ class TestEnvelopeBuilder:
         with pytest.raises(ValueError, match="captured_at"):
             _envelope(_snapshot(timestamp=""))
 
+    def test_unsourced_io_tags_are_uncertain_not_good(self):
+        """When the snapshot's io dict never carried height_sensor_mm /
+        sort_divert_active (the bench Micro820 map has no such I/O), their
+        defaulted values must not be claimed as good observations (P1)."""
+        env = _envelope(_snapshot(io={}))
+        assert validate_envelope(env) == []
+        by_path = {t["tag_path"]: t for t in env["tags"]}
+        assert by_path["conv_simple.height_sensor_mm"]["quality"] == "uncertain"
+        assert by_path["conv_simple.sort_divert_active"]["quality"] == "uncertain"
+        assert by_path["conv_simple.height_sensor_mm"]["value"] == 0
+        assert by_path["conv_simple.sort_divert_active"]["value"] is False
+        # tags the bridge actually read stay good
+        for path in ("conv_simple.motor_run", "conv_simple.vfd_speed_hz",
+                     "conv_simple.vfd_current_amps", "conv_simple.fault_code",
+                     "conv_simple.comm_ok"):
+            assert by_path[path]["quality"] == "good", path
+
+    def test_io_backed_tags_stay_good_when_actually_read(self):
+        env = _envelope()  # _snapshot() io carries both keys
+        by_path = {t["tag_path"]: t for t in env["tags"]}
+        assert by_path["conv_simple.height_sensor_mm"]["quality"] == "good"
+        assert by_path["conv_simple.sort_divert_active"]["quality"] == "good"
+
+
+class _FakeCoilResult:
+    """pymodbus read_coils result stand-in: conveyor running, e-stop released."""
+
+    bits = [True, False, False, False, True, False, False, False,
+            False, True, False, False, False, False, False, False, False, False]
+
+    @staticmethod
+    def isError():
+        return False
+
+
+class _FakeRegisterResult:
+    """pymodbus read_holding_registers result stand-in (regs 100-105)."""
+
+    registers = [7, 45, 32, 415, 1, 0]
+
+    @staticmethod
+    def isError():
+        return False
+
+
+class _FakeModbusClient:
+    """Just enough of pymodbus's client surface for ModbusTagSource.tick()."""
+
+    @staticmethod
+    def is_socket_open():
+        return True
+
+    @staticmethod
+    def read_coils(address, count):
+        return _FakeCoilResult()
+
+    @staticmethod
+    def read_holding_registers(address, count):
+        return _FakeRegisterResult()
+
+    @staticmethod
+    def close():
+        return None
+
+
+class TestRealReaderPath:
+    def test_tick_output_marks_unread_io_tags_uncertain(self):
+        """End-to-end honesty proof for P1: an envelope built from what
+        ModbusTagSource.tick() ACTUALLY produces (which never populates
+        height_sensor_mm / sort_divert_active from the PLC read) carries
+        those two tags as uncertain, never good."""
+        from factorylm_plc.modbus_tag_source import ModbusTagSource
+
+        source = ModbusTagSource("192.0.2.1")
+        source._client = _FakeModbusClient()
+        snap = source.tick()
+
+        env = build_machine_snapshot_envelope(
+            snap,
+            tenant_id="staging",
+            snapshot_id="snap-tick-0001",
+            gateway_id="edge-gateway-01",
+            source_record_id="factorylm-conv-simple-01",
+            proposed_uns_path="Enterprise/Site/Area/Line/conv_simple",
+        )
+        assert validate_envelope(env) == []
+        assert env["machine_state"] == "running"
+        by_path = {t["tag_path"]: t for t in env["tags"]}
+        assert by_path["conv_simple.height_sensor_mm"]["quality"] == "uncertain"
+        assert by_path["conv_simple.sort_divert_active"]["quality"] == "uncertain"
+        assert by_path["conv_simple.motor_run"]["quality"] == "good"
+        assert by_path["conv_simple.motor_run"]["value"] is True
+        assert by_path["conv_simple.vfd_speed_hz"]["value"] == 45
+
 
 class TestSharedFixtureCompatibility:
     def test_valid_fixture_passes_untouched(self):

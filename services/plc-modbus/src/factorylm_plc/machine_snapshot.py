@@ -34,7 +34,11 @@ import re
 from typing import Any, Dict, List, Tuple
 
 from .models import ERROR_CODES, TagSnapshot
-from .modbus_tag_source import REQUIRED_CANONICAL_TAGS, canonical_tags_from_snapshot
+from .modbus_tag_source import (
+    REQUIRED_CANONICAL_TAGS,
+    canonical_tags_from_snapshot,
+    unsourced_canonical_tags,
+)
 
 SCHEMA_VERSION = "factorylm.machine-snapshot.v1"
 SOURCE_SYSTEM = "plc_bridge"
@@ -93,14 +97,20 @@ def machine_state_from_snapshot(snapshot: TagSnapshot) -> Tuple[str, List[str]]:
     return "stopped", conditions
 
 
-def _tag_quality(tag_path: str, comm_ok: bool) -> str:
+def _tag_quality(tag_path: str, comm_ok: bool, unsourced: frozenset) -> str:
     """Per-tag quality under the downgrade-only rule.
 
-    With comms lost, the measurement values are whatever the bridge last held —
+    A tag whose backing signal was never read (`unsourced` — e.g.
+    height_sensor_mm / sort_divert_active on a bench map with no such I/O) is
+    `uncertain` even with healthy comms: its value is a deterministic default,
+    not an observation, and claiming `good` would invent plant data. With
+    comms lost, the measurement values are whatever the bridge last held —
     `uncertain`, never `good`. `comm_ok` and `fault_code` stay `good` because
     they ARE the bridge's own directly-known state (error code 5 is produced by
     the bridge, not read across the dead link).
     """
+    if tag_path in unsourced:
+        return "uncertain"
     if comm_ok:
         return "good"
     if tag_path in ("conv_simple.comm_ok", "conv_simple.fault_code"):
@@ -140,12 +150,13 @@ def build_machine_snapshot_envelope(
 
     canonical = canonical_tags_from_snapshot(snapshot)
     comm_ok = bool(canonical["conv_simple.comm_ok"])
+    unsourced = unsourced_canonical_tags(snapshot)
 
     tags = [
         {
             "tag_path": tag_path,
             "value": value,
-            "quality": _tag_quality(tag_path, comm_ok),
+            "quality": _tag_quality(tag_path, comm_ok, unsourced),
             "observed_at": captured_at,
         }
         for tag_path, value in sorted(canonical.items())

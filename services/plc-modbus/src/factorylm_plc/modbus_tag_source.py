@@ -48,6 +48,31 @@ REQUIRED_CANONICAL_TAGS = frozenset(
     }
 )
 
+# Canonical tags whose values come from OPTIONAL `io` dict keys rather than
+# the always-read coil/register map. The bench Micro820 map (CLAUDE.md) has no
+# height-sensor or sort-divert I/O, so ModbusTagSource.tick() never populates
+# these keys — canonical_tags_from_snapshot then falls back to 0/False. The
+# envelope producer must downgrade their quality to `uncertain` in that case:
+# a value the bridge never read from the PLC is never "good".
+IO_SOURCED_CANONICAL_TAGS = {
+    "conv_simple.height_sensor_mm": "height_sensor_mm",
+    "conv_simple.sort_divert_active": "sort_divert_active",
+}
+
+
+def unsourced_canonical_tags(snapshot: TagSnapshot) -> frozenset[str]:
+    """Canonical tag paths whose backing `io` key is absent from `snapshot`.
+
+    These tags still appear in canonical_tags_from_snapshot's output (the
+    seven-tag shape is the contract), but with a defaulted — not read —
+    value, so the producer must not claim `good` quality for them.
+    """
+    io = snapshot.io or {}
+    return frozenset(
+        path for path, key in IO_SOURCED_CANONICAL_TAGS.items() if key not in io
+    )
+
+
 CONVEYOR_TAG_ALIASES = {
     "runcommand": "conv_simple.motor_run",
     "motorrun": "conv_simple.motor_run",
