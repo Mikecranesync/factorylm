@@ -63,14 +63,22 @@ class OutputData(BaseModel):
 
 
 class RegisterData(BaseModel):
-    """Holding registers (100-105)."""
+    """Holding registers (100-105).
+
+    Field names MUST match PLCConnection.REGISTER_NAMES (plc_connection.py) —
+    read_io() builds its dict from those names, and Pydantic v2 silently DROPS
+    unknown fields. The placeholder names register_101..105 that used to live
+    here stripped every named VFD value from /api/plc/io and replaced it with
+    the 0 default, so diagnosis read zeros while the PLC reported real data
+    (issue #161). tests/unit/test_backend_models.py pins the parity.
+    """
 
     ItemCount: int = 0
-    register_101: int = 0
-    register_102: int = 0
-    register_103: int = 0
-    register_104: int = 0
-    register_105: int = 0
+    ConveyorHz: int = 0
+    MotorCurrentX10: int = 0
+    MotorTempX10: int = 0
+    VFDStatus: int = 0
+    ErrorCode: int = 0
 
 
 class IOResponse(BaseModel):
