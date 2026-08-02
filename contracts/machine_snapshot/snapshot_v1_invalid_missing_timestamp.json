@@ -45,6 +45,12 @@
       "value": 128.0,
       "quality": "stale",
       "observed_at": "2026-08-01T11:59:30Z"
+    },
+    {
+      "tag_path": "conv_simple.sort_divert_active",
+      "value": false,
+      "quality": "good",
+      "observed_at": "2026-08-01T12:00:00Z"
     }
   ],
   "provenance": {

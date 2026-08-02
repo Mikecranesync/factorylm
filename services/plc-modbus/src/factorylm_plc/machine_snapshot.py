@@ -34,7 +34,7 @@ import re
 from typing import Any, Dict, List, Tuple
 
 from .models import ERROR_CODES, TagSnapshot
-from .modbus_tag_source import canonical_tags_from_snapshot
+from .modbus_tag_source import REQUIRED_CANONICAL_TAGS, canonical_tags_from_snapshot
 
 SCHEMA_VERSION = "factorylm.machine-snapshot.v1"
 SOURCE_SYSTEM = "plc_bridge"
@@ -59,10 +59,13 @@ def _slug(text: str) -> str:
 def machine_state_from_snapshot(snapshot: TagSnapshot) -> Tuple[str, List[str]]:
     """Derive (machine_state, active_conditions) deterministically.
 
-    Precedence: communication loss beats fault beats running — a bridge that
-    cannot talk to the PLC does not know the motor is running, so it must not
-    claim it. Conditions are slugs of the bridge's own ERROR_CODES vocabulary,
-    plus e_stop_active, so the consumer never has to parse prose.
+    Precedence: communication loss beats e-stop beats fault beats running — a
+    bridge that cannot talk to the PLC does not know the motor is running, so
+    it must not claim it, and an active E-stop can never be presented as a
+    merely running machine. States use MIRA's current-state vocabulary
+    (`comm_down`, `estopped`, `faulted`, `running`, `stopped`). Conditions are
+    slugs of the bridge's own ERROR_CODES vocabulary, plus e_stop_active, so
+    the consumer never has to parse prose.
     """
     conditions: List[str] = []
     code = int(snapshot.error_code)
@@ -72,7 +75,10 @@ def machine_state_from_snapshot(snapshot: TagSnapshot) -> Tuple[str, List[str]]:
 
     if code == COMM_LOSS_ERROR_CODE:
         conditions.append(_slug(ERROR_CODES[COMM_LOSS_ERROR_CODE]))
-        return "comm_lost", conditions
+        return "comm_down", conditions
+
+    if bool(snapshot.e_stop):
+        return "estopped", conditions
 
     if bool(snapshot.fault_alarm) or code != 0:
         if code != 0:
@@ -184,6 +190,11 @@ def validate_envelope(envelope: Any) -> List[str]:
             "schema_version must be %r, got %r"
             % (SCHEMA_VERSION, envelope.get("schema_version"))
         )
+    if envelope.get("source_system") != SOURCE_SYSTEM:
+        violations.append(
+            "source_system must be %r, got %r"
+            % (SOURCE_SYSTEM, envelope.get("source_system"))
+        )
     for required in ("snapshot_id", "captured_at", "tenant_id"):
         if not envelope.get(required):
             violations.append("missing required field: %s" % required)
@@ -205,13 +216,17 @@ def validate_envelope(envelope: Any) -> List[str]:
                 "tags[%d] tag_path %r is a raw register reference — canonical "
                 "names only" % (i, path)
             )
+        elif path not in REQUIRED_CANONICAL_TAGS:
+            violations.append(
+                "tags[%d] tag_path %r is not in the canonical FactoryLM tag "
+                "set" % (i, path)
+            )
         if "value" not in tag:
             violations.append("tags[%d] missing value" % i)
-        quality = tag.get("quality")
-        if quality not in VALID_QUALITIES:
-            violations.append(
-                "tags[%d] quality %r not in %s" % (i, quality, sorted(VALID_QUALITIES))
-            )
+        # Unknown/missing quality is NOT a violation: per the PRD, the
+        # consumer downgrades it toward less confidence (`uncertain`), never
+        # to `good` — so the validator accepts it rather than rejecting,
+        # mirroring the MIRA adapter's consumption semantics.
         if not tag.get("observed_at"):
             violations.append("tags[%d] missing observed_at" % i)
 
