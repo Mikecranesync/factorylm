@@ -22,10 +22,136 @@ from __future__ import annotations
 
 import datetime
 import logging
+import re
 
-from net.models.tags import ERROR_CODES, TagSnapshot
+from .models import ERROR_CODES, TagSnapshot
 
 logger = logging.getLogger(__name__)
+
+STARDUST_ZONES = ("launch_1", "launch_2", "station_load", "station_unload")
+STARDUST_SIGNALS = ("block_occupied", "lsm_ready", "brake_ready", "fault_latched")
+
+REQUIRED_CANONICAL_TAGS = frozenset(
+    {
+        "conv_simple.motor_run",
+        "conv_simple.vfd_speed_hz",
+        "conv_simple.vfd_current_amps",
+        "conv_simple.fault_code",
+        "conv_simple.comm_ok",
+        "conv_simple.height_sensor_mm",
+        "conv_simple.sort_divert_active",
+        *{
+            f"stardust.{zone}.{signal}"
+            for zone in STARDUST_ZONES
+            for signal in STARDUST_SIGNALS
+        },
+    }
+)
+
+# Canonical tags whose values come from OPTIONAL `io` dict keys rather than
+# the always-read coil/register map. The bench Micro820 map (CLAUDE.md) has no
+# height-sensor or sort-divert I/O, so ModbusTagSource.tick() never populates
+# these keys — canonical_tags_from_snapshot then falls back to 0/False. The
+# envelope producer must downgrade their quality to `uncertain` in that case:
+# a value the bridge never read from the PLC is never "good".
+IO_SOURCED_CANONICAL_TAGS = {
+    "conv_simple.height_sensor_mm": "height_sensor_mm",
+    "conv_simple.sort_divert_active": "sort_divert_active",
+}
+
+
+def unsourced_canonical_tags(snapshot: TagSnapshot) -> frozenset[str]:
+    """Canonical tag paths whose backing `io` key is absent from `snapshot`.
+
+    These tags still appear in canonical_tags_from_snapshot's output (the
+    seven-tag shape is the contract), but with a defaulted — not read —
+    value, so the producer must not claim `good` quality for them.
+    """
+    io = snapshot.io or {}
+    return frozenset(
+        path for path, key in IO_SOURCED_CANONICAL_TAGS.items() if key not in io
+    )
+
+
+CONVEYOR_TAG_ALIASES = {
+    "runcommand": "conv_simple.motor_run",
+    "motorrun": "conv_simple.motor_run",
+    "motor_running": "conv_simple.motor_run",
+    "conveyor_running": "conv_simple.motor_run",
+    "conveyorhz": "conv_simple.vfd_speed_hz",
+    "vfdhz": "conv_simple.vfd_speed_hz",
+    "vfd_hz": "conv_simple.vfd_speed_hz",
+    "vfdspeedhz": "conv_simple.vfd_speed_hz",
+    "vfd_speed_hz": "conv_simple.vfd_speed_hz",
+    "motorcurrentx10": "conv_simple.vfd_current_amps",
+    "motor_current_x10": "conv_simple.vfd_current_amps",
+    "motor_current": "conv_simple.vfd_current_amps",
+    "vfd_current": "conv_simple.vfd_current_amps",
+    "vfd_amps": "conv_simple.vfd_current_amps",
+    "errorcode": "conv_simple.fault_code",
+    "error_code": "conv_simple.fault_code",
+    "fault_code": "conv_simple.fault_code",
+    "vfd_faultcode": "conv_simple.fault_code",
+    "vfd_fault_code": "conv_simple.fault_code",
+    "commok": "conv_simple.comm_ok",
+    "comm_ok": "conv_simple.comm_ok",
+    "vfd_comm_ok": "conv_simple.comm_ok",
+    "heightsensormm": "conv_simple.height_sensor_mm",
+    "height_sensor_mm": "conv_simple.height_sensor_mm",
+    "sortdivertactive": "conv_simple.sort_divert_active",
+    "sort_divert_active": "conv_simple.sort_divert_active",
+}
+
+
+def _normalize_tag_name(raw_name: str) -> str:
+    """Normalize PLC, Ignition, or operator-facing tag labels for matching."""
+    spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", raw_name)
+    return re.sub(r"[^a-z0-9]+", "_", spaced.lower()).strip("_")
+
+
+def canonical_tag_name(raw_name: str) -> str | None:
+    """Map raw PLC/ride tag names to Hub canonical tag names."""
+    normalized = _normalize_tag_name(raw_name)
+    compact = normalized.replace("_", "")
+    conveyor = CONVEYOR_TAG_ALIASES.get(normalized) or CONVEYOR_TAG_ALIASES.get(compact)
+    if conveyor:
+        return conveyor
+
+    if "stardust" not in compact:
+        return None
+
+    zone_match = None
+    for zone in STARDUST_ZONES:
+        zone_compact = zone.replace("_", "")
+        if zone in normalized or zone_compact in compact:
+            zone_match = zone
+            break
+    if zone_match is None:
+        return None
+
+    for signal in STARDUST_SIGNALS:
+        signal_compact = signal.replace("_", "")
+        if signal in normalized or signal_compact in compact:
+            return f"stardust.{zone_match}.{signal}"
+
+    return None
+
+
+def canonical_tags_from_snapshot(snapshot: TagSnapshot) -> dict[str, bool | int | float]:
+    """Project a Micro820 snapshot into the Hub one-board canonical tags."""
+    io = snapshot.io or {}
+    running = bool(snapshot.motor_running or snapshot.conveyor_running)
+    speed_hz = (snapshot.motor_speed or snapshot.conveyor_speed) if running else 0
+
+    return {
+        "conv_simple.motor_run": running,
+        "conv_simple.vfd_speed_hz": int(speed_hz),
+        "conv_simple.vfd_current_amps": float(snapshot.motor_current),
+        "conv_simple.fault_code": int(snapshot.error_code),
+        "conv_simple.comm_ok": int(snapshot.error_code) != 5,
+        "conv_simple.height_sensor_mm": int(io.get("height_sensor_mm", 0)),
+        "conv_simple.sort_divert_active": bool(io.get("sort_divert_active", False)),
+    }
 
 
 class ModbusTagSource:
