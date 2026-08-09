@@ -9,8 +9,37 @@ Re-exports the core decorators so workers can do::
 import functools
 import logging
 import time
+import uuid
+from contextvars import ContextVar
 
 log = logging.getLogger("factorylm.observability")
+
+LANGFUSE_ENABLED = False
+_trace_id: ContextVar[str | None] = ContextVar("factorylm_trace_id", default=None)
+
+
+class TraceContext:
+    """Minimal trace context used by existing Celery workers."""
+
+    @staticmethod
+    def set(*, trace_id: str) -> None:
+        _trace_id.set(trace_id)
+
+    @staticmethod
+    def clear() -> None:
+        _trace_id.set(None)
+
+
+def generate_trace_id() -> str:
+    return uuid.uuid4().hex
+
+
+def get_trace_id_from_context() -> str | None:
+    return _trace_id.get()
+
+
+def _log_trace(**_kwargs) -> None:
+    """Compatibility hook for workers until a tracing backend is configured."""
 
 
 # ---------------------------------------------------------------------------

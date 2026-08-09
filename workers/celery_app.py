@@ -52,6 +52,8 @@ app = Celery(
         'monitoring.system_health',
         # Synthetic Users - 24/7 KB Builder
         'workers.synthetic_user_tasks',
+        # Hub and MIRA - continuous, adversarial UX review
+        'workers.hub_mira_ux_reviewer_tasks',
         # Keymaster - API Key Guardian
         'workers.keymaster_tasks',
         # Content Capture - YouTube Automation
@@ -176,6 +178,11 @@ app.conf.update(
             'task': 'synth.continuous',
             'schedule': 600.0,  # 10 minutes
             'args': [3, 5],  # 3 sessions of 5 questions each
+        },
+        # Hub and MIRA UX review - bounded cycles, continuously scheduled by Beat
+        'hub-mira-ux-review-every-15-min': {
+            'task': 'hub_mira_ux.continuous',
+            'schedule': 900.0,
         },
         # 🔑 Keymaster - API Key Guardian (30 min intervals)
         'keymaster-scan-every-30-min': {
