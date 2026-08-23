@@ -62,7 +62,9 @@ def scan_logs_for_errors(log_text: str) -> List[str]:
     Returns list of error messages found (empty if clean).
     """
     errors = []
-    if "ModuleNotFoundError" in log_text:
+    # Colon required: a real traceback is always "ModuleNotFoundError: ...";
+    # bare mentions occur legitimately (e.g. commit messages echoed into logs).
+    if "ModuleNotFoundError:" in log_text:
         errors.append("ModuleNotFoundError found in logs")
     if "command not found" in log_text:
         errors.append("command not found error in logs")

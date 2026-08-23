@@ -115,6 +115,13 @@ class TestScanLogsForErrors:
         errors = scan_logs_for_errors(logs)
         assert len(errors) >= 2
 
+    def test_bare_mention_without_colon_is_not_an_error(self):
+        # Regression: PR #214's own commit message, echoed into the brain-ingest
+        # log, contains the bare string and must not trip the scanner.
+        logs = "docs: fails on ModuleNotFoundError/command-not-found no-ops\n"
+        errors = scan_logs_for_errors(logs)
+        assert not any("ModuleNotFoundError" in e for e in errors)
+
 
 class TestGetCheckRunsForSha:
     """Test SHA-pinned check-run fetching, incl. --paginate concatenated JSON."""
