@@ -105,3 +105,7 @@ _BUILDS/
 
 # Serena memories (local)
 .serena/memories/
+
+# Runtime work-claim leases (scripts/agent_claim.py) — session-local state, never committed
+.agents/leases/
+.verify_green/

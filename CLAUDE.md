@@ -169,6 +169,16 @@ Features, Antfarm workflows, and the `telegram_trainer` skill all operate within
 
 For cluster topology, the 7 Laws, and ops procedures see **[CLUSTER.md](CLUSTER.md)**.
 
+## Claude Improvement Tracker (insights-derived hardening)
+
+Usage-insights reports and their implementations are tracked in
+**[docs/insights/README.md](docs/insights/README.md)** — check it before
+implementing any insights recommendation (it may already exist). The
+cluster-wide rules, hooks, and skills live in **[infra/claude/](infra/claude/README.md)**;
+install/update on any node with `bash ~/factorylm/infra/claude/install.sh`.
+Key tools: `scripts/verify_green.py <pr>` (machine-checked green verdict),
+`scripts/agent_claim.py` (work-claim ledger so parallel sessions never duplicate).
+
 ---
 
 ## Active Focus Window (Revenue Priority)
