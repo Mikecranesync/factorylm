@@ -1,0 +1,78 @@
+# =========================================================================
+# MANAGED BY FACTORYLM ANSIBLE — DO NOT EDIT BY HAND
+# Source: infra/ansible/templates/ssh_config.j2
+# Roster: /Users/Shared/cluster/betterclaw/memory/automated-agents-roster.md
+# Edits land here via: ansible-playbook -i inventory.ini playbook.yml
+# =========================================================================
+
+Include {{ ansible_env.HOME }}/.colima/ssh_config
+
+# Global defaults — keep connections healthy, reuse via ControlMaster.
+Host *
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/cm-%r@%h:%p
+    ControlPersist 10m
+
+# -------------------------------------------------------------------------
+# ALPHA — orchestrator Mac Mini (Tailscale)
+Host alpha
+    HostName 100.107.140.12
+    User factorylm
+    IdentityFile {{ ansible_env.HOME }}/.ssh/id_ed25519
+
+# -------------------------------------------------------------------------
+# BRAVO — compute Mac Mini. Default = Tailscale; use bravo-lan for same-subnet.
+Host bravo
+    HostName 100.86.236.11
+    User bravonode
+    IdentityFile {{ ansible_env.HOME }}/.ssh/id_ed25519
+
+Host bravo-lan
+    HostName 192.168.1.11
+    User bravonode
+
+Host bravo-tailscale
+    HostName 100.86.236.11
+    User bravonode
+    IdentityFile {{ ansible_env.HOME }}/.ssh/id_ed25519
+
+# -------------------------------------------------------------------------
+# CHARLIE — KB Mac Mini (Tailscale — useful when running from ALPHA/BRAVO)
+Host charlie
+    HostName 100.70.49.126
+    User charlienode
+    IdentityFile {{ ansible_env.HOME }}/.ssh/id_ed25519
+
+# -------------------------------------------------------------------------
+# PLC laptop (Tailscale, Windows)
+Host plc
+    HostName 100.72.2.99
+    User hharp
+
+# -------------------------------------------------------------------------
+# TRAVEL laptop (Tailscale, Windows)
+Host travel
+    HostName 100.83.251.23
+    User hharp
+
+# -------------------------------------------------------------------------
+# FactoryLM production VPS — Tailscale-first, public-IP fallback.
+Host prod factorylm-prod
+    HostName 100.68.120.99
+    User root
+    IdentityFile {{ ansible_env.HOME }}/.ssh/id_ed25519
+
+Host prod-public factorylm-prod-public
+    HostName 165.245.138.91
+    User root
+    IdentityFile {{ ansible_env.HOME }}/.ssh/id_ed25519
+
+# -------------------------------------------------------------------------
+# PI edge node (currently offline; entry kept for when it wakes)
+Host pi
+    HostName 100.66.216.6
+    User pi
+    IdentityFile {{ ansible_env.HOME }}/.ssh/id_ed25519

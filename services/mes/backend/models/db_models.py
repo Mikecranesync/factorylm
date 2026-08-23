@@ -121,6 +121,8 @@ class WorkOrder(Base):
     actual_start     = Column(DateTime(timezone=True))
     actual_end       = Column(DateTime(timezone=True))
     notes            = Column(Text)
+    cmms_ref         = Column(Text)                            # GitHub Gist ID once synced
+    cmms_synced_at   = Column(DateTime(timezone=True))         # timestamp of last CMMS push
     created_at       = Column(DateTime(timezone=True), server_default=text("NOW()"))
     updated_at       = Column(DateTime(timezone=True), server_default=text("NOW()"), onupdate=datetime.utcnow)
 

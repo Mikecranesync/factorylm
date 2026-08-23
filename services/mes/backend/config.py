@@ -24,8 +24,15 @@ class Settings(BaseSettings):
     # Polling interval in seconds (default 5, set lower in tests)
     plc_poll_interval_sec: int = 5
 
-    # Set True to skip poller startup (useful in unit tests)
+    # OEE calculator tick interval in seconds (default 60)
+    oee_tick_sec: int = 60
+
+    # Set True to skip background task startup (useful in unit tests)
     plc_use_mock: bool = False
+
+    # CMMS sync via GitHub Gist — disabled by default (set token to enable)
+    cmms_enabled: bool = False
+    cmms_github_token: str = ""   # GitHub PAT with gist scope (via Doppler)
 
 
 settings = Settings()

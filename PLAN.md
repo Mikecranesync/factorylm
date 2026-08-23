@@ -1,86 +1,92 @@
-# PLAN: MES Core — Week 2 (Modbus Machine State Reader)
+# PLAN: MES Core — Week 6 (Atlas CMMS Bidirectional Sync)
 
-**Branch:** `feat/mes-week2-state-reader`
-**Issue:** Mikecranesync/MIRA#320
-**PRD:** `docs/PRD-MES-CORE.md`
-**Date:** 2026-04-15
-**Depends on:** Week 1 (feat/mes-week1-db-schema) merged
+**Branch:** `feat/mes-week6-cmms-sync`
+**Issue:** Mikecranesync/MIRA#324
+**PRD:** `docs/PRD-MES-CORE.md §3 (ERP/CMMS Integration)`
+**Date:** 2026-04-16
+**Depends on:** Weeks 1–5 merged
 
 ---
 
 ## Objective
 
-Build the machine state reader: a background poller that reads the plc-modbus HTTP API every 5 seconds per configured line, detects state transitions (RUNNING/DOWN/IDLE/OFFLINE), writes them to `machine_states`, and exposes `GET /api/mes/lines` and `GET /api/mes/lines/{id}/state` REST endpoints.
+Bidirectional sync between the MES work order system and Atlas CMMS
+(implemented as a GitHub Gist-based portable work order format — see
+`cmms/gist_work_order.py` for the existing pattern).
+
+- **MES → CMMS (outbound)**: POST /api/mes/cmms/sync/{id} pushes a WO as a
+  Gist document (Markdown + CSV) readable by any CMMS.
+- **CMMS → MES (inbound)**: POST /api/mes/cmms/ingest accepts a CMMS work order
+  payload and creates/updates a WO in the MES database.
+- `cmms_enabled` config gate: sync is opt-in; tests run with it disabled.
 
 ## Affected Files
 
 **New:**
-- `services/mes/backend/services/__init__.py`
-- `services/mes/backend/services/plc_client.py`    — async HTTP client wrapping plc-modbus
-- `services/mes/backend/services/state_machine.py` — pure state detection from IO snapshot
-- `services/mes/backend/services/state_poller.py`  — asyncio background poll loop
-- `services/mes/backend/routes/lines.py`           — GET /api/mes/lines, GET /lines/{id}/state
-- `services/mes/tests/test_machine_states.py`      — 10 unit tests, all mocked
+- `services/mes/alembic/versions/0002_add_cmms_ref.py`  — adds cmms_ref + cmms_synced_at to work_orders
+- `services/mes/backend/services/cmms_client.py`         — CMMS Gist HTTP adapter
+- `services/mes/backend/routes/cmms.py`                  — sync endpoints
+- `services/mes/tests/test_cmms.py`                      — unit tests
 
 **Modified:**
-- `services/mes/requirements.txt`  — add httpx
-- `services/mes/backend/config.py` — add plc_modbus_url setting
-- `services/mes/backend/main.py`   — wire poller into lifespan, add lines router
-- `docker-compose.yml`             — add PLC_MODBUS_URL env to mes container
+- `services/mes/backend/models/db_models.py`             — WorkOrder gets cmms_ref, cmms_synced_at
+- `services/mes/backend/config.py`                       — cmms_enabled, cmms_github_token
+- `services/mes/backend/main.py`                         — include cmms router
+- `PLAN.md`
+
+---
 
 ## Approach
 
-1. `plc_client.py` — thin async wrapper around `GET /api/plc/io` (httpx). Raises `PLCOfflineError` on timeout/connection failure so caller can set OFFLINE state.
-2. `state_machine.py` — pure function `detect_state(io_data)` → `(MachineStateEnum, reason_code | None)`. Derived from `VFDStatus` and `ErrorCode` registers. No DB or network calls — fully testable without mocks.
-3. `state_poller.py` — asyncio task, one iteration per line every 5s. Maintains in-memory cache to avoid DB reads on every tick. Writes to `machine_states` only on transition.
-4. `lines.py` routes — two endpoints: list all lines (from DB), get current state (from in-memory cache + last DB row).
-5. `main.py` lifespan — start poller task on startup, cancel on shutdown.
+### 1. DB migration 0002
 
-State transition write: close open row (`ended_at = NOW()`), insert new row.
+Adds to work_orders:
+  - `cmms_ref TEXT` — GitHub Gist ID once synced (NULL = not yet pushed)
+  - `cmms_synced_at TIMESTAMPTZ` — timestamp of last successful push
 
-## State Machine
+### 2. CMMS Client (`cmms_client.py`)
 
-```
-IO: VFDStatus=1, ErrorCode=0  → RUNNING
-IO: VFDStatus=2 OR ErrorCode>0 → DOWN  (reason_code from ErrorCode map)
-IO: VFDStatus=0, ErrorCode=0  → IDLE
-HTTP failure / timeout         → OFFLINE
-```
+Sync HTTP adapter using `httpx.Client`. Controlled by `settings.cmms_enabled`.
+When disabled, `push_work_order()` returns a mock response — no real API calls.
 
-## ErrorCode → reason_code map
+Functions:
+- `format_work_order(wo, line_name, product_sku, product_name) -> dict`
+  Maps MES WO fields to the CMMS Gist metadata schema.
+- `push_work_order(metadata, gist_id=None) -> dict`
+  Creates Gist if gist_id is None, updates if provided.
+  Returns `{gist_id, gist_url}`.
 
-```python
-{1: "OVERLOAD", 2: "OVERHEAT", 3: "SENSOR_FAIL", 4: "JAM", 7: "E_STOP"}
-```
+GitHub Gist API:
+  POST  https://api.github.com/gists                 — create
+  PATCH https://api.github.com/gists/{gist_id}       — update
+
+### 3. CMMS Routes (`cmms.py`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/mes/cmms/sync/{work_order_id}` | Push WO to CMMS Gist; saves cmms_ref back to DB |
+| GET  | `/api/mes/cmms/sync/{work_order_id}` | Return sync status (cmms_ref, cmms_synced_at) |
+| POST | `/api/mes/cmms/ingest`              | Import CMMS work order → create/update in MES |
+
+Ingest body resolves product by SKU, line by name. Creates WO as PENDING
+with `cmms_ref` already populated (marks it as CMMS-originated).
+
+---
 
 ## Risks
 
-- plc-modbus in mock mode returns VFDStatus=0 at rest — poller sees IDLE immediately (expected)
-- Multiple lines share one plc-modbus service currently — same io_data, different `line_id` rows
+- `cmms_enabled=False` must short-circuit cleanly in both sync and ingest paths.
+- GitHub token is a secret — never logged or returned in API responses.
+- `cmms_ref` uniqueness: if the same WO is synced twice, update the Gist, don't create a second.
 
 ## Rollback
 
-```bash
-git checkout feat/mes-week1-db-schema
-```
+Delete new files, remove import from main.py.
+Run migration downgrade: `ALTER TABLE work_orders DROP COLUMN cmms_ref; DROP COLUMN cmms_synced_at;`
 
-## Verification Steps
+## Verification
 
-```bash
-# Unit tests (no docker needed)
-cd services/mes && pytest tests/test_machine_states.py -v
-
-# Integration: start stack, check state endpoint
-docker compose up mes-db mes plc-modbus -d
-curl localhost:8300/api/mes/lines
-curl localhost:8300/api/mes/lines/<id>/state
-
-# Inject a fault and verify DB transition
-curl -X POST localhost:8001/api/plc/mock/fault -H "Content-Type: application/json" -d '{"fault_type":"jam"}'
-sleep 8
-curl localhost:8300/api/mes/lines/<id>/state  # should show DOWN / JAM
-```
-
-## Note on Active Focus Window
-
-Explicitly authorized by Mike (2026-04-15 session).
+1. `pytest tests/test_cmms.py -v` — all new tests pass
+2. `pytest tests/ -v` — full suite (95 + new) passes, zero regressions
+3. With cmms_enabled=False: sync endpoint returns 200 with mock gist_id
+4. Ingest: POST with valid line/product → WO appears in GET /api/mes/work-orders

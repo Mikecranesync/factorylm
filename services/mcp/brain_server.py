@@ -25,8 +25,9 @@ app = FastMCP("factorylm-brain")
 _memory = None
 _setup_error = None
 
-# Check env vars on import so we can give a helpful message
-_REQUIRED_VARS = ["NEON_DATABASE_URL", "GEMINI_API_KEY", "GROQ_API_KEY"]
+# Check env vars on import so we can give a helpful message.
+# Embeddings now use local Ollama (no API key required); see services/brain/config.py.
+_REQUIRED_VARS = ["NEON_DATABASE_URL", "GROQ_API_KEY"]
 _missing = [v for v in _REQUIRED_VARS if not os.environ.get(v)]
 if _missing:
     _setup_error = (
@@ -34,8 +35,8 @@ if _missing:
         "To set up: install Doppler CLI (doppler.com), then run the brain MCP server via "
         ".mcp.json which uses Doppler to inject secrets. "
         "Needed: NEON_DATABASE_URL (Doppler openclaw/dev), "
-        "GEMINI_API_KEY (Doppler factorylm/dev), "
         "GROQ_API_KEY (Doppler openclaw/dev). "
+        "Embeddings via local Ollama (nomic-embed-text on http://localhost:11434) — no API key. "
         "See CLAUDE.md 'Open Brain — Startup Protocol' for details."
     )
     logger.warning("Brain MCP: %s", _setup_error)
@@ -52,7 +53,8 @@ def _get_memory():
         except Exception as e:
             raise RuntimeError(
                 f"Brain failed to initialize: {e}. "
-                "Check that NEON_DATABASE_URL, GEMINI_API_KEY, GROQ_API_KEY are set correctly."
+                "Check that NEON_DATABASE_URL and GROQ_API_KEY are set, and that "
+                "Ollama is running locally with nomic-embed-text pulled."
             ) from e
     return _memory
 
@@ -171,16 +173,9 @@ def brain_ingest_file(file_path: str, source: str = "repo", tags: list[str] = []
     except RuntimeError as e:
         return {"error": str(e)}
 
-<<<<<<< HEAD
     from kb.chunker import chunk_file
 
     chunks = chunk_file(file_path, extra_metadata={"tags": tags})
-=======
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
-    # Chunk large files by paragraphs
-    chunks = [c.strip() for c in content.split("\n\n") if c.strip() and len(c.strip()) > 50]
->>>>>>> 433ffad (feat(brain): graceful fallback + Open Brain startup protocol)
 
     if not chunks:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -256,4 +251,13 @@ def brain_stats() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run()
+    # Honor MCP_TRANSPORT/MCP_HOST/MCP_PORT from the launchd plist.
+    # Without this, app.run() defaults to stdio and exits immediately
+    # when launched as a long-running service.
+    transport = os.environ.get("MCP_TRANSPORT", "stdio")
+    if transport in ("sse", "streamable-http"):
+        host = os.environ.get("MCP_HOST", "127.0.0.1")
+        port = int(os.environ.get("MCP_PORT", "8000"))
+        app.settings.host = host
+        app.settings.port = port
+    app.run(transport=transport)
