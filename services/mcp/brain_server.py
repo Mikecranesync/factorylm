@@ -249,4 +249,13 @@ def brain_stats() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run()
+    # Honor MCP_TRANSPORT/MCP_HOST/MCP_PORT from the launchd plist.
+    # Without this, app.run() defaults to stdio and exits immediately
+    # when launched as a long-running service.
+    transport = os.environ.get("MCP_TRANSPORT", "stdio")
+    if transport in ("sse", "streamable-http"):
+        host = os.environ.get("MCP_HOST", "127.0.0.1")
+        port = int(os.environ.get("MCP_PORT", "8000"))
+        app.settings.host = host
+        app.settings.port = port
+    app.run(transport=transport)
