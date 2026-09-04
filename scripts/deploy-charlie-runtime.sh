@@ -48,15 +48,24 @@ echo "[3/4] LaunchAgents"
 for label in $AGENTS; do
   src="$RUNTIME/infra/launchd/charlie/$label.plist"
   [ -f "$src" ] || { echo "      missing $src" >&2; exit 1; }
-  cp "$src" "$AGENTS_DIR/$label.plist"
-  launchctl bootout "gui/$UID_/$label" 2>/dev/null || true
-  # bootout of a KeepAlive job is asynchronous; bootstrapping the same label
-  # before teardown finishes fails with "5: Input/output error".
-  for _ in $(seq 1 30); do
-    launchctl print "gui/$UID_/$label" >/dev/null 2>&1 || break
-    sleep 0.5
-  done
-  launchctl bootstrap "gui/$UID_" "$AGENTS_DIR/$label.plist"
+  if cmp -s "$src" "$AGENTS_DIR/$label.plist" && launchctl print "gui/$UID_/$label" >/dev/null 2>&1; then
+    # plist unchanged and loaded: kickstart alone restarts the process on the
+    # new checkout, and avoids the bootout/bootstrap race entirely.
+    :
+  else
+    cp "$src" "$AGENTS_DIR/$label.plist"
+    launchctl bootout "gui/$UID_/$label" 2>/dev/null || true
+    # bootout of a KeepAlive job is asynchronous and `launchctl print` stops
+    # finding the label BEFORE teardown finishes, so polling print is not
+    # enough: bootstrap in that window fails with "5: Input/output error".
+    # Retry the bootstrap itself; on 2026-09-04 the window was a few seconds.
+    ok=0
+    for _ in $(seq 1 30); do
+      if launchctl bootstrap "gui/$UID_" "$AGENTS_DIR/$label.plist" 2>/dev/null; then ok=1; break; fi
+      sleep 1
+    done
+    [ "$ok" -eq 1 ] || { echo "      could not bootstrap $label after 30 s" >&2; exit 1; }
+  fi
   launchctl kickstart -k "gui/$UID_/$label"
   echo "      restarted $label"
 done
