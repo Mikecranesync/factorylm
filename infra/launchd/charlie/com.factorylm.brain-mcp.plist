@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.factorylm.brain-mcp</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/charlienode/.local/bin/doppler</string>
+        <string>run</string>
+        <string>-p</string>
+        <string>factorylm</string>
+        <string>-c</string>
+        <string>dev</string>
+        <string>--</string>
+        <string>/Users/charlienode/brain-venv/bin/python3</string>
+        <string>-m</string>
+        <string>services.mcp.brain_server</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/charlienode/.factorylm/runtime/factorylm</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>MCP_HOST</key>
+        <string>0.0.0.0</string>
+        <key>MCP_PORT</key>
+        <string>8501</string>
+        <key>MCP_TRANSPORT</key>
+        <string>streamable-http</string>
+        <key>BRAIN_ACCESS_KEY</key>
+        <string></string>
+        <key>PATH</key>
+        <string>/Users/charlienode/brain-venv/bin:/Users/charlienode/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/tmp/brain-mcp/stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/brain-mcp/stderr.log</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+</dict>
+</plist>

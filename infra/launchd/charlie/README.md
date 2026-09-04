@@ -7,36 +7,43 @@ Source of truth for the user LaunchAgents that run on CHARLIE
 | Label | Program | Schedule | Tracked here |
 |---|---|---|---|
 | `com.factorylm.health-monitor` | `scripts/health-check.sh` | every 300 s | yes |
-| `com.factorylm.brain-ingest` | uvicorn `services.brain.ingest:app` :8500 | KeepAlive | no — written by `scripts/deploy-charlie-brain.sh` |
-| `com.factorylm.brain-mcp` | `services.mcp.brain_server` :8501 (streamable-http) | KeepAlive | no — carries a Doppler-injected env; see #223 |
+| `com.factorylm.brain-ingest` | uvicorn `services.brain.ingest:app` :8500 | KeepAlive | yes |
+| `com.factorylm.brain-mcp` | `services.mcp.brain_server` :8501 (streamable-http) | KeepAlive | yes |
 | `com.factorylm.vastai-tunnel` | autossh to a rented vast.ai box | KeepAlive | **unloaded 2026-09-02** (#222) |
 | `com.mira.slack-agent` | `slack run` in `mira-bots/mira-maintenance-agent` | KeepAlive | **unloaded 2026-09-02** (#222) |
 
-## Install / update the health monitor
+## The runtime checkout (why nothing here runs from `~/factorylm`)
 
-The agent runs a **copy** of the script from `~/.factorylm/bin/`, not the
-checkout, so it keeps working whatever branch `~/factorylm` happens to be on
-(brain-mcp runs straight from the checkout, which is how a half-resolved merge
-on one branch took it down — #220). Re-run this after changing the script.
+All three tracked agents run from **`~/.factorylm/runtime/factorylm`**, a
+shallow detached clone that only `scripts/deploy-charlie-runtime.sh` moves.
+`~/factorylm` is a developer working tree: several Claude/Codex sessions switch
+its branch, and one half-resolved merge there put brain-mcp into a 37k-respawn
+loop that nothing noticed (#220, #223). A service that must run unattended
+cannot depend on which branch a human last left a checkout on.
+
+## Install / update
 
 ```bash
-mkdir -p ~/.factorylm/bin
-cp scripts/health-check.sh ~/.factorylm/bin/health-check.sh
-cp infra/launchd/charlie/com.factorylm.health-monitor.plist ~/Library/LaunchAgents/
-launchctl bootout gui/$(id -u)/com.factorylm.health-monitor 2>/dev/null
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.factorylm.health-monitor.plist
-launchctl kickstart -k gui/$(id -u)/com.factorylm.health-monitor
-tail -3 /tmp/factorylm-health.log
+bash scripts/deploy-charlie-runtime.sh          # main
+bash scripts/deploy-charlie-runtime.sh v1.2.3   # or any ref
 ```
 
-The script writes one status line per run to `/tmp/factorylm-health.log` and
-appends to `/tmp/factorylm-health.alerts` only when the failure set changes.
-To also post those alerts to Discord/Slack, put a single webhook URL in
-`~/.factorylm/health/webhook_url` (mode 600). It is read at runtime and is
-never committed.
+That clones or fast-forwards the runtime, installs brain deps into
+`~/brain-venv`, copies the plists from this directory *as they exist at the
+deployed ref*, restarts the three agents, and verifies each from the outside
+(ingest `/health`, an MCP `initialize` on :8501, the working directory launchd
+reports, the monitor's exit code). Every deploy appends `<time> <ref> <sha>` to
+`~/.factorylm/runtime/DEPLOYED`. Roll back by deploying the previous sha.
 
-State (per-agent `runs` counters, last failure set) lives in
-`~/.factorylm/health/`. Delete it to reset crash-loop baselines.
+The health monitor writes one status line per run to
+`/tmp/factorylm-health.log` and appends to `/tmp/factorylm-health.alerts`
+only when the failure set changes. To also post alerts to Discord/Slack, put a
+single webhook URL in `~/.factorylm/health/webhook_url` (mode 600). It is read
+at runtime and never committed. State (per-agent `runs` counters, last failure
+set) lives in `~/.factorylm/health/`; delete it to reset crash-loop baselines.
+
+Secrets are not in these plists: the brain agents get theirs from
+`doppler run -p factorylm -c dev` at start.
 
 ## Why two agents were unloaded (#222)
 

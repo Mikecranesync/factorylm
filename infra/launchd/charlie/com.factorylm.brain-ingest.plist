@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.factorylm.brain-ingest</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/charlienode/.local/bin/doppler</string>
+        <string>run</string>
+        <string>-p</string>
+        <string>factorylm</string>
+        <string>-c</string>
+        <string>dev</string>
+        <string>--</string>
+        <string>/Users/charlienode/brain-venv/bin/python3</string>
+        <string>-m</string>
+        <string>uvicorn</string>
+        <string>services.brain.ingest:app</string>
+        <string>--host</string>
+        <string>0.0.0.0</string>
+        <string>--port</string>
+        <string>8500</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/charlienode/.factorylm/runtime/factorylm</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/charlienode/brain-venv/bin:/Users/charlienode/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/tmp/brain-ingest.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/brain-ingest.err</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+</dict>
+</plist>
