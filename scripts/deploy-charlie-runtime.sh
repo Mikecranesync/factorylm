@@ -27,7 +27,11 @@ AGENTS="com.factorylm.brain-ingest com.factorylm.brain-mcp com.factorylm.health-
 echo "[1/4] runtime checkout ($REF)"
 if [ ! -d "$RUNTIME/.git" ]; then
   mkdir -p "$(dirname "$RUNTIME")"
-  git clone --quiet --depth 1 --single-branch --branch "$REF" "$ORIGIN" "$RUNTIME"
+  # sparse + blob-filtered: the agents import nothing outside services/, and the
+  # full tree is ~650 MB of cookoff/simulation assets on a volume that is
+  # chronically near full.
+  git clone --quiet --depth 1 --single-branch --branch "$REF" --filter=blob:none --sparse "$ORIGIN" "$RUNTIME"
+  git -C "$RUNTIME" sparse-checkout set services scripts infra
 else
   git -C "$RUNTIME" fetch --quiet --depth 1 origin "$REF"
   git -C "$RUNTIME" checkout --quiet --detach FETCH_HEAD
@@ -46,6 +50,12 @@ for label in $AGENTS; do
   [ -f "$src" ] || { echo "      missing $src" >&2; exit 1; }
   cp "$src" "$AGENTS_DIR/$label.plist"
   launchctl bootout "gui/$UID_/$label" 2>/dev/null || true
+  # bootout of a KeepAlive job is asynchronous; bootstrapping the same label
+  # before teardown finishes fails with "5: Input/output error".
+  for _ in $(seq 1 30); do
+    launchctl print "gui/$UID_/$label" >/dev/null 2>&1 || break
+    sleep 0.5
+  done
   launchctl bootstrap "gui/$UID_" "$AGENTS_DIR/$label.plist"
   launchctl kickstart -k "gui/$UID_/$label"
   echo "      restarted $label"
