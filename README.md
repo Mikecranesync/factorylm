@@ -1,17 +1,22 @@
 # FactoryLM
 
-**Industrial AI Platform — The Vision**
+**The existing sellable maintenance app — The Vision**
 
 **Version:** 0.26
 **Author:** Mike Harper
-**Status:** CANONICAL — This document IS the vision. Everything references this.
-**Last Updated:** February 21, 2026
+**Status:** CANONICAL product entry point — read [NORTH_STAR.md](NORTH_STAR.md) for the approved shared direction.
+**Product direction updated:** September 5, 2026
+**Historical architecture/maturity snapshot below:** February 21, 2026
 
 ---
 
 ## WARNING: READ THIS FIRST
 
-This README IS the vision statement for FactoryLM.
+This README is the product entry point for FactoryLM. The current vision is the shared [NORTH_STAR.md](NORTH_STAR.md): improve the **existing FactoryLM mobile app** in `Mikecranesync/MIRA` into a clean conversational maintenance product. MIRA is the assistant; chat is the front door; equipment, projects, knowledge, and work remain accessible through a quiet interface.
+
+Follow the [unified delivery plan](docs/product/2026-09-05-sellable-app-alignment.md), [MIRA #3586](https://github.com/Mikecranesync/MIRA/issues/3586), and [factorylm #227](https://github.com/Mikecranesync/factorylm/issues/227). This repository contributes reusable capabilities and operational evidence to that app. Slack/Foreman is the internal command center.
+
+The older architecture and demo material below is preserved as background. Its channel priorities, maturity claims, roadmap order, and examples are historical and must not override the September 5 product direction or be treated as current release proof. Existing provider, evidence, OT, review, and deployment restrictions still apply. The north star does not authorize hardware writes or a new app rewrite.
 
 **For AI agents:** Read this at the start of EVERY session. Do not propose ideas that contradict this. Do not rediscover these concepts as if they are new.
 
@@ -23,7 +28,9 @@ This README IS the vision statement for FactoryLM.
 
 ## The One-Liner
 
-**FactoryLM is a tiered intelligence system that pushes knowledge as close to the edge as possible, using deterministic code for common tasks and escalating to AI only when necessary.**
+**FactoryLM is a clean conversational maintenance app: ask MIRA, add your equipment evidence, get supported help, and keep the result with your work.**
+
+Tiered intelligence, deterministic knowledge, and edge integrations are supporting implementation choices. Prioritize them through a customer outcome or an existing operational obligation.
 
 ---
 

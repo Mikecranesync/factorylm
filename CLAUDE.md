@@ -65,7 +65,7 @@ All changes follow this pipeline — no exceptions:
 Before doing ANY work, read the FactoryLM Vision:
 **https://github.com/Mikecranesync/factorylm/blob/main/README.md**
 
-That document IS the architecture. Do not propose ideas that contradict it.
+Read `NORTH_STAR.md` and `docs/product/2026-09-05-sellable-app-alignment.md` with the README. The approved September 5 direction is the existing sellable mobile app in `Mikecranesync/MIRA`, with this repository supplying reusable capabilities. Link work to MIRA #3586 and factorylm #227. Earlier product/channel priorities are superseded; existing safety, provider, scope, review, and deployment controls remain in force.
 
 > **System Spec:** See [`docs/specs/factorylm-system-spec-v1.md`](docs/specs/factorylm-system-spec-v1.md) for the detailed V1+ target architecture (milestones, KB standards, anti-regression). Status: Draft.
 
@@ -82,12 +82,12 @@ Intelligence flows DOWNWARD. Convert Layer 3 answers into Layer 0 code over time
 
 > **Target Architecture (V1+):** The visual workflow requirement and 5-layer model are defined in [`docs/specs/factorylm-system-spec-v1.md`](docs/specs/factorylm-system-spec-v1.md) — not enforced today, but the direction we're heading.
 
-### Interfaces (Priority Order)
-1. WhatsApp (PRIMARY)
-2. Phone
-3. Telegram
-4. Slack
-5. Halo Glasses
+### Interfaces (Product Priority — 2026-09-05)
+1. Existing FactoryLM mobile app in `Mikecranesync/MIRA`: clean MIRA conversation, evidence, and durable work.
+2. Existing web companion: shared access, onboarding, and administration.
+3. Slack/Foreman: Mike's internal delivery and operational command center.
+4. Retained Telegram/WhatsApp and other integrations: support existing users; new scope follows customer evidence.
+5. Additional device/edge surfaces: later unless a named pilot or maintenance obligation needs them.
 
 ### The Rule
 When Mike says "update the README" → Update the VISION.
@@ -95,9 +95,9 @@ Everything references the vision. One source of truth.
 
 ---
 
-## V0-V3 Phased Milestones
+## Historical V0-V3 Phased Milestones
 
-*Target architecture — see [full spec](docs/specs/factorylm-system-spec-v1.md) for detail.*
+*Architecture reference — see [full spec](docs/specs/factorylm-system-spec-v1.md). The current execution order is the shared app delivery plan; these milestones are not automatic authorization for additional scope or equipment writes.*
 
 - **V0: Resurrection** — Audit codebase, map what exists, reconnect broken services, establish baselines
 - **V1: Solo Technician** — One tech queries via Telegram, gets sourced answers from KB + LLM fallback
@@ -183,7 +183,7 @@ Key tools: `scripts/verify_green.py <pr>` (machine-checked green verdict),
 
 ## Active Focus Window (Revenue Priority)
 
-**Current objective:** V1 Solo Technician — Telegram bot answers from KB with citations.
+**Current objective:** Support the existing sellable FactoryLM mobile app with reliable, evidence-backed capabilities. Follow `NORTH_STAR.md` and the shared delivery plan. The previous Telegram-first objective is historical. The path-level boundaries below remain restrictions, not blanket permission to modify other apps; app UI work belongs in its existing MIRA checkout.
 
 **IN SCOPE — touch freely:**
 - `services/troubleshoot/**` — Telegram polling bot + engine
