@@ -1,0 +1,16 @@
+{
+  "name": "FactoryLM",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "plc-modbus-api",
+      "command": "cd services/plc-modbus && FACTORYLM_MOCK_MODE=true ../../.venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 8001"
+    }
+  ],
+  "ports": [
+    {
+      "name": "PLC Modbus API",
+      "port": 8001
+    }
+  ]
+}
