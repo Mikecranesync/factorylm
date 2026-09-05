@@ -1,5 +1,7 @@
 ## ⚠️ READ FIRST: The Vision
 
+**Current product priority (2026-09-05):** Read [NORTH_STAR.md](../NORTH_STAR.md) and the [unified delivery plan](../docs/product/2026-09-05-sellable-app-alignment.md). The existing FactoryLM mobile app in `Mikecranesync/MIRA` is the primary customer product. This repo contributes reusable supporting services and integrations; Slack/Foreman is internal. Tie work to an app outcome or existing maintenance obligation. Historical channel/architecture priorities below do not supersede this direction; current safety, evidence, provider, and release rules remain in force.
+
 Before doing ANY work, read the FactoryLM Vision:
 **https://github.com/Mikecranesync/factorylm/blob/main/README.md**
 

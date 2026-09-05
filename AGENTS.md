@@ -1,14 +1,17 @@
 # AGENTS.md — Instructions for AI Agents Working in This Repo
 
-**Last Updated:** 2026-02-12
+**Product direction updated:** 2026-09-05; technical maturity details below require current verification.
 
 ---
 
 ## Step 1: Read the Vision
 
-Before doing ANY work, read **[README.md](README.md)** — it IS the architecture.
+Before doing ANY work, read **[README.md](README.md)**, the shared **[NORTH_STAR.md](NORTH_STAR.md)**, and the **[delivery plan](docs/product/2026-09-05-sellable-app-alignment.md)**. Improve the existing mobile app in `Mikecranesync/MIRA`; this repo supplies reusable supporting capabilities. Link tasks to [MIRA #3586](https://github.com/Mikecranesync/MIRA/issues/3586) and [factorylm #227](https://github.com/Mikecranesync/factorylm/issues/227). The approved direction supersedes older channel/roadmap priorities, while existing safety and engineering rules remain in force.
 
 Key takeaways:
+- The existing mobile app is the customer front door; MIRA is the assistant
+- Slack/Foreman is the internal delivery command center
+- Tie work to app usefulness, release proof, customer learning, or an existing maintenance obligation
 - 4-layer intelligence stack (Layer 0 = code/KB → Layer 3 = cloud AI)
 - Intelligence flows DOWNWARD — the goal is LESS AI over time
 - **Read-only** — FactoryLM never writes to PLCs

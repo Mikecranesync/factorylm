@@ -1,3 +1,48 @@
+# PLAN: Approved sellable-app direction — September 5, 2026
+
+**Slice:** `FLM-APP-NORTH-STAR-2026-09-05`
+**Branch:** `docs/sellable-app-north-star-2026-09-05`
+**Local tracking issue:** #227
+**Product plan:** [Unified delivery](docs/product/2026-09-05-sellable-app-alignment.md)
+
+## Objective and scope
+
+Save Mike's approved clean interface direction in both active repositories and reconcile the documents read at session start. The existing mobile app is the product; MIRA is the assistant; infrastructure supports customer outcomes. This slice changes product documentation only.
+
+## Affected files and approach
+
+- Shared `NORTH_STAR.md` and `docs/product/2026-09-05-sellable-app-alignment.md` in both repos.
+- README and agent product summaries; preserve runtime safety/provider/release constraints.
+- MIRA strategy/project brief and decision-history snapshots; wiki continuity and index.
+- factorylm session memory; retain the previous execution plan below as historical context.
+
+## Execution checklist
+
+- [x] Inspect clean isolated checkout, current main, open PR filenames, and durable claim.
+- [x] Write shared product direction, delivery sequence, and repository responsibility.
+- [x] Reconcile entry-point priorities and preserve historical context without changing runtime rules.
+- [x] Verify scoped diff, mirror equality, links, and available repository checks; limitations below.
+- Publication task: commit and publish paired branches, open review PRs, and record exact results in the linked tracking issues.
+- [ ] Obtain required exact-commit review before merge readiness; merge/deploy remain separate gates.
+
+## Risks and verification
+
+Main risk: a future session mistakes product priority for permission to bypass a runtime gate or start a competing app. The documents distinguish those boundaries explicitly. Check mirrored content, unchanged protected policy sections, markdown links, scope, and `git diff --check`. Run the applicable available repository checks and report missing dependencies honestly; documentation checks do not prove app behavior.
+
+## Verification result for this documentation slice
+
+Staged diff/whitespace, identical mirrored content, new relative links, historical wording preservation, and unchanged protected policy sections passed. A limited added-line credential-pattern check found no matches; this is not a substitute for gitleaks. The MIRA pre-commit hook completed with gitleaks skipped because the binary is unavailable. FactoryLM core and plc-modbus pytest commands were attempted but could not start because pytest is not installed. The required adversarial lane needs unavailable `gh` and `codex` CLIs; review remains pending. No runtime or deployment success is claimed. Exact commits, CI, and publication outcomes are recorded on the paired issues/PRs.
+
+## Rollback
+
+Before merge, close or revise these isolated documentation PRs. After an approved merge, revert the documentation commit through the normal review path. Historical source text remains in Git and MIRA's decision-history snapshots. No runtime, data migration, installed app, or environment changes require rollback in this slice.
+
+---
+
+## Previous execution plan — preserved historical context
+
+The plan below belongs to an earlier workstream. Its status and priority must be refreshed; it does not supersede the approved north star or authorize a new action.
+
 # PLAN: MES Core — Week 2 (Modbus Machine State Reader)
 
 **Branch:** `feat/mes-week2-state-reader`
