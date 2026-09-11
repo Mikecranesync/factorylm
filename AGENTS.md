@@ -1,6 +1,6 @@
 # AGENTS.md — Instructions for AI Agents Working in This Repo
 
-**Last Updated:** 2026-02-12
+**Last Updated:** 2026-09-10
 
 ---
 
@@ -72,6 +72,8 @@ When you change something, update:
 - `docs/Observability.md` if you change tracing/logging
 - `MEMORY.md` with a session log entry
 
+For **any user-facing UI work**, read and follow `docs/ux/FACTORYLM_UI_DESIGN_POLICY.md` before editing. Treat it as the canonical design/anti-AI-slop policy.
+
 ---
 
 ## Step 4: Know the Key Files
@@ -81,6 +83,7 @@ When you change something, update:
 | `README.md` | THE VISION — 4-layer stack, routing, philosophy | Always, first |
 | `CLAUDE.md` | Quick reference for Claude agents | Auto-loaded |
 | `AGENTS.md` | This file — rules for all AI agents | Always |
+| `docs/ux/FACTORYLM_UI_DESIGN_POLICY.md` | Canonical FactoryLM UI design + anti-AI-slop policy | Before any user-facing UI work |
 | `docs/Architecture.md` | Directory map, maturity table, entrypoints, refactor log | When exploring the repo |
 | `docs/Config.md` | Env vars, Doppler layout, per-service config | When touching config |
 | `docs/Observability.md` | Axiom (logs) + Honeycomb (traces) setup | When touching observability |
